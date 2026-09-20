@@ -1,0 +1,21 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android" android:layout_width="match_parent" android:layout_height="match_parent" android:orientation="vertical">
+    <ScrollView android:layout_width="match_parent" android:layout_height="0dp" android:layout_weight="1">
+        <LinearLayout android:layout_width="match_parent" android:layout_height="wrap_content" android:orientation="vertical" android:padding="24dp">
+            <LinearLayout android:layout_width="match_parent" android:layout_height="wrap_content" android:gravity="center_vertical" android:orientation="horizontal">
+                <ImageButton android:id="@+id/pageBackButton" android:layout_width="48dp" android:layout_height="48dp" android:background="?android:attr/selectableItemBackgroundBorderless" android:contentDescription="Back" android:padding="12dp" android:src="@drawable/ic_back" />
+                <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="My Profile" android:textColor="@color/brand_blue" android:textSize="28sp" android:textStyle="bold" />
+            </LinearLayout>
+            <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:layout_marginTop="24dp" android:text="Full name" android:textStyle="bold" />
+            <EditText android:id="@+id/nameInput" android:layout_width="match_parent" android:layout_height="wrap_content" android:layout_marginTop="8dp" android:inputType="textPersonName" />
+            <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:layout_marginTop="16dp" android:text="Email" android:textStyle="bold" />
+            <EditText android:id="@+id/emailInput" android:layout_width="match_parent" android:layout_height="wrap_content" android:layout_marginTop="8dp" android:inputType="textEmailAddress" />
+            <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:layout_marginTop="16dp" android:text="Phone" android:textStyle="bold" />
+            <EditText android:id="@+id/phoneInput" android:layout_width="match_parent" android:layout_height="wrap_content" android:layout_marginTop="8dp" android:inputType="phone" />
+            <Button android:id="@+id/saveButton" android:layout_width="match_parent" android:layout_height="wrap_content" android:layout_marginTop="24dp" android:text="Save profile" />
+            <Button android:id="@+id/deactivateButton" android:layout_width="match_parent" android:layout_height="wrap_content" android:layout_marginTop="8dp" android:text="Request account deactivation" />
+            <TextView android:id="@+id/feedbackText" android:layout_width="match_parent" android:layout_height="wrap_content" android:layout_marginTop="18dp" android:background="@drawable/status_panel" android:padding="16dp" android:textSize="15sp" android:visibility="gone" />
+        </LinearLayout>
+    </ScrollView>
+    <include layout="@layout/view_bottom_navigation" />
+</LinearLayout>

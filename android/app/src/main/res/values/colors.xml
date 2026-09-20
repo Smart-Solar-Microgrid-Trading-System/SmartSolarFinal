@@ -1,0 +1,7 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <color name="brand_blue">#1266B5</color>
+    <color name="text_secondary">#526173</color>
+    <color name="status_success">#087B4A</color>
+    <color name="status_error">#B42318</color>
+</resources>

@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="utf-8"?>
+<ScrollView xmlns:android="http://schemas.android.com/apk/res/android" android:layout_width="match_parent" android:layout_height="match_parent" android:fillViewport="true">
+    <LinearLayout android:layout_width="match_parent" android:layout_height="match_parent" android:orientation="vertical" android:padding="24dp">
+        <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="Welcome" android:textColor="@color/brand_blue" android:textSize="28sp" android:textStyle="bold" />
+        <TextView android:layout_width="match_parent" android:layout_height="wrap_content" android:layout_marginTop="8dp" android:text="Sign in as a Prosumer or Grid Operator." android:textColor="@color/text_secondary" />
+        <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:layout_marginTop="32dp" android:text="NIC or username" android:textStyle="bold" />
+        <EditText android:id="@+id/identifierInput" android:layout_width="match_parent" android:layout_height="wrap_content" android:layout_marginTop="8dp" android:inputType="text" android:singleLine="true" />
+        <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:layout_marginTop="18dp" android:text="Password" android:textStyle="bold" />
+        <EditText android:id="@+id/passwordInput" android:layout_width="match_parent" android:layout_height="wrap_content" android:layout_marginTop="8dp" android:inputType="textPassword" android:singleLine="true" />
+        <Button android:id="@+id/loginButton" android:layout_width="match_parent" android:layout_height="wrap_content" android:layout_marginTop="24dp" android:text="Sign in" />
+        <TextView android:id="@+id/feedbackText" android:layout_width="match_parent" android:layout_height="wrap_content" android:layout_marginTop="18dp" android:background="@drawable/status_panel" android:padding="16dp" android:textSize="15sp" android:visibility="gone" />
+        <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:layout_marginTop="32dp" android:text="New solar Prosumer?" android:textStyle="bold" />
+        <Button android:id="@+id/registerButton" android:layout_width="match_parent" android:layout_height="wrap_content" android:layout_marginTop="8dp" android:text="Register as Prosumer" />
+    </LinearLayout>
+</ScrollView>
