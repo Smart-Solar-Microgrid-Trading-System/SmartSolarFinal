@@ -1,0 +1,17 @@
+{
+  "MongoDB": {
+    "ConnectionString": "mongodb://127.0.0.1:27017",
+    "DatabaseName": "SmartSolarMicrogrid"
+  },
+  "Jwt": {
+    "Secret": "replace-with-a-unique-IIS-demo-secret-at-least-32-characters-long",
+    "Issuer": "SmartSolarMicrogrid.Api",
+    "Audience": "SmartSolarMicrogrid.Clients"
+  },
+  "SeedBackoffice": {
+    "Username": "admin",
+    "Password": "replace-with-a-unique-IIS-demo-password",
+    "FullName": "Demo Backoffice",
+    "Email": "admin@local.test"
+  }
+}

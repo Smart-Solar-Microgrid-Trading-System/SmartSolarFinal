@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="utf-8"?>
+<Project>
+  <PropertyGroup>
+    <WebPublishMethod>FileSystem</WebPublishMethod>
+    <PublishProvider>FileSystem</PublishProvider>
+    <_TargetId>Folder</_TargetId>
+    <LastUsedBuildConfiguration>Release</LastUsedBuildConfiguration>
+    <LastUsedPlatform>Any CPU</LastUsedPlatform>
+    <PublishUrl>C:\Path\To\Your\Deployment\Folder\</PublishUrl>
+    <PublishDir>C:\Path\To\Your\Deployment\Folder\</PublishDir>
+    <DeleteExistingFiles>false</DeleteExistingFiles>
+    <SelfContained>false</SelfContained>
+    <LaunchSiteAfterPublish>false</LaunchSiteAfterPublish>
+  </PropertyGroup>
+</Project>
