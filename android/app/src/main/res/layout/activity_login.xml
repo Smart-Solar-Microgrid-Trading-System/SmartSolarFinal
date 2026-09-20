@@ -11,5 +11,6 @@
         <TextView android:id="@+id/feedbackText" android:layout_width="match_parent" android:layout_height="wrap_content" android:layout_marginTop="18dp" android:background="@drawable/status_panel" android:padding="16dp" android:textSize="15sp" android:visibility="gone" />
         <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:layout_marginTop="32dp" android:text="New solar Prosumer?" android:textStyle="bold" />
         <Button android:id="@+id/registerButton" android:layout_width="match_parent" android:layout_height="wrap_content" android:layout_marginTop="8dp" android:text="Register as Prosumer" />
+        <TextView android:id="@+id/settingsButton" android:layout_width="wrap_content" android:layout_height="wrap_content" android:layout_marginTop="32dp" android:layout_gravity="center_horizontal" android:text="Server Settings" android:textColor="@color/brand_blue" android:textStyle="bold" android:padding="8dp" />
     </LinearLayout>
 </ScrollView>

@@ -27,6 +27,11 @@ class LoginActivity : Activity() {
         findViewById<Button>(R.id.registerButton).setOnClickListener {
             startActivity(Intent(this, ProsumerRegistrationActivity::class.java))
         }
+        findViewById<TextView>(R.id.settingsButton).setOnClickListener {
+            startActivity(Intent(this, ServerSettingsActivity::class.java).apply {
+                putExtra("opened_from_home", true)
+            })
+        }
     }
 
     private fun login() {
