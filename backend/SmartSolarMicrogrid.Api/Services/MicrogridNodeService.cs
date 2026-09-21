@@ -7,10 +7,12 @@ namespace SmartSolarMicrogrid.Api.Services;
 public sealed class MicrogridNodeService
 {
     private readonly IMongoCollection<MicrogridNode> _nodes;
+    private readonly IMongoCollection<EnergyBookingSlot> _slots;
 
     public MicrogridNodeService(IMongoDatabase database)
     {
         _nodes = database.GetCollection<MicrogridNode>("MicrogridNodes");
+         _slots = database.GetCollection<EnergyBookingSlot>("EnergyBookingSlots");
     }
 
     public async Task<IReadOnlyList<MicrogridNodeResponse>> GetActiveNodesAsync()

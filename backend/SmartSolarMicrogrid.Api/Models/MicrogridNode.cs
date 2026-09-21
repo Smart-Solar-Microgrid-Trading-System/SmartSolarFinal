@@ -9,6 +9,8 @@ public sealed class MicrogridNode
 
     public string Name { get; set; } = null!;
 
+    public string Address { get; set; } = null!;
+
     public double Latitude { get; set; }
 
     public double Longitude { get; set; }
@@ -18,4 +20,8 @@ public sealed class MicrogridNode
     public int AvailableBatterySlots { get; set; }
 
     public bool IsActive { get; set; }
+    
+    public DateTime CreatedAt { get; set; }
+
+    public DateTime UpdatedAt { get; set; }
 }
