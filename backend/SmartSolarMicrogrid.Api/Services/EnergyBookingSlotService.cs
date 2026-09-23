@@ -15,7 +15,7 @@ public sealed class EnergyBookingSlotService
         _nodes = database.GetCollection<MicrogridNode>("MicrogridNodes");
     }
 
-   /* public async Task<IReadOnlyList<EnergyBookingSlotResponse>>
+    public async Task<IReadOnlyList<EnergyBookingSlotResponse>>
         GetSlotsAsync(string stationId)
     {
         var slots = await _slots
@@ -32,55 +32,7 @@ public sealed class EnergyBookingSlotService
             Status = slot.Status,
             IsActive = slot.IsActive
         }).ToList();
-    }*/
-    public async Task<IReadOnlyList<MicrogridNodeResponse>> GetActiveNodesAsync()
-    {
-        var nodes = await _nodes
-            .Find(node => node.IsActive)
-            .SortBy(node => node.Name)
-            .ToListAsync();
-
-        var result = new List<MicrogridNodeResponse>();
-
-        foreach (var node in nodes)
-        {
-            var availableSlots = await _slots.CountDocumentsAsync(
-                slot =>
-                    slot.StationId == node.Id &&
-                    slot.IsActive &&
-                    slot.Status == SlotStatus.Available
-            );
-
-            result.Add(new MicrogridNodeResponse
-            {
-                Id = node.Id,
-                Name = node.Name,
-                Latitude = node.Latitude,
-                Longitude = node.Longitude,
-                CapacityKw = node.CapacityKw,
-                AvailableSlots = (int)availableSlots
-            });
-        }
-
-        return result;
     }
-
-    private async Task UpdateAvailableBatterySlotsAsync(string stationId)
-{
-    var availableSlots = await _slots.CountDocumentsAsync(
-        slot =>
-            slot.StationId == stationId &&
-            slot.IsActive &&
-            slot.Status == SlotStatus.Available
-    );
-
-    var update = Builders<MicrogridNode>.Update
-        .Set(node => node.AvailableBatterySlots, (int)availableSlots);
-
-    await _nodes.UpdateOneAsync(
-        node => node.Id == stationId,
-        update
-    );
-}
+   
 
 }

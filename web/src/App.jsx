@@ -7,6 +7,10 @@ import { LoginPage } from "@/pages/login-page";
 import { MicrogridNodesPage } from "@/pages/microgrid-nodes-page";
 import { ProsumerManagementPage } from "@/pages/prosumer-management-page";
 import { UserManagementPage } from "@/pages/user-management-page";
+import { NodeCreatePage } from "@/pages/NodeCreatePage";
+import { NodeEditPage } from "@/pages/NodeEditPage";
+import { NodeDetailsPage } from "@/pages/NodeDetailsPage";
+import { NodeMapPage } from "@/pages/NodeMap";
 
 export default function App() {
   return (
