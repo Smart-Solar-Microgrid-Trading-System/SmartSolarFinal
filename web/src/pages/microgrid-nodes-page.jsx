@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { MapPin, RadioTower, RefreshCw } from "lucide-react";
+import { MapPin, RadioTower, RefreshCw,Map } from "lucide-react";
 
 import { FeedbackAlert } from "@/components/feedback-alert";
 import { Badge } from "@/components/ui/badge";
@@ -50,8 +50,8 @@ export function MicrogridNodesPage() {
                   <TableCell className="font-medium">{node.name}</TableCell>
                   <TableCell><span className="flex items-center gap-1.5 text-slate-600"><MapPin size={15} className="text-brand-600" />{node.latitude.toFixed(4)}, {node.longitude.toFixed(4)}</span></TableCell>
                   <TableCell>{node.capacityKw} kW</TableCell>
-                  <TableCell>{node.availableBatterySlots}</TableCell>
-                    <TableCell><Badge variant="secondary">Active</Badge></TableCell>
+                    <TableCell>{node.availableBatterySlots}</TableCell>
+                    <TableCell><Badge variant="secondary">{node.isActive ? "Active" : "Inactive"}</Badge></TableCell>
                     <TableCell>
                         <Button variant="outline" size="sm" asChild>
                             <Link to={`/nodes/${node.id}`}> View</Link>
@@ -62,7 +62,13 @@ export function MicrogridNodesPage() {
             </div>
           )}
         </CardContent>
-      </Card>
+          </Card>
+          <Button variant="outline" asChild>
+              <Link to={`/nodes/map`}>
+                  <Map size={16} />
+                  View on Map
+              </Link>
+          </Button>
           <Button asChild>
               <Link to="/nodes/new">
                   Add New Node

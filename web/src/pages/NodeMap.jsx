@@ -1,4 +1,5 @@
 import { useEffect, useRef, useState } from "react";
+import { useSearchParams } from "react-router-dom";
 import { ArrowLeft, MapPin, RefreshCw } from "lucide-react";
 import { Link } from "react-router-dom";
 import { FeedbackAlert } from "@/components/feedback-alert";
@@ -15,6 +16,9 @@ export function NodeMapPage() {
     const googleMapRef = useRef(null);
     const markersRef = useRef([]);
 
+    const [searchParams] = useSearchParams();
+    const selectedNodeId = searchParams.get("nodeId");
+
     const [nodes, setNodes] = useState([]);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState("");
@@ -26,6 +30,11 @@ export function NodeMapPage() {
         try {
             const result = await api.getNodes(session.token);
             setNodes(result);
+            const nodesToDisplay = selectedNodeId
+                ? result.filter((node) => node.id === selectedNodeId)
+                : result;
+
+            setNodes(nodesToDisplay);
         } catch (requestError) {
             setError(
                 requestError.message || "Failed to load microgrid nodes."

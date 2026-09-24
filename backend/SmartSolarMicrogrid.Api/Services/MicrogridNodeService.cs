@@ -7,10 +7,19 @@ namespace SmartSolarMicrogrid.Api.Services;
 public sealed class MicrogridNodeService
 {
     private readonly IMongoCollection<MicrogridNode> _nodes;
+    private readonly IMongoCollection<Reservation> _reservations;
 
     public MicrogridNodeService(IMongoDatabase database)
     {
         _nodes = database.GetCollection<MicrogridNode>("MicrogridNodes");
+        _reservations = database.GetCollection<Reservation>("Reservations");
+    }
+
+    public async Task<List<MicrogridNodeResponse>> GetAllNodesAsync()
+    {
+        var nodes = await _nodes.Find(_ => true).SortBy(node => node.Name).ToListAsync();
+
+        return nodes.Select(MapToResponse).ToList();
     }
 
     public async Task<List<MicrogridNodeResponse>> GetActiveNodesAsync()
@@ -32,7 +41,7 @@ public sealed class MicrogridNodeService
 
     public async Task<MicrogridNodeResponse?> GetNodeByIdAsync(string id)
     {
-        var node = await _nodes .Find(x => x.Id == id && x.IsActive).FirstOrDefaultAsync();
+        var node = await _nodes .Find(x => x.Id == id).FirstOrDefaultAsync();
 
         return node == null ? null : MapToResponse(node);
     }
@@ -72,7 +81,7 @@ public sealed class MicrogridNodeService
         ValidateRequest( request.Name, request.Address,request.Latitude,request.Longitude,request.CapacityKw);
 
         var existingNode = await _nodes .Find(x => x.Id == id && x.IsActive) .FirstOrDefaultAsync();
-
+        //check if the node exists 
         if (existingNode == null) { return null; }
 
         existingNode.Name = request.Name.Trim();
@@ -89,9 +98,39 @@ public sealed class MicrogridNodeService
 
     public async Task<bool> DeactivateNodeAsync(string id)
     {
-        var update = Builders<MicrogridNode>.Update.Set(x => x.IsActive, false).Set(x => x.UpdatedAt, DateTime.UtcNow);
+        // Check that the node exists and is active
+        var node = await _nodes
+            .Find(n => n.Id == id && n.IsActive)
+            .FirstOrDefaultAsync();
 
-        var result = await _nodes.UpdateOneAsync( x => x.Id == id && x.IsActive, update);
+        if (node == null)
+        {
+            throw new InvalidOperationException(
+                "Microgrid node was not found or is already inactive.");
+        }
+
+        //Check for active reservations
+        var hasActiveReservations = await _reservations
+            .Find(r =>
+                r.MicrogridNodeId == id &&
+                r.Status == ReservationStatuses.Approved)
+            .AnyAsync();
+
+        // Block deactivation if reservations exist
+        if (hasActiveReservations)
+        {
+            throw new InvalidOperationException(
+                "This node cannot be deactivated because it has active energy reservations.");
+        }
+
+        //Deactivate the node
+        var update = Builders<MicrogridNode>.Update
+            .Set(x => x.IsActive, false)
+            .Set(x => x.UpdatedAt, DateTime.UtcNow);
+
+        var result = await _nodes.UpdateOneAsync(
+            x => x.Id == id && x.IsActive,
+            update);
 
         return result.ModifiedCount > 0;
     }

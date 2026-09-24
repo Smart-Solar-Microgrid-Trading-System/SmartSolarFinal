@@ -15,7 +15,11 @@ public sealed class MicrogridNodesController : ControllerBase
     public MicrogridNodesController(MicrogridNodeService nodeService) => _nodeService = nodeService;
 
     [HttpGet]
-    public async Task<IActionResult> GetActiveNodes() => Ok(await _nodeService.GetActiveNodesAsync());
+   // public async Task<IActionResult> GetActiveNodes() => Ok(await _nodeService.GetActiveNodesAsync());
+    public async Task<ActionResult<List<MicrogridNodeResponse>>> GetNodes()
+    {
+        return Ok(await _nodeService.GetAllNodesAsync());
+    }
 
     [HttpGet("{id}")]
     public async Task<ActionResult<MicrogridNodeResponse>> GetNode(string id)
@@ -65,16 +69,27 @@ public sealed class MicrogridNodesController : ControllerBase
         }
     }
 
-    [HttpDelete("{id}")]
-    public async Task<IActionResult> DeleteNode(string id)
+    [HttpPatch("{id}/deactivate")]
+    public async Task<IActionResult> DeactivateNode(string id)
     {
-        var deleted = await _nodeService.DeactivateNodeAsync(id);
-
-        if (!deleted)
+        try
         {
-            return NotFound(new{  message = "Microgrid node not found." });
-        }
+            var deactivated =
+                await _nodeService.DeactivateNodeAsync(id);
 
-        return NoContent();
+            if (!deactivated)
+            {
+                return NotFound(new
+                { message = "Microgrid node was not found." });
+            }
+
+            return Ok(new
+            { message = "Microgrid node deactivated successfully." });
+        }
+        catch (InvalidOperationException ex)
+        {
+            return BadRequest(new
+            { message = ex.Message});
+        }
     }
 }

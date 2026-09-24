@@ -1,21 +1,22 @@
 import { useEffect, useState } from "react";
-import { ArrowLeft, Edit, MapPin, RadioTower, Battery,Zap,} from "lucide-react";
-import { Link, useParams } from "react-router-dom";
+import { ArrowLeft, Edit, MapPin, RadioTower, Battery,Zap,Map} from "lucide-react";
+import { Link, useParams, useNavigate } from "react-router-dom";
 
 import { FeedbackAlert } from "@/components/feedback-alert";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardHeader, CardTitle,} from "@/components/ui/card";
+import { Card, CardContent, CardHeader, CardTitle} from "@/components/ui/card";
 import { api } from "@/lib/api";
 import { useAuth } from "@/lib/auth-context";
 
 export function NodeDetailsPage() {
     const { session } = useAuth();
     const { id } = useParams();
-
+    const navigate = useNavigate();
     const [node, setNode] = useState(null);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState("");
+    const [deactivating, setDeactivating] = useState(false);
 
     useEffect(() => {
         async function loadNode() {
@@ -36,6 +37,38 @@ export function NodeDetailsPage() {
 
         loadNode();
     }, [id, session.token]);
+
+    async function handleDeactivate() {
+        if (!node) {
+            return;
+        }
+
+        const confirmed = window.confirm(
+            `Are you sure you want to deactivate "${node.name}"?\n\n` +
+            "This node will no longer be available for active operations."
+        );
+
+        if (!confirmed) {
+            return;
+        }
+
+        setDeactivating(true);
+        setError("");
+
+        try {
+            await api.deactivateNode(session.token, node.id);
+
+            navigate("/nodes");
+        } catch (requestError) {
+            setError(
+                requestError.message ||
+                "Failed to deactivate the node."
+            );
+        } finally {
+            setDeactivating(false);
+        }
+    }
+
 
     if (loading) {
         return (
@@ -268,6 +301,25 @@ export function NodeDetailsPage() {
                     </dl>
                 </CardContent>
             </Card>
+            {/* View on Map */}
+            <Button variant="outline" asChild>
+                <Link to={`/nodes/map?nodeId=${encodeURIComponent(node.id)}`}>
+                    <Map size={16} />
+                    View on Map
+                </Link>
+            </Button>
+            {/* Deactivate Button */}
+            {isActive && (
+                <Button
+                    variant="destructive"
+                    onClick={handleDeactivate}
+                    disabled={deactivating}
+                >
+                    {deactivating
+                        ? "Deactivating..."
+                        : "Deactivate"}
+                </Button>
+            )}
         </section>
     );
 }
