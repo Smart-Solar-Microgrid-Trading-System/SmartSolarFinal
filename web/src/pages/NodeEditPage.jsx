@@ -21,6 +21,7 @@ export function NodeEditPage() {
         longitude: "",
         capacityKw: "",
         availableBatterySlots: "",
+        address: "",
     });
 
     const [loading, setLoading] = useState(true);
@@ -115,6 +116,7 @@ export function NodeEditPage() {
         try {
             await api.updateNode(session.token, id, {
                 name: form.name.trim(),
+                address: form.address.trim(),
                 latitude,
                 longitude,
                 capacityKw,
@@ -179,6 +181,18 @@ export function NodeEditPage() {
                                 id="name"
                                 name="name"
                                 value={form.name}
+                                onChange={handleChange}
+                                disabled={saving}
+                            />
+                        </div>
+
+                        <div className="space-y-2">
+                            <Label htmlFor="address">Address</Label>
+
+                            <Input
+                                id="address"
+                                name="address"
+                                value={form.address}
                                 onChange={handleChange}
                                 disabled={saving}
                             />

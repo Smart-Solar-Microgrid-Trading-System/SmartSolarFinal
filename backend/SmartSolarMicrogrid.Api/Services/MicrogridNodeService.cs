@@ -29,7 +29,6 @@ public sealed class MicrogridNodeService
             AvailableBatterySlots = node.AvailableBatterySlots
         }).ToList();
     }
-    }
 
     public async Task<MicrogridNodeResponse?> GetNodeByIdAsync(string id)
     {

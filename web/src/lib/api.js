@@ -55,73 +55,22 @@ export const api = {
     method: "PATCH",
     body: { accountStatus }
   }),
+  getNodes: (token) => request("/api/nodes", { token }),
 
-        async getNodes(token) {
-            const response = await fetch("/api/nodes", { headers: { Authorization: `Bearer ${token}`,},});
+  getNode: (token, id) => request(`/api/nodes/${ encodeURIComponent(id)}`, { token }),
 
-            if (!response.ok) {
-                throw new Error(await getErrorMessage(response, "Failed to load nodes." );
-            }
+  createNode: (token, data) => request("/api/nodes", { token, method: "POST", body: data }),
 
-            return response.json();
-        },
+  updateNode: (token, id, data) => request(`/api/nodes/${ encodeURIComponent(id) } `, {
+    token,
+    method: "PUT",
+    body: data
+  }),
 
-        async getNode(token, id) {
-            const response = await fetch(`/api/nodes/${id}`, { headers: { Authorization: `Bearer ${token}`,}});
+  deleteNode: (token, id) => request(`/ api / nodes / ${ encodeURIComponent(id) } `, {
+    token,
+    method: "DELETE"
+  }),
 
-            if (!response.ok) {
-                throw new Error(await getErrorMessage( response, "Failed to load the node." ));
-            }
-
-            return response.json();
-        },
-
-        async createNode(token, data) {
-            const response = await fetch("/api/nodes", {
-                method: "POST",
-
-                headers: {  "Content-Type": "application/json", Authorization: `Bearer ${token}`,},
-
-                body: JSON.stringify(data),
-            });
-
-            if (!response.ok) {
-                throw new Error(  await getErrorMessage( response,"Failed to create the node." ));
-            }
-
-            return response.json();
-        },
-
-        async updateNode(token, id, data) {
-            const response = await fetch(`/api/nodes/${id}`, {
-                method: "PUT",
-                headers: { "Content-Type": "application/json", Authorization: `Bearer ${token}`,},
-
-                body: JSON.stringify(data),
-            });
-
-            if (!response.ok) {
-                throw new Error( await getErrorMessage( response, "Failed to update the node."));
-            }
-
-            return response.json();
-        },
-
-        async deleteNode(token, id) {
-            const response = await fetch(`/api/nodes/${id}`, {
-                method: "DELETE",
-                headers: {Authorization: `Bearer ${token}`, },
-            });
-
-            if (!response.ok) {
-                throw new Error(  await getErrorMessage( response, "Failed to deactivate the node." ) );
-            }
-        },
-    };
-
-    async function getErrorMessage(response, fallback) {
-        try { const body = await response.json();
-
-return body.message || fallback; } catch { return fallback;}
 
 };

@@ -20,6 +20,7 @@ export function NodeForm() {
         longitude: "",
         capacityKw: "",
         availableBatterySlots: "",
+        address: "",
     });
 
     const [saving, setSaving] = useState(false);
@@ -100,6 +101,7 @@ export function NodeForm() {
         try {
             await api.createNode(session.token, {
                 name: form.name.trim(),
+                address:form.address.trim(),
                 latitude,
                 longitude,
                 capacityKw,
@@ -156,6 +158,19 @@ export function NodeForm() {
                                 value={form.name}
                                 onChange={handleChange}
                                 placeholder="Example: Colombo Central"
+                                disabled={saving}
+                            />
+                        </div>
+
+                        <div className="space-y-2">
+                            <Label htmlFor="address">Address</Label>
+
+                            <Input
+                                id="address"
+                                name="address"
+                                value={form.address}
+                                onChange={handleChange}
+                                placeholder="Example: No32, Main Street, Colombo 10"
                                 disabled={saving}
                             />
                         </div>
