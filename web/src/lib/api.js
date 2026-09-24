@@ -1,5 +1,5 @@
 const configuredBaseUrl = import.meta.env.VITE_API_BASE_URL?.trim();
-const sameHostApiBaseUrl = `${window.location.protocol}//${window.location.hostname}:5000`;
+const sameHostApiBaseUrl = `${window.location.protocol}//${window.location.hostname}:5080`;
 const baseUrl = (configuredBaseUrl || sameHostApiBaseUrl).replace(/\/$/, "");
 
 async function request(path, { token, body, method = "GET" } = {}) {
@@ -13,7 +13,9 @@ async function request(path, { token, body, method = "GET" } = {}) {
   });
 
   const contentType = response.headers.get("content-type") || "";
-  const payload = contentType.includes("json") ? await response.json() : null;
+  const payload = contentType.includes("json")
+    ? await response.json()
+    : null;
 
   if (!response.ok) {
     throw new ApiError(getErrorMessage(payload), response.status);
@@ -23,12 +25,17 @@ async function request(path, { token, body, method = "GET" } = {}) {
 }
 
 function getErrorMessage(payload) {
-  if (payload?.error) return payload.error;
+  if (payload?.error) {
+    return payload.error;
+  }
 
   if (payload?.errors && typeof payload.errors === "object") {
     const [field, messages] = Object.entries(payload.errors)[0] || [];
     const message = Array.isArray(messages) ? messages[0] : null;
-    if (field && message) return `${field}: ${message}`;
+
+    if (field && message) {
+      return `${field}: ${message}`;
+    }
   }
 
   return payload?.title || "The request could not be completed.";
