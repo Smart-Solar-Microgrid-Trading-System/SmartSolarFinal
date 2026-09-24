@@ -8,13 +8,13 @@ public class BookingSlotService
 {
     private readonly IMongoCollection<EnergyBookingSlot> _slots;
     private readonly IMongoCollection<MicrogridNode> _nodes;
-    private readonly IMongoCollection<Reservation> _reservations;
+    private readonly IMongoCollection<EnergyReservation> _reservations;
 
     public BookingSlotService(IMongoDatabase database)
     {
         _slots = database.GetCollection<EnergyBookingSlot>("EnergyBookingSlots");
         _nodes = database.GetCollection<MicrogridNode>("MicrogridNodes");
-        _reservations = database.GetCollection<Reservation>("Reservations");
+        _reservations = database.GetCollection<EnergyReservation>("EnergyReservations");
     }
 
     public async Task<IReadOnlyList<BookingSlotResponse>> GetAllAsync()
@@ -61,14 +61,11 @@ public class BookingSlotService
         };
     }
 
-    public async Task<IReadOnlyList<BookingSlotResponse>> GetByNodeAsync(string nodeId, string? status = null)
+    public async Task<IReadOnlyList<BookingSlotResponse>> GetByNodeAsync(string nodeId)
     {
-        var filter = Builders<EnergyBookingSlot>.Filter.Where(slot => slot.NodeId == nodeId && slot.IsActive);
-        if (!string.IsNullOrWhiteSpace(status))
-            filter &= Builders<EnergyBookingSlot>.Filter.Eq(slot => slot.Status, status.Trim());
-
+        // Get active slots for one node
         var slots = await _slots
-            .Find(filter)
+            .Find(slot => slot.NodeId == nodeId && slot.IsActive)
             .SortBy(slot => slot.StartTime)
             .ToListAsync();
 
@@ -171,7 +168,7 @@ public class BookingSlotService
 
         var hasReservation = await _reservations
             .Find(reservation =>
-                reservation.BookingSlotId == id &&
+                reservation.SlotId == id &&
                 (reservation.Status == ReservationStatuses.Pending ||
                  reservation.Status == ReservationStatuses.Approved))
             .AnyAsync();
@@ -233,7 +230,7 @@ public class BookingSlotService
 
         var hasReservation = await _reservations
             .Find(reservation =>
-                reservation.BookingSlotId == id &&
+                reservation.SlotId == id &&
                 (reservation.Status == ReservationStatuses.Pending ||
                  reservation.Status == ReservationStatuses.Approved))
             .AnyAsync();
