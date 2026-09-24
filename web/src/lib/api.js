@@ -51,6 +51,7 @@ export const api = {
   getPendingProsumers: (token) => request("/api/prosumers?status=Pending", { token }),
   getNodes: (token) => request("/api/nodes", { token }),
   getAvailableSlots: (token, nodeId) => request(`/api/nodes/${encodeURIComponent(nodeId)}/slots?status=Available`, { token }),
+  getReservations: (token) => request("/api/reservations", { token }),
   createReservation: (token, payload) => request("/api/reservations", { token, method: "POST", body: payload }),
   getReservation: (token, reservationId) => request(`/api/reservations/${encodeURIComponent(reservationId)}`, { token }),
   updateReservation: (token, reservationId, payload) => request(`/api/reservations/${encodeURIComponent(reservationId)}`, {

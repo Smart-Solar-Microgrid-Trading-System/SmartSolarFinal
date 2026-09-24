@@ -36,6 +36,13 @@ public sealed class ReservationsController : ControllerBase
             : ToFailureResult(result);
     }
 
+    [HttpGet]
+    public async Task<IActionResult> GetAll(CancellationToken cancellationToken)
+    {
+        // List only reservations owned by the authenticated Prosumer.
+        return Ok(await _reservationService.GetAllByProsumerAsync(GetCurrentUserId(), cancellationToken));
+    }
+
     [HttpGet("{id}")]
     public async Task<IActionResult> GetById(string id, CancellationToken cancellationToken)
     {

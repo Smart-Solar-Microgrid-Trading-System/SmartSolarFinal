@@ -117,6 +117,19 @@ public sealed class ReservationService
             : ReservationResult.Success(ToResponse(reservation));
     }
 
+    public async Task<IReadOnlyList<ReservationResponse>> GetAllByProsumerAsync(
+        string prosumerId,
+        CancellationToken cancellationToken = default)
+    {
+        // Return only the authenticated Prosumer's reservations, newest first.
+        var reservations = await _reservations
+            .Find(item => item.ProsumerId == prosumerId)
+            .SortByDescending(item => item.CreatedAtUtc)
+            .ToListAsync(cancellationToken);
+
+        return reservations.Select(ToResponse).ToList();
+    }
+
     public async Task<ReservationResult> UpdateAsync(
         string reservationId,
         string prosumerId,

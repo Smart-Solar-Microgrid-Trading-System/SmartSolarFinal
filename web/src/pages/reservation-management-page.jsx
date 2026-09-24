@@ -1,8 +1,9 @@
 import { useEffect, useMemo, useState } from "react";
-import { ArrowRight, BatteryCharging, CalendarDays, Check, Clock3, MapPin, RadioTower, ShieldCheck, Sparkles, Zap } from "lucide-react";
+import { ArrowRight, BatteryCharging, CalendarDays, Check, Clock3, Eye, MapPin, RadioTower, RefreshCw, ShieldCheck, Sparkles, Zap } from "lucide-react";
 import { Link } from "react-router-dom";
 
 import { FeedbackAlert } from "@/components/feedback-alert";
+import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
@@ -29,11 +30,13 @@ function ReservationStepper({ current }) {
 export function ReservationManagementPage() {
   const { session } = useAuth();
   const [nodes, setNodes] = useState([]);
+  const [reservations, setReservations] = useState([]);
   const [slots, setSlots] = useState([]);
   const [selectedNodeId, setSelectedNodeId] = useState("");
   const [selectedSlotId, setSelectedSlotId] = useState("");
   const [energyAmountKwh, setEnergyAmountKwh] = useState("20");
   const [loadingNodes, setLoadingNodes] = useState(true);
+  const [loadingReservations, setLoadingReservations] = useState(true);
   const [loadingSlots, setLoadingSlots] = useState(false);
   const [submitting, setSubmitting] = useState(false);
   const [reviewOpen, setReviewOpen] = useState(false);
@@ -55,7 +58,15 @@ export function ReservationManagementPage() {
     finally { setLoadingNodes(false); }
   }
 
-  useEffect(() => { loadNodes(); }, []);
+  async function loadReservations() {
+    setLoadingReservations(true);
+    setError("");
+    try { setReservations(await api.getReservations(session.token)); }
+    catch (requestError) { setError(requestError.message); }
+    finally { setLoadingReservations(false); }
+  }
+
+  useEffect(() => { loadNodes(); loadReservations(); }, []);
 
   async function chooseNode(nodeId) {
     setSelectedNodeId(nodeId);
@@ -78,6 +89,7 @@ export function ReservationManagementPage() {
         bookingSlotId: selectedSlotId,
         energyAmountKwh: energy
       });
+      setReservations((current) => [created, ...current.filter((item) => item.id !== created.id)]);
       setSuccess(created);
       setReviewOpen(false);
     } catch (requestError) { setError(requestError.message); setReviewOpen(false); }
@@ -119,6 +131,18 @@ export function ReservationManagementPage() {
       <div className="relative max-w-2xl"><p className="flex items-center gap-2 text-xs font-semibold uppercase tracking-[0.2em] text-lime-300"><Sparkles size={15} /> Smart charging</p><h1 className="mt-2 text-3xl font-bold">Reserve Your Energy</h1><p className="mt-2 text-sm text-emerald-100">Choose a microgrid node, select an available time slot, and reserve the energy you need.</p></div>
     </div>
 
+    <section className="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm sm:p-6">
+      <div className="mb-4 flex flex-wrap items-center justify-between gap-3"><div><p className="text-xs font-semibold uppercase tracking-[0.18em] text-brand-600">Your activity</p><h2 className="mt-1 text-xl font-bold text-slate-900">My reservations</h2><p className="mt-1 text-sm text-slate-500">Open a previous reservation to view, modify, or cancel it.</p></div><Button variant="outline" onClick={loadReservations} disabled={loadingReservations}><RefreshCw size={16} /> Refresh</Button></div>
+      {loadingReservations ? <LoadingText text="Loading your reservations..." /> : reservations.length === 0 ? <EmptyText text="You have not created any reservations yet." /> : <div className="grid gap-3 md:grid-cols-2">{reservations.map((reservation) => {
+        const node = nodes.find((item) => item.id === reservation.microgridNodeId);
+        return <article key={reservation.id} className="rounded-xl border border-slate-200 bg-gradient-to-br from-white to-slate-50 p-4 transition hover:border-brand-200 hover:shadow-sm">
+          <div className="flex items-start justify-between gap-3"><div className="min-w-0"><p className="truncate text-xs font-medium text-slate-400">{reservation.id}</p><h3 className="mt-1 font-semibold text-slate-900">{node?.name ?? reservation.microgridNodeId}</h3></div><ReservationStatus status={reservation.status} /></div>
+          <div className="mt-4 grid grid-cols-2 gap-3 text-sm"><div><p className="text-xs text-slate-400">Scheduled</p><p className="mt-1 font-medium text-slate-700">{formatUtcDateTime(reservation.scheduledStartUtc)}</p></div><div><p className="text-xs text-slate-400">Energy</p><p className="mt-1 font-medium text-slate-700">{reservation.energyAmountKwh} kWh</p></div></div>
+          <Button asChild variant="outline" className="mt-4 w-full"><Link to={`/reservations/${reservation.id}`}><Eye size={16} /> View / modify</Link></Button>
+        </article>;
+      })}</div>}
+    </section>
+
     <div className="mx-auto max-w-4xl"><ReservationStepper current={currentStep} /></div>
     {error && <FeedbackAlert>{error}</FeedbackAlert>}
 
@@ -157,4 +181,5 @@ function SummaryRow({ label, value }) { return <div className="flex items-start 
 function SummaryItem({ icon: Icon, label, value }) { return <div className="flex gap-3"><span className="grid size-9 shrink-0 place-items-center rounded-lg bg-brand-100 text-brand-700"><Icon size={18} /></span><div><p className="text-xs text-slate-500">{label}</p><p className="break-all text-sm font-semibold text-slate-800">{value}</p></div></div>; }
 function LoadingText({ text }) { return <p className="animate-pulse text-sm text-slate-500">{text}</p>; }
 function EmptyText({ text }) { return <p className="rounded-lg border border-dashed border-slate-200 bg-slate-50 p-4 text-sm text-slate-500">{text}</p>; }
+function ReservationStatus({ status }) { const style = status === "Cancelled" ? "bg-red-100 text-red-700" : status === "Completed" ? "bg-slate-200 text-slate-700" : status === "Approved" ? "bg-emerald-100 text-emerald-700" : "bg-amber-100 text-amber-800"; return <Badge className={style}>{status}</Badge>; }
 function SunArtwork() { return <div className="relative size-36"><div className="absolute left-11 top-3 size-14 rounded-full bg-amber-300 shadow-[0_0_40px_rgba(253,224,71,0.8)]" /><div className="absolute bottom-3 left-0 right-0 h-16 skew-y-[-8deg] rounded-lg border-4 border-cyan-200 bg-cyan-500/50" /></div>; }
