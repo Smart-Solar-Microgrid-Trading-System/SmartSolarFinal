@@ -29,41 +29,11 @@ import { useAuth } from "@/lib/auth-context";
 import { cn } from "@/lib/utils";
 
 const navigation = [
-  {
-    label: "Overview",
-    to: "/",
-    icon: Grid2X2
-  },
-  {
-    label: "Users",
-    to: "/users",
-    icon: UsersRound
-  },
-  {
-    label: "Prosumers",
-    to: "/prosumers",
-    icon: SunMedium
-  },
-  {
-    label: "Microgrid Nodes",
-    to: "/nodes",
-    icon: RadioTower
-  },
-  {
-    label: "Booking Slots",
-    to: "/booking-slots",
-    icon: CalendarClock
-  },
-  {
-    label: "Reservations",
-    to: "/reservations",
-    icon: Zap
-  },
-  {
-    label: "Operations",
-    to: "/operations",
-    icon: Gauge
-  }
+  { label: "Overview", to: "/", icon: Grid2X2 },
+  { label: "Users", to: "/users", icon: UsersRound, roles: ["Backoffice"] },
+  { label: "Prosumers", to: "/prosumers", icon: SunMedium, roles: ["Backoffice"] },
+  { label: "Microgrid Nodes", to: "/nodes", icon: RadioTower },
+  { label: "Reservations", to: "/reservations", icon: CalendarDays, roles: ["Prosumer"] }
 ];
 
 function Navigation({ items }) {

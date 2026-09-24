@@ -50,120 +50,29 @@ export class ApiError extends Error {
 }
 
 export const api = {
-  login: (identifier, password) =>
-    request("/api/auth/login", {
-      method: "POST",
-      body: { identifier, password }
-    }),
-
-  getMe: (token) =>
-    request("/api/users/me", { token }),
-
-  getWebUsers: (token) =>
-    request("/api/users", { token }),
-
-  createWebUser: (token, user) =>
-    request("/api/users", {
-      token,
-      method: "POST",
-      body: user
-    }),
-
-  getProsumers: (token, status) =>
-    request(
-      `/api/prosumers${status ? `?status=${encodeURIComponent(status)}` : ""}`,
-      { token }
-    ),
-
-  getPendingProsumers: (token) =>
-    request("/api/prosumers?status=Pending", { token }),
-
-  getNodes: (token) =>
-    request("/api/nodes", { token }),
-
-  updateProsumerStatus: (token, nic, accountStatus) =>
-    request(`/api/prosumers/${encodeURIComponent(nic)}/status`, {
-      token,
-      method: "PATCH",
-      body: { accountStatus }
-    }),
-
-  // Booking slots
-  getBookingSlots: (token) =>
-    request("/api/booking-slots", { token }),
-
-  getBookingSlotsByNode: (token, nodeId) =>
-    request(`/api/booking-slots/node/${encodeURIComponent(nodeId)}`, {
-      token
-    }),
-
-  createBookingSlot: (token, data) =>
-    request("/api/booking-slots", {
-      token,
-      method: "POST",
-      body: data
-    }),
-
-  updateBookingSlot: (token, id, data) =>
-    request(`/api/booking-slots/${encodeURIComponent(id)}`, {
-      token,
-      method: "PUT",
-      body: data
-    }),
-
-  deleteBookingSlot: (token, id) =>
-    request(`/api/booking-slots/${encodeURIComponent(id)}`, {
-      token,
-      method: "DELETE"
-    }),
-
-  // Reservations
-  getReservations: (token, filters = {}) => {
-    const params = new URLSearchParams();
-
-    if (filters.search) {
-      params.set("search", filters.search);
-    }
-
-    if (filters.status) {
-      params.set("status", filters.status);
-    }
-
-    if (filters.nodeId) {
-      params.set("nodeId", filters.nodeId);
-    }
-
-    if (filters.from) {
-      params.set("from", filters.from);
-    }
-
-    if (filters.to) {
-      params.set("to", filters.to);
-    }
-
-    const query = params.toString();
-
-    return request(
-      `/api/reservations${query ? `?${query}` : ""}`,
-      { token }
-    );
-  },
-
-  getReservationById: (token, id) =>
-    request(`/api/reservations/${encodeURIComponent(id)}`, {
-      token
-    }),
-
-  getCurrentReservations: (token) =>
-    request("/api/reservations/current", { token }),
-
-  getPendingReservations: (token) =>
-    request("/api/reservations/pending", { token }),
-
-  getReservationHistory: (token) =>
-    request("/api/reservations/history", { token }),
-
-  // Dashboard
-  getOperationsDashboard: (token) =>
-    request("/api/dashboard/operations", { token })
+  login: (identifier, password) => request("/api/auth/login", { method: "POST", body: { identifier, password } }),
+  getMe: (token) => request("/api/users/me", { token }),
+  getWebUsers: (token) => request("/api/users", { token }),
+  createWebUser: (token, user) => request("/api/users", { token, method: "POST", body: user }),
+  getProsumers: (token, status) => request(`/api/prosumers${status ? `?status=${encodeURIComponent(status)}` : ""}`, { token }),
+  getPendingProsumers: (token) => request("/api/prosumers?status=Pending", { token }),
+  getNodes: (token) => request("/api/nodes", { token }),
+  getAvailableSlots: (token, nodeId) => request(`/api/nodes/${encodeURIComponent(nodeId)}/slots?status=Available`, { token }),
+  getReservations: (token) => request("/api/reservations", { token }),
+  createReservation: (token, payload) => request("/api/reservations", { token, method: "POST", body: payload }),
+  getReservation: (token, reservationId) => request(`/api/reservations/${encodeURIComponent(reservationId)}`, { token }),
+  updateReservation: (token, reservationId, payload) => request(`/api/reservations/${encodeURIComponent(reservationId)}`, {
+    token,
+    method: "PUT",
+    body: payload
+  }),
+  cancelReservation: (token, reservationId) => request(`/api/reservations/${encodeURIComponent(reservationId)}`, {
+    token,
+    method: "DELETE"
+  }),
+  updateProsumerStatus: (token, nic, accountStatus) => request(`/api/prosumers/${encodeURIComponent(nic)}/status`, {
+    token,
+    method: "PATCH",
+    body: { accountStatus }
+  })
 };
