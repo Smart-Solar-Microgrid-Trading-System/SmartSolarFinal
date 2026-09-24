@@ -9,7 +9,7 @@ using SmartSolarMicrogrid.Api.Services;
 
 var builder = WebApplication.CreateBuilder(args);
 
-builder.Services.AddControllers(options => 
+builder.Services.AddControllers(options =>
 {
     options.Filters.Add<AccountStatusFilter>();
 });
@@ -35,7 +35,9 @@ builder.Services.AddSingleton<AuthService>();
 builder.Services.AddSingleton<ProsumerService>();
 builder.Services.AddSingleton<UserManagementService>();
 builder.Services.AddSingleton<MicrogridNodeService>();
-builder.Services.AddSingleton<BookingSlotService>();    //booking slots
+builder.Services.AddSingleton(TimeProvider.System);
+builder.Services.AddSingleton<ReservationService>();
+builder.Services.AddSingleton<BookingSlotService>();
 builder.Services.AddSingleton<ReservationQueryService>();
 
 var key = Encoding.ASCII.GetBytes(builder.Configuration["Jwt:Secret"]!);
@@ -152,6 +154,9 @@ using (var scope = app.Services.CreateScope())
             await nodesCollection.InsertOneAsync(node);
         }
     }
+
+    // Create reservation uniqueness protection before accepting reservation requests.
+    await scope.ServiceProvider.GetRequiredService<ReservationService>().EnsureIndexesAsync();
 }
 
 app.UseCors();

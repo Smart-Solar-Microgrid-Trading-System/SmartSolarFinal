@@ -1,4 +1,4 @@
-import { Grid2X2, LogOut, Menu, RadioTower, SunMedium, UsersRound, Zap } from "lucide-react";
+import { CalendarDays, Grid2X2, LogOut, Menu, RadioTower, SunMedium, UsersRound, Zap } from "lucide-react";
 import { NavLink, Outlet } from "react-router-dom";
 
 import { Button } from "@/components/ui/button";
@@ -8,10 +8,10 @@ import { cn } from "@/lib/utils";
 
 const navigation = [
   { label: "Overview", to: "/", icon: Grid2X2 },
-  { label: "Users", to: "/users", icon: UsersRound },
-  { label: "Prosumers", to: "/prosumers", icon: SunMedium },
+  { label: "Users", to: "/users", icon: UsersRound, roles: ["Backoffice"] },
+  { label: "Prosumers", to: "/prosumers", icon: SunMedium, roles: ["Backoffice"] },
   { label: "Microgrid Nodes", to: "/nodes", icon: RadioTower },
-  { label: "Reservations", to: "/reservations", icon: Zap }
+  { label: "Reservations", to: "/reservations", icon: CalendarDays, roles: ["Prosumer"] }
 ];
 
 function Navigation({ items }) {
@@ -20,7 +20,7 @@ function Navigation({ items }) {
 
 export function AppShell() {
   const { session, signOut } = useAuth();
-  const navigationForRole = session?.role === "Backoffice" ? navigation : navigation.filter((item) => !["/users", "/prosumers"].includes(item.to));
+  const navigationForRole = navigation.filter((item) => !item.roles || item.roles.includes(session?.role));
 
   return (
     <div className="min-h-screen bg-slate-50 text-slate-800">

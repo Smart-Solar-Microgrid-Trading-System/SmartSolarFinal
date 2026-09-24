@@ -43,10 +43,11 @@ public class BookingSlotsController : ControllerBase
 
     [Authorize]
     [HttpGet("node/{nodeId}")]
-    public async Task<IActionResult> GetByNode(string nodeId)
+    [HttpGet("/api/nodes/{nodeId}/slots")]
+    public async Task<IActionResult> GetByNode(string nodeId, [FromQuery] string? status)
     {
-        // Get slots for the selected station
-        var slots = await _bookingSlotService.GetByNodeAsync(nodeId);
+        // Support both booking management and Prosumer reservation clients.
+        var slots = await _bookingSlotService.GetByNodeAsync(nodeId, status);
         return Ok(slots);
     }
 
