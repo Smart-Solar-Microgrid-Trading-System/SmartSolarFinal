@@ -22,9 +22,9 @@ public sealed class ReservationCommandService
         _users = database.GetCollection<User>("Users");
     }
 
-    public async Task<ReservationCommandResult> CreateAsync(CreateReservationRequest request)
+    public async Task<ReservationCommandResult> CreateAsync(CreateReservationRequest request, string actorId, string actorRole)
     {
-        var prosumerNic = request.ProsumerNic?.Trim();
+        var prosumerNic = actorRole == UserRoles.Prosumer ? actorId : request.ProsumerNic?.Trim();
         var nodeId = request.NodeId?.Trim();
         var slotId = request.SlotId?.Trim();
         if (string.IsNullOrWhiteSpace(prosumerNic) || string.IsNullOrWhiteSpace(nodeId) || string.IsNullOrWhiteSpace(slotId))
@@ -81,9 +81,9 @@ public sealed class ReservationCommandService
         return ReservationCommandResult.Success(reservation.Id);
     }
 
-    public async Task<ReservationCommandResult> UpdateAsync(string id, UpdateReservationRequest request)
+    public async Task<ReservationCommandResult> UpdateAsync(string id, UpdateReservationRequest request, string actorId, string actorRole)
     {
-        var reservation = await _reservations.Find(item => item.Id == id).FirstOrDefaultAsync();
+        var reservation = await FindAccessibleAsync(id, actorId, actorRole);
         if (reservation is null)
             return ReservationCommandResult.NotFound("Reservation was not found.");
         var stateError = ValidateMutable(reservation, "modified");
@@ -126,9 +126,9 @@ public sealed class ReservationCommandService
         return ReservationCommandResult.Success(id);
     }
 
-    public async Task<ReservationCommandResult> CancelAsync(string id)
+    public async Task<ReservationCommandResult> CancelAsync(string id, string actorId, string actorRole)
     {
-        var reservation = await _reservations.Find(item => item.Id == id).FirstOrDefaultAsync();
+        var reservation = await FindAccessibleAsync(id, actorId, actorRole);
         if (reservation is null)
             return ReservationCommandResult.NotFound("Reservation was not found.");
         var stateError = ValidateMutable(reservation, "cancelled");
@@ -173,6 +173,14 @@ public sealed class ReservationCommandService
         if (reservation.StartTime - DateTime.UtcNow < ModificationNotice)
             return ReservationCommandResult.Invalid($"A reservation cannot be {action} when fewer than 12 hours remain before its scheduled start.");
         return null;
+    }
+
+    private async Task<EnergyReservation?> FindAccessibleAsync(string id, string actorId, string actorRole)
+    {
+        var filter = Builders<EnergyReservation>.Filter.Eq(item => item.Id, id);
+        if (actorRole == UserRoles.Prosumer)
+            filter &= Builders<EnergyReservation>.Filter.Eq(item => item.ProsumerNic, actorId);
+        return await _reservations.Find(filter).FirstOrDefaultAsync();
     }
 
     private Task ReleaseSlotAsync(string slotId) => _slots.UpdateOneAsync(

@@ -8,7 +8,7 @@ using SmartSolarMicrogrid.Api.Services;
 namespace SmartSolarMicrogrid.Api.Controllers;
 
 [ApiController]
-[Authorize(Roles = $"{UserRoles.Backoffice},{UserRoles.GridOperator}")]
+[Authorize]
 [Route("api/reservations")]
 public class ReservationsController : ControllerBase
 {
@@ -24,7 +24,7 @@ public class ReservationsController : ControllerBase
     [HttpPost]
     public async Task<IActionResult> Create([FromBody] CreateReservationRequest request)
     {
-        var result = await _reservationCommands.CreateAsync(request);
+        var result = await _reservationCommands.CreateAsync(request, GetUserId(), GetUserRole());
         if (result.Failure != ReservationCommandFailure.None) return ToFailureResult(result);
         var reservation = await _reservationService.GetByIdAsync(result.ReservationId!, GetUserId(), GetUserRole());
         return CreatedAtAction(nameof(GetById), new { id = result.ReservationId }, reservation);
@@ -99,7 +99,7 @@ public class ReservationsController : ControllerBase
     [HttpPut("{id}")]
     public async Task<IActionResult> Update(string id, [FromBody] UpdateReservationRequest request)
     {
-        var result = await _reservationCommands.UpdateAsync(id, request);
+        var result = await _reservationCommands.UpdateAsync(id, request, GetUserId(), GetUserRole());
         if (result.Failure != ReservationCommandFailure.None) return ToFailureResult(result);
         return Ok(await _reservationService.GetByIdAsync(id, GetUserId(), GetUserRole()));
     }
@@ -107,7 +107,7 @@ public class ReservationsController : ControllerBase
     [HttpDelete("{id}")]
     public async Task<IActionResult> Cancel(string id)
     {
-        var result = await _reservationCommands.CancelAsync(id);
+        var result = await _reservationCommands.CancelAsync(id, GetUserId(), GetUserRole());
         if (result.Failure != ReservationCommandFailure.None) return ToFailureResult(result);
         return Ok(await _reservationService.GetByIdAsync(id, GetUserId(), GetUserRole()));
     }

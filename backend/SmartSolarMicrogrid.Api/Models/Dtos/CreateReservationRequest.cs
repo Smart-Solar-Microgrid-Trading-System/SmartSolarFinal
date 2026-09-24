@@ -4,8 +4,7 @@ namespace SmartSolarMicrogrid.Api.Models.Dtos;
 
 public sealed class CreateReservationRequest
 {
-    [Required]
-    public string ProsumerNic { get; set; } = null!;
+    public string? ProsumerNic { get; set; }
 
     [Required]
     public string NodeId { get; set; } = null!;
