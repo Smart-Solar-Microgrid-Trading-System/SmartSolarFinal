@@ -51,7 +51,7 @@ export function NodeCreatePage() {
                     </h1>
 
                     <p className="mt-1 text-sm text-slate-500">
-                        Add a new solar or grid station.
+                        Register a new solar microgrid node.
                     </p>
                 </div>
             </div>

@@ -6,6 +6,7 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle,} from "@/components/ui/card";
 import { api } from "@/lib/api";
 import { useAuth } from "@/lib/auth-context";
+import { loadGoogleMaps } from "@/lib/google-maps";
 
 export function NodeMapPage() {
     const { session } = useAuth();
@@ -34,84 +35,94 @@ export function NodeMapPage() {
         }
     }
 
-    useEffect(() => {
-        loadNodes();
-    }, []);
+    useEffect(() => { loadNodes(); }, []);
 
     useEffect(() => {
         if (!nodes.length || !mapRef.current) {
             return;
         }
 
-        if (!window.google?.maps) {
-            setError(
-                "Google Maps could not be loaded. Check your Google Maps API configuration."
-            );
-            return;
-        }
+        async function initializeMap() {
+            try {
+                setError("");
 
-        const firstNode = nodes[0];
+                const googleMaps = await loadGoogleMaps();
 
-        googleMapRef.current = new window.google.maps.Map(
-            mapRef.current,
-            {
-                center: {
-                    lat: Number(firstNode.latitude),
-                    lng: Number(firstNode.longitude),
-                },
-                zoom: 10,
-                mapTypeControl: true,
-                streetViewControl: false,
-                fullscreenControl: true,
-            }
-        );
+                if (!mapRef.current) {
+                    return;
+                }
 
-        markersRef.current.forEach((marker) => {
-            marker.setMap(null);
-        });
+                const firstNode = nodes[0];
 
-        markersRef.current = [];
+                googleMapRef.current = new googleMaps.Map(
+                    mapRef.current,
+                    {
+                        center: {
+                            lat: Number(firstNode.latitude),
+                            lng: Number(firstNode.longitude),
+                        },
+                        zoom: 10,
+                        mapTypeControl: true,
+                        streetViewControl: false,
+                        fullscreenControl: true,
+                    }
+                );
 
-        const bounds = new window.google.maps.LatLngBounds();
-
-        nodes.forEach((node) => {
-            const position = {
-                lat: Number(node.latitude),
-                lng: Number(node.longitude),
-            };
-
-            const marker = new window.google.maps.Marker({
-                position,
-                map: googleMapRef.current,
-                title: node.name,
-            });
-
-            const infoWindow = new window.google.maps.InfoWindow({
-                content: `
-          <div style="padding: 4px;">
-            <strong>${node.name}</strong>
-            <br />
-            Capacity: ${node.capacityKw} kW
-            <br />
-            Battery slots: ${node.availableBatterySlots}
-          </div>
-        `,
-            });
-
-            marker.addListener("click", () => {
-                infoWindow.open({
-                    map: googleMapRef.current,
-                    anchor: marker,
+                markersRef.current.forEach((marker) => {
+                    marker.setMap(null);
                 });
-            });
 
-            markersRef.current.push(marker);
-            bounds.extend(position);
-        });
+                markersRef.current = [];
 
-        if (nodes.length > 1) {
-            googleMapRef.current.fitBounds(bounds);
+                const bounds = new googleMaps.LatLngBounds();
+
+                nodes.forEach((node) => {
+                    const position = {
+                        lat: Number(node.latitude),
+                        lng: Number(node.longitude),
+                    };
+
+                    const marker = new googleMaps.Marker({
+                        position,
+                        map: googleMapRef.current,
+                        title: node.name,
+                    });
+
+                    const infoWindow = new googleMaps.InfoWindow({
+                        content: `
+                        <div style="padding: 8px;">
+                            <strong>${node.name}</strong>
+                            <br />
+                            Capacity: ${node.capacityKw} kW
+                            <br />
+                            Battery slots: ${node.availableBatterySlots}
+                        </div>
+                    `,
+                    });
+
+                    marker.addListener("click", () => {
+                        infoWindow.open({
+                            map: googleMapRef.current,
+                            anchor: marker,
+                        });
+                    });
+
+                    markersRef.current.push(marker);
+                    bounds.extend(position);
+                });
+
+                if (nodes.length > 1) {
+                    googleMapRef.current.fitBounds(bounds);
+                }
+            } catch (mapError) {
+                setError(
+                    mapError.message ||
+                    "Google Maps could not be loaded."
+                );
+            }
         }
+
+        initializeMap();
     }, [nodes]);
 
     return (

@@ -1,23 +1,11 @@
 import { useEffect, useState } from "react";
-import {
-    ArrowLeft,
-    Edit,
-    MapPin,
-    RadioTower,
-    Battery,
-    Zap,
-} from "lucide-react";
+import { ArrowLeft, Edit, MapPin, RadioTower, Battery,Zap,} from "lucide-react";
 import { Link, useParams } from "react-router-dom";
 
 import { FeedbackAlert } from "@/components/feedback-alert";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import {
-    Card,
-    CardContent,
-    CardHeader,
-    CardTitle,
-} from "@/components/ui/card";
+import { Card, CardContent, CardHeader, CardTitle,} from "@/components/ui/card";
 import { api } from "@/lib/api";
 import { useAuth } from "@/lib/auth-context";
 

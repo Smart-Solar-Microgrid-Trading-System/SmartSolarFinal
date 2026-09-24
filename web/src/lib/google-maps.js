@@ -14,7 +14,7 @@ export function loadGoogleMaps() {
     if (!apiKey) {
         return Promise.reject(
             new Error(
-                "Google Maps API key is not configured. Add VITE_GOOGLE_MAPS_API_KEY to .env."
+                "Google Maps API key is not configured."
             )
         );
     }
@@ -40,8 +40,7 @@ export function loadGoogleMaps() {
 
         const script = document.createElement("script");
 
-        script.src =
-            `https://maps.googleapis.com/maps/api/js?key=${apiKey}`;
+        script.src = `https://maps.googleapis.com/maps/api/js?key=${apiKey}`;
 
         script.async = true;
         script.defer = true;

@@ -118,27 +118,6 @@ export function NodeForm() {
 
     return (
         <section className="space-y-6">
-            <div className="flex items-center gap-3">
-                <Button variant="outline" size="icon" asChild>
-                    <Link to="/nodes">
-                        <ArrowLeft size={18} />
-                    </Link>
-                </Button>
-
-                <div>
-                    <p className="text-sm font-semibold uppercase tracking-wide text-brand-600">
-                        Microgrid network
-                    </p>
-
-                    <h1 className="text-2xl font-bold text-slate-900">
-                        Add Microgrid Node
-                    </h1>
-
-                    <p className="mt-1 text-sm text-slate-500">
-                        Register a new solar microgrid node.
-                    </p>
-                </div>
-            </div>
 
             {error && <FeedbackAlert>{error}</FeedbackAlert>}
 
