@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useState } from "react";
-import { ArrowRight, BatteryCharging, CalendarDays, Check, Clock3, Eye, MapPin, RadioTower, RefreshCw, ShieldCheck, Sparkles, Zap } from "lucide-react";
+import { ArrowRight, BatteryCharging, CalendarDays, Check, CircleX, Clock3, Eye, MapPin, Plus, RadioTower, RefreshCw, ShieldCheck, Sparkles, Zap } from "lucide-react";
 import { Link } from "react-router-dom";
 
 import { FeedbackAlert } from "@/components/feedback-alert";
@@ -40,6 +40,8 @@ export function ReservationManagementPage() {
   const [loadingSlots, setLoadingSlots] = useState(false);
   const [submitting, setSubmitting] = useState(false);
   const [reviewOpen, setReviewOpen] = useState(false);
+  const [activeView, setActiveView] = useState("book");
+  const [statusFilter, setStatusFilter] = useState("All");
   const [error, setError] = useState("");
   const [success, setSuccess] = useState(null);
 
@@ -121,27 +123,19 @@ export function ReservationManagementPage() {
         <SummaryItem icon={CalendarDays} label="Scheduled time" value={formatUtcDateTime(success.scheduledStartUtc)} />
         <SummaryItem icon={BatteryCharging} label="Energy amount" value={`${success.energyAmountKwh} kWh`} />
       </div>
-      <div className="flex flex-col gap-3 sm:flex-row"><Button asChild className="flex-1"><Link to={`/reservations/${success.id}`}>View details <ArrowRight size={17} /></Link></Button><Button variant="outline" className="flex-1" onClick={resetForm}>Create another reservation</Button></div>
+      <div className="flex flex-col gap-3 sm:flex-row"><Button asChild className="flex-1"><Link to={`/reservations/${success.id}`}>View details <ArrowRight size={17} /></Link></Button><Button variant="outline" className="flex-1" onClick={() => { resetForm(); setActiveView("list"); }}>My reservations</Button><Button variant="outline" className="flex-1" onClick={resetForm}>Create another</Button></div>
     </div>
   </section>;
 
   return <section className="space-y-6">
     <div className="relative overflow-hidden rounded-2xl bg-gradient-to-r from-slate-950 via-emerald-950 to-brand-700 p-6 text-white shadow-lg sm:p-8">
       <div className="absolute right-6 top-4 opacity-15"><SunArtwork /></div>
-      <div className="relative max-w-2xl"><p className="flex items-center gap-2 text-xs font-semibold uppercase tracking-[0.2em] text-lime-300"><Sparkles size={15} /> Smart charging</p><h1 className="mt-2 text-3xl font-bold">Reserve Your Energy</h1><p className="mt-2 text-sm text-emerald-100">Choose a microgrid node, select an available time slot, and reserve the energy you need.</p></div>
+      <div className="relative max-w-2xl"><p className="flex items-center gap-2 text-xs font-semibold uppercase tracking-[0.2em] text-lime-300"><Sparkles size={15} /> Smart charging</p><h1 className="mt-2 text-3xl font-bold">{activeView === "book" ? "Create a reservation" : "My reservations"}</h1><p className="mt-2 text-sm text-emerald-100">{activeView === "book" ? "Reserve energy from a microgrid node in a few simple steps." : "View, modify, or cancel your energy reservations."}</p></div>
     </div>
 
-    <section className="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm sm:p-6">
-      <div className="mb-4 flex flex-wrap items-center justify-between gap-3"><div><p className="text-xs font-semibold uppercase tracking-[0.18em] text-brand-600">Your activity</p><h2 className="mt-1 text-xl font-bold text-slate-900">My reservations</h2><p className="mt-1 text-sm text-slate-500">Open a previous reservation to view, modify, or cancel it.</p></div><Button variant="outline" onClick={loadReservations} disabled={loadingReservations}><RefreshCw size={16} /> Refresh</Button></div>
-      {loadingReservations ? <LoadingText text="Loading your reservations..." /> : reservations.length === 0 ? <EmptyText text="You have not created any reservations yet." /> : <div className="grid gap-3 md:grid-cols-2">{reservations.map((reservation) => {
-        const node = nodes.find((item) => item.id === reservation.microgridNodeId);
-        return <article key={reservation.id} className="rounded-xl border border-slate-200 bg-gradient-to-br from-white to-slate-50 p-4 transition hover:border-brand-200 hover:shadow-sm">
-          <div className="flex items-start justify-between gap-3"><div className="min-w-0"><p className="truncate text-xs font-medium text-slate-400">{reservation.id}</p><h3 className="mt-1 font-semibold text-slate-900">{node?.name ?? reservation.microgridNodeId}</h3></div><ReservationStatus status={reservation.status} /></div>
-          <div className="mt-4 grid grid-cols-2 gap-3 text-sm"><div><p className="text-xs text-slate-400">Scheduled</p><p className="mt-1 font-medium text-slate-700">{formatUtcDateTime(reservation.scheduledStartUtc)}</p></div><div><p className="text-xs text-slate-400">Energy</p><p className="mt-1 font-medium text-slate-700">{reservation.energyAmountKwh} kWh</p></div></div>
-          <Button asChild variant="outline" className="mt-4 w-full"><Link to={`/reservations/${reservation.id}`}><Eye size={16} /> View / modify</Link></Button>
-        </article>;
-      })}</div>}
-    </section>
+    <div className="grid grid-cols-2 rounded-xl border border-slate-200 bg-white p-1 shadow-sm"><button type="button" onClick={() => setActiveView("book")} className={cn("flex items-center justify-center gap-2 rounded-lg px-4 py-3 text-sm font-semibold transition", activeView === "book" ? "bg-brand-600 text-white shadow" : "text-slate-600 hover:bg-slate-50")}><CalendarDays size={18} /> Book Energy</button><button type="button" onClick={() => setActiveView("list")} className={cn("flex items-center justify-center gap-2 rounded-lg px-4 py-3 text-sm font-semibold transition", activeView === "list" ? "bg-brand-600 text-white shadow" : "text-slate-600 hover:bg-slate-50")}><ShieldCheck size={18} /> My Reservations</button></div>
+
+    {activeView === "list" ? <ReservationListView reservations={reservations} nodes={nodes} loading={loadingReservations} refresh={loadReservations} statusFilter={statusFilter} setStatusFilter={setStatusFilter} createNew={() => setActiveView("book")} /> : <>
 
     <div className="mx-auto max-w-4xl"><ReservationStepper current={currentStep} /></div>
     {error && <FeedbackAlert>{error}</FeedbackAlert>}
@@ -171,6 +165,7 @@ export function ReservationManagementPage() {
         <Button className="w-full" disabled={!formValid} onClick={() => setReviewOpen(true)}>Review reservation <ArrowRight size={16} /></Button>
       </aside>
     </div>
+    </>}
 
     <Dialog open={reviewOpen} onOpenChange={setReviewOpen}><DialogContent><DialogHeader><DialogTitle>Confirm your reservation</DialogTitle><DialogDescription>Check these details before the reservation is created.</DialogDescription></DialogHeader><div className="space-y-3 rounded-xl bg-slate-50 p-4"><SummaryRow label="Station" value={selectedNode?.name} /><SummaryRow label="Time" value={formatUtcDateTime(slotStart(selectedSlot))} /><SummaryRow label="Energy" value={`${energy} kWh`} /><SummaryRow label="Initial status" value="Pending" /></div><DialogFooter><Button variant="outline" onClick={() => setReviewOpen(false)}>Go back</Button><Button onClick={createReservation} disabled={submitting}>{submitting ? "Creating..." : "Confirm reservation"}</Button></DialogFooter></DialogContent></Dialog>
   </section>;
@@ -182,4 +177,30 @@ function SummaryItem({ icon: Icon, label, value }) { return <div className="flex
 function LoadingText({ text }) { return <p className="animate-pulse text-sm text-slate-500">{text}</p>; }
 function EmptyText({ text }) { return <p className="rounded-lg border border-dashed border-slate-200 bg-slate-50 p-4 text-sm text-slate-500">{text}</p>; }
 function ReservationStatus({ status }) { const style = status === "Cancelled" ? "bg-red-100 text-red-700" : status === "Completed" ? "bg-slate-200 text-slate-700" : status === "Approved" ? "bg-emerald-100 text-emerald-700" : "bg-amber-100 text-amber-800"; return <Badge className={style}>{status}</Badge>; }
+function ReservationListView({ reservations, nodes, loading, refresh, statusFilter, setStatusFilter, createNew }) {
+  const active = reservations.filter((item) => !["Cancelled", "Completed"].includes(item.status));
+  const cancelled = reservations.filter((item) => item.status === "Cancelled");
+  const reservedEnergy = active.reduce((total, item) => total + Number(item.energyAmountKwh || 0), 0);
+  const reservedEnergyLabel = Number.isInteger(reservedEnergy) ? reservedEnergy : reservedEnergy.toFixed(1);
+  const filters = ["All", "Pending", "Approved", "Cancelled"];
+  const filtered = statusFilter === "All" ? reservations : reservations.filter((item) => item.status === statusFilter);
+
+  return <section className="space-y-4">
+    <div className="grid gap-3 rounded-2xl border border-slate-200 bg-white p-4 shadow-sm sm:grid-cols-3">
+      <Metric icon={CalendarDays} tone="emerald" value={active.length} label="Active" />
+      <Metric icon={CircleX} tone="red" value={cancelled.length} label="Cancelled" />
+      <Metric icon={Zap} tone="amber" value={`${reservedEnergyLabel} kWh`} label="Reserved energy" />
+    </div>
+    <div className="flex flex-wrap items-center justify-between gap-3"><div className="flex flex-wrap gap-2">{filters.map((filter) => <button key={filter} type="button" onClick={() => setStatusFilter(filter)} className={cn("rounded-full px-4 py-2 text-sm font-semibold transition", statusFilter === filter ? "bg-brand-600 text-white shadow" : filter === "Cancelled" ? "bg-red-50 text-red-700 hover:bg-red-100" : "bg-white text-slate-600 ring-1 ring-slate-200 hover:bg-slate-50")}>{filter}</button>)}</div><div className="flex gap-2"><Button variant="outline" onClick={refresh} disabled={loading}><RefreshCw size={16} /> Refresh</Button><Button onClick={createNew}><Plus size={17} /> New reservation</Button></div></div>
+    {loading ? <div className="rounded-2xl border border-slate-200 bg-white p-6"><LoadingText text="Loading your reservations..." /></div> : filtered.length === 0 ? <div className="rounded-2xl border border-slate-200 bg-white p-6"><EmptyText text={reservations.length === 0 ? "You have not created any reservations yet." : `No ${statusFilter.toLowerCase()} reservations found.`} /></div> : <div className="grid gap-4 md:grid-cols-2">{filtered.map((reservation) => {
+      const node = nodes.find((item) => item.id === reservation.microgridNodeId);
+      return <article key={reservation.id} className="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm transition hover:-translate-y-0.5 hover:border-brand-200 hover:shadow-md">
+        <div className="flex items-start justify-between gap-3"><div className="min-w-0"><p className="truncate text-xs font-medium text-slate-400">{reservation.id}</p><h3 className="mt-1 text-lg font-bold text-slate-900">{node?.name ?? reservation.microgridNodeId}</h3></div><ReservationStatus status={reservation.status} /></div>
+        <div className="mt-5 flex flex-wrap items-center justify-between gap-3 border-y border-slate-100 py-3 text-sm text-slate-700"><span className="flex items-center gap-2"><CalendarDays size={16} className="text-brand-600" />{formatUtcDateTime(reservation.scheduledStartUtc)}</span><span className="flex items-center gap-2 font-semibold"><Zap size={16} className="text-amber-500" />{reservation.energyAmountKwh} kWh</span></div>
+        <Button asChild variant="outline" className="mt-4 w-full"><Link to={`/reservations/${reservation.id}`}><Eye size={16} /> View details</Link></Button>
+      </article>;
+    })}</div>}
+  </section>;
+}
+function Metric({ icon: Icon, tone, value, label }) { const color = tone === "red" ? "bg-red-100 text-red-600" : tone === "amber" ? "bg-amber-100 text-amber-600" : "bg-emerald-100 text-emerald-600"; return <div className="flex items-center gap-3 px-3 py-2 sm:border-r sm:border-slate-100 sm:last:border-0"><span className={cn("grid size-11 place-items-center rounded-full", color)}><Icon size={21} /></span><div><p className="text-xl font-bold text-slate-900">{value}</p><p className="text-xs font-medium text-slate-500">{label}</p></div></div>; }
 function SunArtwork() { return <div className="relative size-36"><div className="absolute left-11 top-3 size-14 rounded-full bg-amber-300 shadow-[0_0_40px_rgba(253,224,71,0.8)]" /><div className="absolute bottom-3 left-0 right-0 h-16 skew-y-[-8deg] rounded-lg border-4 border-cyan-200 bg-cyan-500/50" /></div>; }
