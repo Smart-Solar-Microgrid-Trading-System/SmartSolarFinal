@@ -14,8 +14,6 @@ import { MicrogridNodesPage } from "@/pages/microgrid-nodes-page";
 import { OperationsDashboardPage } from "@/pages/operations-dashboard-page";
 import { ProsumerManagementPage } from "@/pages/prosumer-management-page";
 import { ReservationsPage } from "@/pages/reservations-page";
-import { ReservationDetailsPage } from "@/pages/reservation-details-page";
-import { ReservationManagementPage } from "@/pages/reservation-management-page";
 import { UserManagementPage } from "@/pages/user-management-page";
 
 export default function App() {
@@ -80,11 +78,6 @@ export default function App() {
               path="operations"
               element={<OperationsDashboardPage />}
             />
-          </Route>
-          <Route path="nodes" element={<MicrogridNodesPage />} />
-          <Route element={<ProtectedRoute roles={["Prosumer"]} />}>
-            <Route path="reservations" element={<ReservationManagementPage />} />
-            <Route path="reservations/:reservationId" element={<ReservationDetailsPage />} />
           </Route>
         </Route>
       </Route>
