@@ -8,11 +8,13 @@ public class ReservationQueryService
 {
     private readonly IMongoCollection<EnergyReservation> _reservations;
     private readonly IMongoCollection<MicrogridNode> _nodes;
+    private readonly IMongoCollection<User> _users;
 
     public ReservationQueryService(IMongoDatabase database)
     {
         _reservations = database.GetCollection<EnergyReservation>("EnergyReservations");
         _nodes = database.GetCollection<MicrogridNode>("MicrogridNodes");
+        _users = database.GetCollection<User>("Users");
     }
 
     public async Task<IReadOnlyList<ReservationResponse>> GetAllAsync(
@@ -105,17 +107,27 @@ public class ReservationQueryService
             .Find(node => node.Id == reservation.NodeId)
             .FirstOrDefaultAsync();
 
+        var prosumer = await _users
+            .Find(user => user.Id == reservation.ProsumerNic && user.Role == UserRoles.Prosumer)
+            .FirstOrDefaultAsync();
+
         return new ReservationResponse
         {
             Id = reservation.Id,
             ProsumerNic = reservation.ProsumerNic,
+            ProsumerName = prosumer?.FullName,
+            ProsumerStatus = prosumer?.AccountStatus,
             NodeId = reservation.NodeId,
             NodeName = node?.Name,
             SlotId = reservation.SlotId,
             EnergyAmountKw = reservation.EnergyAmountKw,
             StartTime = reservation.StartTime,
             EndTime = reservation.EndTime,
-            Status = reservation.Status
+            Status = reservation.Status,
+            CreatedAt = reservation.CreatedAt,
+            UpdatedAt = reservation.UpdatedAt,
+            CancelledAt = reservation.CancelledAt,
+            CompletedAt = reservation.CompletedAt
         };
     }
 
@@ -257,17 +269,27 @@ public class ReservationQueryService
                 .Find(node => node.Id == reservation.NodeId)
                 .FirstOrDefaultAsync();
 
+            var prosumer = await _users
+                .Find(user => user.Id == reservation.ProsumerNic && user.Role == UserRoles.Prosumer)
+                .FirstOrDefaultAsync();
+
             result.Add(new ReservationResponse
             {
                 Id = reservation.Id,
                 ProsumerNic = reservation.ProsumerNic,
+                ProsumerName = prosumer?.FullName,
+                ProsumerStatus = prosumer?.AccountStatus,
                 NodeId = reservation.NodeId,
                 NodeName = node?.Name,
                 SlotId = reservation.SlotId,
                 EnergyAmountKw = reservation.EnergyAmountKw,
                 StartTime = reservation.StartTime,
                 EndTime = reservation.EndTime,
-                Status = reservation.Status
+                Status = reservation.Status,
+                CreatedAt = reservation.CreatedAt,
+                UpdatedAt = reservation.UpdatedAt,
+                CancelledAt = reservation.CancelledAt,
+                CompletedAt = reservation.CompletedAt
             });
         }
 

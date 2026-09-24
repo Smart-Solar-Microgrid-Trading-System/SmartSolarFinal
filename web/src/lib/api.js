@@ -97,6 +97,9 @@ export const api = {
       token
     }),
 
+  getAvailableSlots: (token, nodeId) =>
+    request(`/api/booking-slots/node/${encodeURIComponent(nodeId)}`, { token }),
+
   createBookingSlot: (token, data) =>
     request("/api/booking-slots", {
       token,
@@ -153,6 +156,15 @@ export const api = {
     request(`/api/reservations/${encodeURIComponent(id)}`, {
       token
     }),
+
+  createReservation: (token, data) =>
+    request("/api/reservations", { token, method: "POST", body: data }),
+
+  updateReservation: (token, id, data) =>
+    request(`/api/reservations/${encodeURIComponent(id)}`, { token, method: "PUT", body: data }),
+
+  cancelReservation: (token, id) =>
+    request(`/api/reservations/${encodeURIComponent(id)}`, { token, method: "DELETE" }),
 
   getCurrentReservations: (token) =>
     request("/api/reservations/current", { token }),

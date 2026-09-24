@@ -1,7 +1,9 @@
 import { useEffect, useState } from "react";
-import { RefreshCw, Search } from "lucide-react";
+import { Eye, Pencil, Plus, RefreshCw, Search, Trash2 } from "lucide-react";
+import { Link } from "react-router-dom";
 
 import { FeedbackAlert } from "@/components/feedback-alert";
+import { CancelReservationDialog } from "@/components/reservations/cancel-reservation-dialog";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import {
@@ -48,6 +50,8 @@ export function ReservationsPage() {
 
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState("");
+    const [cancelTarget, setCancelTarget] = useState(null);
+    const [cancelling, setCancelling] = useState(false);
 
     async function loadNodes() {
         try {
@@ -137,6 +141,21 @@ export function ReservationsPage() {
         }
     }
 
+    async function cancelReservation() {
+        setCancelling(true);
+        setError("");
+        try {
+            await api.cancelReservation(session.token, cancelTarget.id);
+            setCancelTarget(null);
+            await loadReservations(view);
+        } catch (err) {
+            setError(err.message);
+            setCancelTarget(null);
+        } finally {
+            setCancelling(false);
+        }
+    }
+
     return (
         <section className="space-y-6">
             <div className="flex flex-wrap items-end justify-between gap-3">
@@ -154,14 +173,7 @@ export function ReservationsPage() {
                     </p>
                 </div>
 
-                <Button
-                    variant="outline"
-                    onClick={() => loadReservations()}
-                    disabled={loading}
-                >
-                    <RefreshCw size={16} />
-                    Refresh
-                </Button>
+                <div className="flex gap-2"><Button variant="outline" onClick={() => loadReservations()} disabled={loading}><RefreshCw size={16} />Refresh</Button><Button asChild><Link to="/reservations/new"><Plus size={16} />Create reservation</Link></Button></div>
             </div>
 
             {error && (
@@ -347,6 +359,7 @@ export function ReservationsPage() {
                                         <TableHead>End</TableHead>
                                         <TableHead>Energy</TableHead>
                                         <TableHead>Status</TableHead>
+                                        <TableHead>Actions</TableHead>
                                     </TableRow>
                                 </TableHeader>
 
@@ -387,6 +400,8 @@ export function ReservationsPage() {
                                                     {reservation.status}
                                                 </Badge>
                                             </TableCell>
+
+                                            <TableCell><div className="flex gap-1"><Button asChild size="icon" variant="ghost" title="View"><Link to={`/reservations/${reservation.id}`}><Eye size={16} /></Link></Button><Button asChild size="icon" variant="ghost" disabled={["Cancelled", "Completed"].includes(reservation.status)} title="Edit"><Link to={`/reservations/${reservation.id}/edit`}><Pencil size={16} /></Link></Button><Button size="icon" variant="ghost" className="text-red-600" disabled={["Cancelled", "Completed"].includes(reservation.status)} title="Cancel" onClick={() => setCancelTarget(reservation)}><Trash2 size={16} /></Button></div></TableCell>
                                         </TableRow>
                                     ))}
                                 </TableBody>
@@ -395,6 +410,7 @@ export function ReservationsPage() {
                     )}
                 </CardContent>
             </Card>
+            <CancelReservationDialog open={Boolean(cancelTarget)} onOpenChange={(open) => !open && setCancelTarget(null)} reservation={cancelTarget} busy={cancelling} onConfirm={cancelReservation} />
         </section>
     );
 }

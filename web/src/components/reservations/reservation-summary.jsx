@@ -1,0 +1,6 @@
+export function ReservationSummary({ prosumer, node, slot, energyAmount }) {
+  return <div className="rounded-xl border border-slate-200 bg-white p-5 shadow-sm"><h2 className="mb-4 font-bold text-slate-900">Reservation summary</h2><div className="space-y-3 text-sm"><Row label="Prosumer" value={prosumer ? `${prosumer.fullName} (${prosumer.id})` : "Not selected"} /><Row label="Status" value={prosumer?.accountStatus ?? "—"} /><Row label="Station" value={node?.name ?? "Not selected"} /><Row label="Node capacity" value={node ? `${node.capacityKw} kW` : "—"} /><Row label="Scheduled time" value={slot ? `${formatUtc(slot.startTime)} – ${formatUtc(slot.endTime)}` : "Not selected"} /><Row label="Slot availability" value={slot?.status ?? "—"} /><Row label="Energy amount" value={energyAmount ? `${energyAmount} kWh` : "Not entered"} /><Row label="Initial status" value="Pending" /></div></div>;
+}
+
+function Row({ label, value }) { return <div className="flex justify-between gap-4 border-b border-slate-100 pb-2 last:border-0"><span className="text-slate-500">{label}</span><span className="text-right font-medium text-slate-800">{value}</span></div>; }
+export function formatUtc(value) { return value ? `${new Date(value).toLocaleString(undefined, { timeZone: "UTC" })} UTC` : "—"; }

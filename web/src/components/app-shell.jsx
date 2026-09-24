@@ -52,17 +52,20 @@ const navigation = [
   {
     label: "Booking Slots",
     to: "/booking-slots",
-    icon: CalendarClock
+    icon: CalendarClock,
+    roles: ["Backoffice", "GridOperator"]
   },
   {
     label: "Reservations",
     to: "/reservations",
-    icon: Zap
+    icon: Zap,
+    roles: ["Backoffice", "GridOperator"]
   },
   {
     label: "Operations",
     to: "/operations",
-    icon: Gauge
+    icon: Gauge,
+    roles: ["Backoffice", "GridOperator"]
   }
 ];
 
@@ -110,29 +113,10 @@ export function AppShell() {
     signOut
   } = useAuth();
 
-  let navigationForRole = navigation;
-
-  if (session?.role !== "Backoffice") {
-    navigationForRole =
-      navigationForRole.filter(
-        (item) =>
-          ![
-            "/users",
-            "/prosumers"
-          ].includes(item.to)
-      );
-  }
-
-  if (
-    session?.role !== "Backoffice" &&
-    session?.role !== "GridOperator"
-  ) {
-    navigationForRole =
-      navigationForRole.filter(
-        (item) =>
-          item.to !== "/operations"
-      );
-  }
+  const navigationForRole = navigation.filter((item) => {
+    if (["/users", "/prosumers"].includes(item.to)) return session?.role === "Backoffice";
+    return !item.roles || item.roles.includes(session?.role);
+  });
 
   return (
     <div className="min-h-screen bg-slate-50 text-slate-800">
