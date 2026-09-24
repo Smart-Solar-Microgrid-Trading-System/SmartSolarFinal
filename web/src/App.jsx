@@ -55,8 +55,6 @@ export default function App() {
               path="prosumers"
               element={<ProsumerManagementPage />}
             />
-          <Route index element={<PlaceholderPage title="Overview" />} />
-          <Route element={<ProtectedRoute roles={["Backoffice"]} />}>
                       <Route path="users" element={<UserManagementPage />} />
                       <Route path="/nodes" element={<MicrogridNodesPage />} />
 
@@ -67,7 +65,6 @@ export default function App() {
                       <Route path="/nodes/:id/edit" element={<NodeEditPage />} />
 
                       <Route path="/nodes/:id" element={<NodeDetailsPage />} />
-            <Route path="prosumers" element={<ProsumerManagementPage />} />
           </Route>
 
           <Route

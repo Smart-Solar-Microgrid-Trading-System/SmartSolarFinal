@@ -7,12 +7,12 @@ namespace SmartSolarMicrogrid.Api.Services;
 public sealed class MicrogridNodeService
 {
     private readonly IMongoCollection<MicrogridNode> _nodes;
-    private readonly IMongoCollection<Reservation> _reservations;
+    private readonly IMongoCollection<EnergyReservation> _reservations;
 
     public MicrogridNodeService(IMongoDatabase database)
     {
         _nodes = database.GetCollection<MicrogridNode>("MicrogridNodes");
-        _reservations = database.GetCollection<Reservation>("Reservations");
+        _reservations = database.GetCollection<EnergyReservation>("EnergyReservations");
     }
 
     public async Task<List<MicrogridNodeResponse>> GetAllNodesAsync()
@@ -112,7 +112,7 @@ public sealed class MicrogridNodeService
         //Check for active reservations
         var hasActiveReservations = await _reservations
             .Find(r =>
-                r.MicrogridNodeId == id &&
+                r.NodeId == id &&
                 r.Status == ReservationStatuses.Approved)
             .AnyAsync();
 

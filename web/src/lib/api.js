@@ -50,34 +50,6 @@ export class ApiError extends Error {
 }
 
 export const api = {
-  login: (identifier, password) => request("/api/auth/login", { method: "POST", body: { identifier, password } }),
-  getMe: (token) => request("/api/users/me", { token }),
-  getWebUsers: (token) => request("/api/users", { token }),
-  createWebUser: (token, user) => request("/api/users", { token, method: "POST", body: user }),
-  getProsumers: (token, status) => request(`/api/prosumers${status ? `?status=${encodeURIComponent(status)}` : ""}`, { token }),
-  getPendingProsumers: (token) => request("/api/prosumers?status=Pending", { token }),
-  //getNodes: (token) => request("/api/nodes", { token }),
-  updateProsumerStatus: (token, nic, accountStatus) => request(`/api/prosumers/${encodeURIComponent(nic)}/status`, {
-    token,
-    method: "PATCH",
-    body: { accountStatus }
-  }),
-  getNodes: (token) => request("/api/nodes", { token }),
-
-  getNode: (token, id) => request(`/api/nodes/${ encodeURIComponent(id)}`, { token }),
-
-  createNode: (token, data) => request("/api/nodes", { token, method: "POST", body: data }),
-
-  updateNode: (token, id, data) => request(`/api/nodes/${ encodeURIComponent(id)}`, {
-    token,
-    method: "PUT",
-    body: data
-  }),
-deactivateNode: (token, nodeId) =>
-    request(`/api/nodes/${encodeURIComponent(nodeId)}/deactivate`, {
-        token,
-        method: "PATCH"
-    }),
   login: (identifier, password) =>
     request("/api/auth/login", {
       method: "POST",
@@ -106,15 +78,30 @@ deactivateNode: (token, nodeId) =>
   getPendingProsumers: (token) =>
     request("/api/prosumers?status=Pending", { token }),
 
-  getNodes: (token) =>
-    request("/api/nodes", { token }),
-
   updateProsumerStatus: (token, nic, accountStatus) =>
     request(`/api/prosumers/${encodeURIComponent(nic)}/status`, {
       token,
       method: "PATCH",
       body: { accountStatus }
     }),
+
+    //node management
+    getNodes: (token) => request("/api/nodes", { token }),
+
+    getNode: (token, id) => request(`/api/nodes/${encodeURIComponent(id)}`, { token }),
+
+    createNode: (token, data) => request("/api/nodes", { token, method: "POST", body: data }),
+
+    updateNode: (token, id, data) => request(`/api/nodes/${encodeURIComponent(id)}`, {
+        token,
+        method: "PUT",
+        body: data
+    }),
+    deactivateNode: (token, nodeId) =>
+        request(`/api/nodes/${encodeURIComponent(nodeId)}/deactivate`, {
+            token,
+            method: "PATCH"
+        }),
 
   // Booking slots
   getBookingSlots: (token) =>
