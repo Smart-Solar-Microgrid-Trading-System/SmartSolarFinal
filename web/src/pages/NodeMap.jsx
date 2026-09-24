@@ -1,15 +1,9 @@
 import { useEffect, useRef, useState } from "react";
 import { ArrowLeft, MapPin, RefreshCw } from "lucide-react";
 import { Link } from "react-router-dom";
-
 import { FeedbackAlert } from "@/components/feedback-alert";
 import { Button } from "@/components/ui/button";
-import {
-    Card,
-    CardContent,
-    CardHeader,
-    CardTitle,
-} from "@/components/ui/card";
+import { Card, CardContent, CardHeader, CardTitle,} from "@/components/ui/card";
 import { api } from "@/lib/api";
 import { useAuth } from "@/lib/auth-context";
 
@@ -177,8 +171,7 @@ export function NodeMapPage() {
                     ) : (
                         <div
                             ref={mapRef}
-                            className="h-[600px] w-full rounded-lg border bg-slate-100"
-                        />
+                            className="h-[600px] w-full rounded-lg border bg-slate-100"/>
                     )}
                 </CardContent>
             </Card>

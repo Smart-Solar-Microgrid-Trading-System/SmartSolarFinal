@@ -7,6 +7,7 @@ import { LoginPage } from "@/pages/login-page";
 import { MicrogridNodesPage } from "@/pages/microgrid-nodes-page";
 import { ProsumerManagementPage } from "@/pages/prosumer-management-page";
 import { UserManagementPage } from "@/pages/user-management-page";
+import { MicrogridNodesPage } from "@/pages/MicrogridNodesPage";
 import { NodeCreatePage } from "@/pages/NodeCreatePage";
 import { NodeEditPage } from "@/pages/NodeEditPage";
 import { NodeDetailsPage } from "@/pages/NodeDetailsPage";
@@ -20,7 +21,16 @@ export default function App() {
         <Route element={<AppShell />}>
           <Route index element={<PlaceholderPage title="Overview" />} />
           <Route element={<ProtectedRoute roles={["Backoffice"]} />}>
-            <Route path="users" element={<UserManagementPage />} />
+                      <Route path="users" element={<UserManagementPage />} />
+                      <Route path="/nodes" element={<MicrogridNodesPage />} />
+
+                      <Route path="/nodes/new" element={<NodeCreatePage />} />
+
+                      <Route path="/nodes/map" element={<NodeMapPage />} />
+
+                      <Route path="/nodes/:id/edit" element={<NodeEditPage />} />
+
+                      <Route path="/nodes/:id" element={<NodeDetailsPage />} />
             <Route path="prosumers" element={<ProsumerManagementPage />} />
           </Route>
           <Route path="nodes" element={<MicrogridNodesPage />} />
