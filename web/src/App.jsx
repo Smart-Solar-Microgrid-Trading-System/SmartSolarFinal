@@ -6,6 +6,8 @@ import { ProtectedRoute } from "@/components/protected-route";
 import { LoginPage } from "@/pages/login-page";
 import { MicrogridNodesPage } from "@/pages/microgrid-nodes-page";
 import { ProsumerManagementPage } from "@/pages/prosumer-management-page";
+import { ReservationDetailsPage } from "@/pages/reservation-details-page";
+import { ReservationManagementPage } from "@/pages/reservation-management-page";
 import { UserManagementPage } from "@/pages/user-management-page";
 import { NodeCreatePage } from "@/pages/NodeCreatePage";
 import { NodeEditPage } from "@/pages/NodeEditPage";
@@ -33,7 +35,10 @@ export default function App() {
             <Route path="prosumers" element={<ProsumerManagementPage />} />
           </Route>
           <Route path="nodes" element={<MicrogridNodesPage />} />
-          <Route path="reservations" element={<PlaceholderPage title="Energy Reservations" />} />
+          <Route element={<ProtectedRoute roles={["Prosumer"]} />}>
+            <Route path="reservations" element={<ReservationManagementPage />} />
+            <Route path="reservations/:reservationId" element={<ReservationDetailsPage />} />
+          </Route>
         </Route>
       </Route>
       <Route path="*" element={<Navigate to="/" replace />} />

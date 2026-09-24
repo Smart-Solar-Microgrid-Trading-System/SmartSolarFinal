@@ -9,7 +9,7 @@ using SmartSolarMicrogrid.Api.Services;
 
 var builder = WebApplication.CreateBuilder(args);
 
-builder.Services.AddControllers(options => 
+builder.Services.AddControllers(options =>
 {
     options.Filters.Add<AccountStatusFilter>();
 });
@@ -150,6 +150,9 @@ using (var scope = app.Services.CreateScope())
             await nodesCollection.InsertOneAsync(node);
         }
     }
+
+    // Create reservation uniqueness protection before accepting reservation requests.
+    await scope.ServiceProvider.GetRequiredService<ReservationService>().EnsureIndexesAsync();
 }
 
 app.UseCors();

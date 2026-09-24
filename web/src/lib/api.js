@@ -49,6 +49,20 @@ export const api = {
   createWebUser: (token, user) => request("/api/users", { token, method: "POST", body: user }),
   getProsumers: (token, status) => request(`/api/prosumers${status ? `?status=${encodeURIComponent(status)}` : ""}`, { token }),
   getPendingProsumers: (token) => request("/api/prosumers?status=Pending", { token }),
+  getNodes: (token) => request("/api/nodes", { token }),
+  getAvailableSlots: (token, nodeId) => request(`/api/nodes/${encodeURIComponent(nodeId)}/slots?status=Available`, { token }),
+  getReservations: (token) => request("/api/reservations", { token }),
+  createReservation: (token, payload) => request("/api/reservations", { token, method: "POST", body: payload }),
+  getReservation: (token, reservationId) => request(`/api/reservations/${encodeURIComponent(reservationId)}`, { token }),
+  updateReservation: (token, reservationId, payload) => request(`/api/reservations/${encodeURIComponent(reservationId)}`, {
+    token,
+    method: "PUT",
+    body: payload
+  }),
+  cancelReservation: (token, reservationId) => request(`/api/reservations/${encodeURIComponent(reservationId)}`, {
+    token,
+    method: "DELETE"
+  }),
   //getNodes: (token) => request("/api/nodes", { token }),
   updateProsumerStatus: (token, nic, accountStatus) => request(`/api/prosumers/${encodeURIComponent(nic)}/status`, {
     token,
