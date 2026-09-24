@@ -1,19 +1,34 @@
-/*
- * Energy Reservation Management
- * Defines the reservation summary returned after reads and mutations.
- */
 namespace SmartSolarMicrogrid.Api.Models.Dtos;
 
-public sealed class ReservationResponse
+public class ReservationResponse
 {
     public string Id { get; init; } = null!;
-    public string ProsumerId { get; init; } = null!;
-    public string MicrogridNodeId { get; init; } = null!;
-    public string BookingSlotId { get; init; } = null!;
-    public DateTime ScheduledStartUtc { get; init; }
-    public decimal EnergyAmountKwh { get; init; }
+
+    public string ProsumerNic { get; init; } = null!;
+
+    public string? ProsumerName { get; init; }
+
+    public string? ProsumerStatus { get; init; }
+
+    public string NodeId { get; init; } = null!;
+
+    public string? NodeName { get; init; }
+
+    public string SlotId { get; init; } = null!;
+
+    public decimal EnergyAmountKw { get; init; }
+
+    public DateTime StartTime { get; init; }
+
+    public DateTime EndTime { get; init; }
+
     public string Status { get; init; } = null!;
-    public DateTime CreatedAtUtc { get; init; }
-    public DateTime UpdatedAtUtc { get; init; }
-    public DateTime? CancelledAtUtc { get; init; }
+
+    public DateTime CreatedAt { get; init; }
+
+    public DateTime UpdatedAt { get; init; }
+
+    public DateTime? CancelledAt { get; init; }
+
+    public DateTime? CompletedAt { get; init; }
 }

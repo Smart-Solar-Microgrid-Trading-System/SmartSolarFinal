@@ -1,7 +1,3 @@
-/*
- * Energy Reservation Management
- * Exposes Prosumer-owned reservation creation, read, update, and soft cancellation endpoints.
- */
 using System.Security.Claims;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
@@ -12,79 +8,125 @@ using SmartSolarMicrogrid.Api.Services;
 namespace SmartSolarMicrogrid.Api.Controllers;
 
 [ApiController]
-[Authorize(Policy = UserRoles.Prosumer)]
+[Authorize(Roles = $"{UserRoles.Backoffice},{UserRoles.GridOperator}")]
 [Route("api/reservations")]
-public sealed class ReservationsController : ControllerBase
+public class ReservationsController : ControllerBase
 {
-    private readonly ReservationService _reservationService;
+    private readonly ReservationQueryService _reservationService;
+    private readonly ReservationCommandService _reservationCommands;
 
-    public ReservationsController(ReservationService reservationService)
+    public ReservationsController(ReservationQueryService reservationService, ReservationCommandService reservationCommands)
     {
-        // Retain the reservation service supplied through dependency injection.
         _reservationService = reservationService;
+        _reservationCommands = reservationCommands;
     }
 
     [HttpPost]
-    public async Task<IActionResult> Create(
-        [FromBody] CreateReservationRequest request,
-        CancellationToken cancellationToken)
+    public async Task<IActionResult> Create([FromBody] CreateReservationRequest request)
     {
-        // Create a reservation for the authenticated Prosumer, never a body-supplied owner.
-        var result = await _reservationService.CreateAsync(GetCurrentUserId(), request, cancellationToken);
-        return result.Failure == ReservationFailure.None
-            ? CreatedAtAction(nameof(GetById), new { id = result.Reservation!.Id }, result.Reservation)
-            : ToFailureResult(result);
+        var result = await _reservationCommands.CreateAsync(request);
+        if (result.Failure != ReservationCommandFailure.None) return ToFailureResult(result);
+        var reservation = await _reservationService.GetByIdAsync(result.ReservationId!, GetUserId(), GetUserRole());
+        return CreatedAtAction(nameof(GetById), new { id = result.ReservationId }, reservation);
     }
 
     [HttpGet]
-    public async Task<IActionResult> GetAll(CancellationToken cancellationToken)
+    public async Task<IActionResult> GetAll(
+        [FromQuery] ReservationFilterRequest request)
     {
-        // List only reservations owned by the authenticated Prosumer.
-        return Ok(await _reservationService.GetAllByProsumerAsync(GetCurrentUserId(), cancellationToken));
+        // Get bookings with the selected filters
+        var reservations = await _reservationService.GetAllAsync(
+            request,
+            GetUserId(),
+            GetUserRole());
+
+        return Ok(reservations);
+    }
+
+    [HttpGet("current")]
+    public async Task<IActionResult> GetCurrent()
+    {
+        // Get current bookings
+        var reservations = await _reservationService.GetCurrentAsync(
+            GetUserId(),
+            GetUserRole());
+
+        return Ok(reservations);
+    }
+
+    [HttpGet("pending")]
+    public async Task<IActionResult> GetPending()
+    {
+        // Get bookings waiting for approval
+        var reservations = await _reservationService.GetPendingAsync(
+            GetUserId(),
+            GetUserRole());
+
+        return Ok(reservations);
+    }
+
+    [HttpGet("history")]
+    public async Task<IActionResult> GetHistory()
+    {
+        // Get previous bookings
+        var reservations = await _reservationService.GetHistoryAsync(
+            GetUserId(),
+            GetUserRole());
+
+        return Ok(reservations);
     }
 
     [HttpGet("{id}")]
-    public async Task<IActionResult> GetById(string id, CancellationToken cancellationToken)
+    public async Task<IActionResult> GetById(string id)
     {
-        // Return a reservation only when it belongs to the authenticated Prosumer.
-        var result = await _reservationService.GetByIdAsync(id, GetCurrentUserId(), cancellationToken);
-        return result.Failure == ReservationFailure.None ? Ok(result.Reservation) : ToFailureResult(result);
+        // Get one reservation
+        var reservation = await _reservationService.GetByIdAsync(
+            id,
+            GetUserId(),
+            GetUserRole());
+
+        if (reservation == null)
+        {
+            return NotFound(new
+            {
+                error = "Reservation was not found."
+            });
+        }
+
+        return Ok(reservation);
     }
 
     [HttpPut("{id}")]
-    public async Task<IActionResult> Update(
-        string id,
-        [FromBody] UpdateReservationRequest request,
-        CancellationToken cancellationToken)
+    public async Task<IActionResult> Update(string id, [FromBody] UpdateReservationRequest request)
     {
-        // Apply reservation changes under ownership, status, and twelve-hour checks.
-        var result = await _reservationService.UpdateAsync(id, GetCurrentUserId(), request, cancellationToken);
-        return result.Failure == ReservationFailure.None ? Ok(result.Reservation) : ToFailureResult(result);
+        var result = await _reservationCommands.UpdateAsync(id, request);
+        if (result.Failure != ReservationCommandFailure.None) return ToFailureResult(result);
+        return Ok(await _reservationService.GetByIdAsync(id, GetUserId(), GetUserRole()));
     }
 
     [HttpDelete("{id}")]
-    public async Task<IActionResult> Cancel(string id, CancellationToken cancellationToken)
+    public async Task<IActionResult> Cancel(string id)
     {
-        // Soft-cancel the authenticated Prosumer's reservation and return its summary.
-        var result = await _reservationService.CancelAsync(id, GetCurrentUserId(), cancellationToken);
-        return result.Failure == ReservationFailure.None ? Ok(result.Reservation) : ToFailureResult(result);
+        var result = await _reservationCommands.CancelAsync(id);
+        if (result.Failure != ReservationCommandFailure.None) return ToFailureResult(result);
+        return Ok(await _reservationService.GetByIdAsync(id, GetUserId(), GetUserRole()));
     }
 
-    private string GetCurrentUserId()
+    private string GetUserId()
     {
-        // Read the immutable user identifier issued by the existing authentication system.
         return User.FindFirstValue(ClaimTypes.NameIdentifier)!;
     }
 
-    private IActionResult ToFailureResult(ReservationResult result)
+    private string GetUserRole()
     {
-        // Translate categorized service failures into the project's established HTTP responses.
-        return result.Failure switch
-        {
-            ReservationFailure.Invalid => BadRequest(new { error = result.Error }),
-            ReservationFailure.NotFound => NotFound(new { error = result.Error }),
-            ReservationFailure.Conflict => Conflict(new { error = result.Error }),
-            _ => StatusCode(StatusCodes.Status500InternalServerError, new { error = "The reservation request could not be completed." })
-        };
+        return User.FindFirstValue(ClaimTypes.Role)!;
     }
+
+    private IActionResult ToFailureResult(ReservationCommandResult result) => result.Failure switch
+    {
+        ReservationCommandFailure.Invalid => BadRequest(new { error = result.Error }),
+        ReservationCommandFailure.NotFound => NotFound(new { error = result.Error }),
+        ReservationCommandFailure.Conflict => Conflict(new { error = result.Error }),
+        _ => StatusCode(StatusCodes.Status500InternalServerError, new { error = "The reservation request could not be completed." })
+    };
 }
