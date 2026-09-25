@@ -13,35 +13,69 @@ import { useAuth } from "@/lib/auth-context";
 
 export function ProsumerManagementPage() {
   const { session } = useAuth();
+
   const [prosumers, setProsumers] = useState([]);
   const [filterStatus, setFilterStatus] = useState("All");
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
   const [message, setMessage] = useState("");
 
-  async function load() {
+  async function loadProsumers() {
     setLoading(true);
     setError("");
-    try { setProsumers(await api.getProsumers(session.token, filterStatus === "All" ? undefined : filterStatus)); }
-    catch (requestError) { setError(requestError.message); }
-    finally { setLoading(false); }
-  }
 
-  useEffect(() => { load(); }, [filterStatus]);
-
-  async function update(prosumer, nextStatus) {
-    setError(""); setMessage("");
     try {
-      const user = await api.updateProsumerStatus(session.token, prosumer.id, nextStatus);
-      setMessage(`${user.fullName} is now ${user.accountStatus}.`);
-      await load();
-    } catch (requestError) { setError(requestError.message); }
+      const status = filterStatus === "All" ? undefined : filterStatus;
+      const data = await api.getProsumers(session.token, status);
+      setProsumers(data);
+    } catch (err) {
+      setError(err.message);
+    } finally {
+      setLoading(false);
+    }
   }
 
-  function actionFor(prosumer) {
-    if (prosumer.accountStatus === "Active") return <Button size="sm" variant="outline" onClick={() => update(prosumer, "Deactivated")}><Power size={15} /> Deactivate</Button>;
-    if (prosumer.accountStatus === "Deactivated") return <Button size="sm" onClick={() => update(prosumer, "Active")}><RotateCcw size={15} /> Reactivate</Button>;
-    return <Button size="sm" onClick={() => update(prosumer, "Active")}><Check size={15} /> Activate</Button>;
+  // reload when the filter changes
+  useEffect(() => {
+    loadProsumers();
+  }, [filterStatus]);
+
+  async function updateStatus(prosumer, newStatus) {
+    setError("");
+    setMessage("");
+
+    try {
+      const user = await api.updateProsumerStatus(session.token, prosumer.id, newStatus);
+      setMessage(`${user.fullName} is now ${user.accountStatus}.`);
+      await loadProsumers();
+    } catch (err) {
+      setError(err.message);
+    }
+  }
+
+  // button depends on the current status
+  function renderAction(prosumer) {
+    if (prosumer.accountStatus === "Active") {
+      return (
+        <Button size="sm" variant="outline" onClick={() => updateStatus(prosumer, "Deactivated")}>
+          <Power size={15} /> Deactivate
+        </Button>
+      );
+    }
+
+    if (prosumer.accountStatus === "Deactivated") {
+      return (
+        <Button size="sm" onClick={() => updateStatus(prosumer, "Active")}>
+          <RotateCcw size={15} /> Reactivate
+        </Button>
+      );
+    }
+
+    return (
+      <Button size="sm" onClick={() => updateStatus(prosumer, "Active")}>
+        <Check size={15} /> Activate
+      </Button>
+    );
   }
 
   return (
@@ -51,10 +85,12 @@ export function ProsumerManagementPage() {
         title="Prosumer Management"
         description="Review and manage prosumer account access."
         icon={UsersRound}
-        actions={(
+        actions={
           <>
             <Select value={filterStatus} onValueChange={setFilterStatus}>
-              <SelectTrigger className="w-40"><SelectValue /></SelectTrigger>
+              <SelectTrigger className="w-40">
+                <SelectValue />
+              </SelectTrigger>
               <SelectContent>
                 <SelectItem value="All">All statuses</SelectItem>
                 <SelectItem value="Pending">Pending</SelectItem>
@@ -62,18 +98,29 @@ export function ProsumerManagementPage() {
                 <SelectItem value="Deactivated">Deactivated</SelectItem>
               </SelectContent>
             </Select>
-            <Button variant="outline" onClick={load} disabled={loading}><RefreshCw size={16} /> Refresh</Button>
+            <Button variant="outline" onClick={loadProsumers} disabled={loading}>
+              <RefreshCw size={16} /> Refresh
+            </Button>
           </>
-        )}
+        }
       />
 
       {error && <FeedbackAlert>{error}</FeedbackAlert>}
       {message && <FeedbackAlert variant="success">{message}</FeedbackAlert>}
 
       <Card>
-        <CardHeader><CardTitle className="flex items-center gap-2"><UsersRound size={19} className="text-brand-600" /> Prosumers</CardTitle></CardHeader>
+        <CardHeader>
+          <CardTitle className="flex items-center gap-2">
+            <UsersRound size={19} className="text-brand-600" /> Prosumers
+          </CardTitle>
+        </CardHeader>
+
         <CardContent>
-          {loading ? <p className="text-sm text-slate-500">Loading Prosumers...</p> : prosumers.length === 0 ? <p className="text-sm text-slate-500">No Prosumers match this status.</p> : (
+          {loading ? (
+            <p className="text-sm text-slate-500">Loading Prosumers...</p>
+          ) : prosumers.length === 0 ? (
+            <p className="text-sm text-slate-500">No Prosumers match this status.</p>
+          ) : (
             <div className="overflow-x-auto">
               <Table className="min-w-[850px]">
                 <TableHeader>
@@ -86,6 +133,7 @@ export function ProsumerManagementPage() {
                     <TableHead className="text-right">Action</TableHead>
                   </TableRow>
                 </TableHeader>
+
                 <TableBody>
                   {prosumers.map((prosumer) => (
                     <TableRow key={prosumer.id}>
@@ -93,8 +141,10 @@ export function ProsumerManagementPage() {
                       <TableCell>{prosumer.fullName}</TableCell>
                       <TableCell>{prosumer.email || "—"}</TableCell>
                       <TableCell>{prosumer.phone || "—"}</TableCell>
-                      <TableCell><StatusBadge status={prosumer.accountStatus} /></TableCell>
-                      <TableCell className="text-right">{actionFor(prosumer)}</TableCell>
+                      <TableCell>
+                        <StatusBadge status={prosumer.accountStatus} />
+                      </TableCell>
+                      <TableCell className="text-right">{renderAction(prosumer)}</TableCell>
                     </TableRow>
                   ))}
                 </TableBody>

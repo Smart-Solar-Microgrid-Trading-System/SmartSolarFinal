@@ -2,8 +2,8 @@ import { useState } from "react";
 import { ArrowLeft, RadioTower } from "lucide-react";
 import { Link, useNavigate } from "react-router-dom";
 
-import { Button } from "@/components/ui/button";
 import { PageHeader } from "@/components/page-header";
+import { Button } from "@/components/ui/button";
 import { api } from "@/lib/api";
 import { useAuth } from "@/lib/auth-context";
 import { NodeForm } from "./NodeForm";
@@ -11,18 +11,13 @@ import { NodeForm } from "./NodeForm";
 export function NodeCreatePage() {
     const { session } = useAuth();
     const navigate = useNavigate();
-
     const [loading, setLoading] = useState(false);
 
     async function handleSubmit(data) {
         setLoading(true);
 
         try {
-            const node = await api.createNode(
-                session.token,
-                data
-            );
-
+            const node = await api.createNode(session.token, data);
             navigate(`/nodes/${node.id}`);
         } finally {
             setLoading(false);
@@ -36,13 +31,13 @@ export function NodeCreatePage() {
                 title="Create Node"
                 description="Register a new solar microgrid node."
                 icon={RadioTower}
-                actions={(
+                actions={
                     <Button variant="outline" size="icon" asChild>
                         <Link to="/nodes">
                             <ArrowLeft size={18} />
                         </Link>
                     </Button>
-                )}
+                }
             />
 
             <NodeForm

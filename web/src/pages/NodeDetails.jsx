@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
-import { ArrowLeft, Edit, MapPin, RadioTower, Battery, Zap, Map } from "lucide-react";
-import { Link, useParams, useNavigate } from "react-router-dom";
+import { ArrowLeft, Battery, Edit, Map, MapPin, RadioTower, Zap } from "lucide-react";
+import { Link, useNavigate, useParams } from "react-router-dom";
 
 import { FeedbackAlert } from "@/components/feedback-alert";
 import { PageHeader } from "@/components/page-header";
@@ -9,11 +9,20 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { api } from "@/lib/api";
 import { useAuth } from "@/lib/auth-context";
+import { cn } from "@/lib/utils";
+
+const statColors = {
+    brand: "from-brand-50 to-brand-100 text-brand-600",
+    solar: "from-amber-50 to-amber-100 text-amber-600",
+    emerald: "from-emerald-50 to-emerald-100 text-emerald-600",
+    rose: "from-rose-50 to-rose-100 text-rose-600"
+};
 
 export function NodeDetailsPage() {
     const { session } = useAuth();
     const { id } = useParams();
     const navigate = useNavigate();
+
     const [node, setNode] = useState(null);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState("");
@@ -27,10 +36,8 @@ export function NodeDetailsPage() {
             try {
                 const result = await api.getNode(session.token, id);
                 setNode(result);
-            } catch (requestError) {
-                setError(
-                    requestError.message || "Failed to load the node."
-                );
+            } catch (err) {
+                setError(err.message || "Failed to load the node.");
             } finally {
                 setLoading(false);
             }
@@ -40,48 +47,36 @@ export function NodeDetailsPage() {
     }, [id, session.token]);
 
     async function handleDeactivate() {
-        if (!node) {
-            return;
-        }
+        if (!node) return;
 
         const confirmed = window.confirm(
             `Are you sure you want to deactivate "${node.name}"?\n\n` +
             "This node will no longer be available for active operations."
         );
-
-        if (!confirmed) {
-            return;
-        }
+        if (!confirmed) return;
 
         setDeactivating(true);
         setError("");
 
         try {
             await api.deactivateNode(session.token, node.id);
-
             navigate("/nodes");
-        } catch (requestError) {
-            setError(
-                requestError.message ||
-                "Failed to deactivate the node."
-            );
+        } catch (err) {
+            setError(err.message || "Failed to deactivate the node.");
         } finally {
             setDeactivating(false);
         }
     }
 
-
     if (loading) {
         return (
             <section>
-                <p className="text-sm text-slate-500">
-                    Loading node...
-                </p>
+                <p className="text-sm text-slate-500">Loading node...</p>
             </section>
         );
     }
 
-    if (error) {
+    if (error || !node) {
         return (
             <section className="space-y-4">
                 <Button variant="outline" asChild>
@@ -91,30 +86,17 @@ export function NodeDetailsPage() {
                     </Link>
                 </Button>
 
-                <FeedbackAlert>{error}</FeedbackAlert>
+                {error ? (
+                    <FeedbackAlert>{error}</FeedbackAlert>
+                ) : (
+                    <p className="text-sm text-slate-500">Node not found.</p>
+                )}
             </section>
         );
     }
 
-    if (!node) {
-        return (
-            <section className="space-y-4">
-                <Button variant="outline" asChild>
-                    <Link to="/nodes">
-                        <ArrowLeft size={16} />
-                        Back to Nodes
-                    </Link>
-                </Button>
-
-                <p className="text-sm text-slate-500">
-                    Node not found.
-                </p>
-            </section>
-        );
-    }
-
-    const isActive =
-        node.isActive !== undefined ? node.isActive : true;
+    // older records may not have isActive, treat those as active
+    const isActive = node.isActive !== undefined ? node.isActive : true;
 
     return (
         <section className="space-y-6">
@@ -123,7 +105,7 @@ export function NodeDetailsPage() {
                 title={node.name}
                 description="Node details and configuration."
                 icon={RadioTower}
-                actions={(
+                actions={
                     <>
                         <Button variant="outline" size="icon" asChild>
                             <Link to="/nodes">
@@ -138,7 +120,7 @@ export function NodeDetailsPage() {
                             </Link>
                         </Button>
                     </>
-                )}
+                }
             />
 
             <div className="grid gap-5 sm:grid-cols-2 lg:grid-cols-4">
@@ -168,97 +150,41 @@ export function NodeDetailsPage() {
 
                 <CardContent>
                     <dl className="grid gap-5 md:grid-cols-2">
-                        <div>
-                            <dt className="text-sm text-slate-500">
-                                Node ID
-                            </dt>
-
-                            <dd className="mt-1 break-all font-medium text-slate-900">
-                                {node.id}
-                            </dd>
-                        </div>
-
-                        <div>
-                            <dt className="text-sm text-slate-500">
-                                Name
-                            </dt>
-
-                            <dd className="mt-1 font-medium text-slate-900">
-                                {node.name}
-                            </dd>
-                        </div>
-
-                        <div>
-                            <dt className="text-sm text-slate-500">
-                                Latitude
-                            </dt>
-
-                            <dd className="mt-1 font-medium text-slate-900">
-                                {node.latitude}
-                            </dd>
-                        </div>
-
-                        <div>
-                            <dt className="text-sm text-slate-500">
-                                Longitude
-                            </dt>
-
-                            <dd className="mt-1 font-medium text-slate-900">
-                                {node.longitude}
-                            </dd>
-                        </div>
-
-                        <div>
-                            <dt className="text-sm text-slate-500">
-                                Capacity
-                            </dt>
-
-                            <dd className="mt-1 font-medium text-slate-900">
-                                {node.capacityKw} kW
-                            </dd>
-                        </div>
-
-                        <div>
-                            <dt className="text-sm text-slate-500">
-                                Available battery slots
-                            </dt>
-
-                            <dd className="mt-1 font-medium text-slate-900">
-                                {node.availableBatterySlots}
-                            </dd>
-                        </div>
+                        <InfoItem label="Node ID" value={node.id} className="break-all" />
+                        <InfoItem label="Name" value={node.name} />
+                        <InfoItem label="Latitude" value={node.latitude} />
+                        <InfoItem label="Longitude" value={node.longitude} />
+                        <InfoItem label="Capacity" value={`${node.capacityKw} kW`} />
+                        <InfoItem label="Available battery slots" value={node.availableBatterySlots} />
                     </dl>
                 </CardContent>
             </Card>
-            {/* View on Map */}
+
             <Button variant="outline" asChild>
                 <Link to={`/nodes/map?nodeId=${encodeURIComponent(node.id)}`}>
                     <Map size={16} />
                     View on Map
                 </Link>
             </Button>
-            {/* Deactivate Button */}
+
+            {/* no need to show this if the node is already inactive */}
             {isActive && (
-                <Button
-                    variant="destructive"
-                    onClick={handleDeactivate}
-                    disabled={deactivating}
-                >
-                    {deactivating
-                        ? "Deactivating..."
-                        : "Deactivate"}
+                <Button variant="destructive" onClick={handleDeactivate} disabled={deactivating}>
+                    {deactivating ? "Deactivating..." : "Deactivate"}
                 </Button>
             )}
         </section>
     );
 }
 
-const STAT_TONES = {
-    brand: "from-brand-50 to-brand-100 text-brand-600",
-    solar: "from-amber-50 to-amber-100 text-amber-600",
-    emerald: "from-emerald-50 to-emerald-100 text-emerald-600",
-    rose: "from-rose-50 to-rose-100 text-rose-600"
-};
+function InfoItem({ label, value, className }) {
+    return (
+        <div>
+            <dt className="text-sm text-slate-500">{label}</dt>
+            <dd className={cn("mt-1 font-medium text-slate-900", className)}>{value}</dd>
+        </div>
+    );
+}
 
 function StatCard({ icon: Icon, tone = "brand", label, children }) {
     return (
@@ -269,7 +195,7 @@ function StatCard({ icon: Icon, tone = "brand", label, children }) {
                     <div className="mt-2">{children}</div>
                 </div>
 
-                <div className={`grid size-10 shrink-0 place-items-center rounded-xl bg-gradient-to-br ${STAT_TONES[tone]}`}>
+                <div className={`grid size-10 shrink-0 place-items-center rounded-xl bg-gradient-to-br ${statColors[tone]}`}>
                     <Icon size={20} aria-hidden="true" />
                 </div>
             </CardContent>

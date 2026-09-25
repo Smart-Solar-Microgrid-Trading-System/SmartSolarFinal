@@ -1,18 +1,7 @@
 import { cn } from "@/lib/utils";
 
-/**
- * A light, professional page-header banner used at the top of every screen.
- * Purely presentational: eyebrow + title + description on the left,
- * optional action buttons on the right, optional icon chip.
- */
-export function PageHeader({
-    eyebrow,
-    title,
-    description,
-    icon: Icon,
-    actions,
-    className
-}) {
+// header box shown at the top of each page
+export function PageHeader({ eyebrow, title, description, icon: Icon, actions, className }) {
     return (
         <div
             className={cn(
@@ -45,18 +34,12 @@ export function PageHeader({
                         </h1>
 
                         {description && (
-                            <p className="mt-1 max-w-2xl text-sm text-slate-500">
-                                {description}
-                            </p>
+                            <p className="mt-1 max-w-2xl text-sm text-slate-500">{description}</p>
                         )}
                     </div>
                 </div>
 
-                {actions && (
-                    <div className="flex flex-wrap items-center gap-2">
-                        {actions}
-                    </div>
-                )}
+                {actions && <div className="flex flex-wrap items-center gap-2">{actions}</div>}
             </div>
         </div>
     );

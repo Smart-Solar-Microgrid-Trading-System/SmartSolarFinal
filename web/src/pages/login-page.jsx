@@ -2,9 +2,9 @@ import { useState } from "react";
 import { LogIn, ShieldCheck, SunMedium, Zap } from "lucide-react";
 import { useLocation, useNavigate } from "react-router-dom";
 
+import { FeedbackAlert } from "@/components/feedback-alert";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
-import { FeedbackAlert } from "@/components/feedback-alert";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { useAuth } from "@/lib/auth-context";
@@ -13,21 +13,25 @@ export function LoginPage() {
   const { signIn } = useAuth();
   const navigate = useNavigate();
   const location = useLocation();
+
   const [identifier, setIdentifier] = useState("");
   const [password, setPassword] = useState("");
   const [error, setError] = useState("");
   const [submitting, setSubmitting] = useState(false);
 
-  async function submit(event) {
+  async function handleSubmit(event) {
     event.preventDefault();
     setError("");
     setSubmitting(true);
+
     try {
       const session = await signIn(identifier, password);
-      const destination = location.state?.from || (session.role === "Backoffice" ? "/users" : "/");
-      navigate(destination, { replace: true });
-    } catch (requestError) {
-      setError(requestError.message);
+
+      // go back to the page they tried to open, otherwise the default page for the role
+      const defaultPage = session.role === "Backoffice" ? "/users" : "/";
+      navigate(location.state?.from || defaultPage, { replace: true });
+    } catch (err) {
+      setError(err.message);
     } finally {
       setSubmitting(false);
     }
@@ -45,6 +49,7 @@ export function LoginPage() {
       />
 
       <div className="relative z-10 grid w-full max-w-4xl items-center gap-10 md:grid-cols-2">
+        {/* left side text, hidden on small screens */}
         <div className="hidden flex-col gap-6 px-2 text-white md:flex">
           <div className="flex items-center gap-3">
             <div className="grid size-12 place-items-center rounded-2xl bg-gradient-to-br from-brand-400 via-brand-500 to-solar-500 shadow-lg shadow-brand-900/40">
@@ -84,7 +89,7 @@ export function LoginPage() {
           </div>
 
           <CardContent className="p-6">
-            <form className="space-y-5" onSubmit={submit}>
+            <form className="space-y-5" onSubmit={handleSubmit}>
               {error && <FeedbackAlert>{error}</FeedbackAlert>}
 
               <div className="space-y-2">
@@ -92,7 +97,7 @@ export function LoginPage() {
                 <Input
                   id="identifier"
                   value={identifier}
-                  onChange={(event) => setIdentifier(event.target.value)}
+                  onChange={(e) => setIdentifier(e.target.value)}
                   required
                   autoComplete="username"
                 />
@@ -104,14 +109,16 @@ export function LoginPage() {
                   id="password"
                   type="password"
                   value={password}
-                  onChange={(event) => setPassword(event.target.value)}
+                  onChange={(e) => setPassword(e.target.value)}
                   required
                   autoComplete="current-password"
                 />
               </div>
 
               <Button className="w-full" size="lg" type="submit" disabled={submitting}>
-                {submitting ? "Signing in..." : (
+                {submitting ? (
+                  "Signing in..."
+                ) : (
                   <>
                     <LogIn size={17} />
                     Sign in
