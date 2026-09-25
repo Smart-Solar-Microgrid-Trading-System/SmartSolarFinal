@@ -38,6 +38,7 @@ export function NodeEditPage() {
 
                 setForm({
                     name: node.name ?? "",
+                    address: node.address ?? "",
                     latitude: node.latitude ?? "",
                     longitude: node.longitude ?? "",
                     capacityKw: node.capacityKw ?? "",
