@@ -1,10 +1,11 @@
 import { useEffect, useState } from "react";
-import { Eye, Pencil, Plus, RefreshCw, Search, Trash2 } from "lucide-react";
+import { Eye, Pencil, Plus, RefreshCw, Search, Trash2, Zap } from "lucide-react";
 import { Link } from "react-router-dom";
 
 import { FeedbackAlert } from "@/components/feedback-alert";
+import { PageHeader } from "@/components/page-header";
+import { StatusBadge } from "@/components/status-badge";
 import { CancelReservationDialog } from "@/components/reservations/cancel-reservation-dialog";
-import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import {
     Card,
@@ -158,23 +159,18 @@ export function ReservationsPage() {
 
     return (
         <section className="space-y-6">
-            <div className="flex flex-wrap items-end justify-between gap-3">
-                <div>
-                    <p className="text-sm font-semibold uppercase tracking-wide text-brand-600">
-                        Operations
-                    </p>
-
-                    <h1 className="text-2xl font-bold text-slate-900">
-                        Energy Reservations
-                    </h1>
-
-                    <p className="mt-1 text-sm text-slate-500">
-                        View current, pending and previous bookings.
-                    </p>
-                </div>
-
-                <div className="flex gap-2"><Button variant="outline" onClick={() => loadReservations()} disabled={loading}><RefreshCw size={16} />Refresh</Button><Button asChild><Link to="/reservations/new"><Plus size={16} />Create reservation</Link></Button></div>
-            </div>
+            <PageHeader
+                eyebrow="Operations"
+                title="Energy Reservations"
+                description="View current, pending and previous bookings."
+                icon={Zap}
+                actions={(
+                    <>
+                        <Button variant="outline" onClick={() => loadReservations()} disabled={loading}><RefreshCw size={16} />Refresh</Button>
+                        <Button asChild><Link to="/reservations/new"><Plus size={16} />Create reservation</Link></Button>
+                    </>
+                )}
+            />
 
             {error && (
                 <FeedbackAlert>
@@ -396,9 +392,7 @@ export function ReservationsPage() {
                                             </TableCell>
 
                                             <TableCell>
-                                                <Badge variant="secondary">
-                                                    {reservation.status}
-                                                </Badge>
+                                                <StatusBadge status={reservation.status} />
                                             </TableCell>
 
                                             <TableCell><div className="flex gap-1"><Button asChild size="icon" variant="ghost" title="View"><Link to={`/reservations/${reservation.id}`}><Eye size={16} /></Link></Button><Button asChild size="icon" variant="ghost" disabled={["Cancelled", "Completed"].includes(reservation.status)} title="Edit"><Link to={`/reservations/${reservation.id}/edit`}><Pencil size={16} /></Link></Button><Button size="icon" variant="ghost" className="text-red-600" disabled={["Cancelled", "Completed"].includes(reservation.status)} title="Cancel" onClick={() => setCancelTarget(reservation)}><Trash2 size={16} /></Button></div></TableCell>

@@ -3,8 +3,9 @@ import { useSearchParams } from "react-router-dom";
 import { ArrowLeft, MapPin, RefreshCw } from "lucide-react";
 import { Link } from "react-router-dom";
 import { FeedbackAlert } from "@/components/feedback-alert";
+import { PageHeader } from "@/components/page-header";
 import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardHeader, CardTitle,} from "@/components/ui/card";
+import { Card, CardContent, CardHeader, CardTitle, } from "@/components/ui/card";
 import { api } from "@/lib/api";
 import { useAuth } from "@/lib/auth-context";
 import { loadGoogleMaps } from "@/lib/google-maps";
@@ -136,38 +137,30 @@ export function NodeMapPage() {
 
     return (
         <section className="space-y-6">
-            <div className="flex flex-wrap items-end justify-between gap-3">
-                <div className="flex items-center gap-3">
-                    <Button variant="outline" size="icon" asChild>
-                        <Link to="/nodes">
-                            <ArrowLeft size={18} />
-                        </Link>
-                    </Button>
+            <PageHeader
+                eyebrow="Microgrid network"
+                title="Node Map"
+                description="Geographic view of the microgrid network."
+                icon={MapPin}
+                actions={(
+                    <>
+                        <Button variant="outline" size="icon" asChild>
+                            <Link to="/nodes">
+                                <ArrowLeft size={18} />
+                            </Link>
+                        </Button>
 
-                    <div>
-                        <p className="text-sm font-semibold uppercase tracking-wide text-brand-600">
-                            Microgrid network
-                        </p>
-
-                        <h1 className="text-2xl font-bold text-slate-900">
-                            Node Map
-                        </h1>
-
-                        <p className="mt-1 text-sm text-slate-500">
-                            Geographic view of the microgrid network.
-                        </p>
-                    </div>
-                </div>
-
-                <Button
-                    variant="outline"
-                    onClick={loadNodes}
-                    disabled={loading}
-                >
-                    <RefreshCw size={16} />
-                    Refresh
-                </Button>
-            </div>
+                        <Button
+                            variant="outline"
+                            onClick={loadNodes}
+                            disabled={loading}
+                        >
+                            <RefreshCw size={16} />
+                            Refresh
+                        </Button>
+                    </>
+                )}
+            />
 
             {error && <FeedbackAlert>{error}</FeedbackAlert>}
 
@@ -191,7 +184,7 @@ export function NodeMapPage() {
                     ) : (
                         <div
                             ref={mapRef}
-                            className="h-[600px] w-full rounded-lg border bg-slate-100"/>
+                                    className="h-[600px] w-full rounded-lg border bg-slate-100" />
                     )}
                 </CardContent>
             </Card>

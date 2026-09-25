@@ -3,11 +3,13 @@ import {
     CalendarCheck,
     CheckCircle2,
     Clock3,
+    Gauge,
     RefreshCw
 } from "lucide-react";
 
 import { FeedbackAlert } from "@/components/feedback-alert";
-import { Badge } from "@/components/ui/badge";
+import { PageHeader } from "@/components/page-header";
+import { StatusBadge } from "@/components/status-badge";
 import { Button } from "@/components/ui/button";
 import {
     Card,
@@ -66,30 +68,22 @@ export function OperationsDashboardPage() {
 
     return (
         <section className="space-y-6">
-            <div className="flex flex-wrap items-end justify-between gap-3">
-                <div>
-                    <p className="text-sm font-semibold uppercase tracking-wide text-brand-600">
-                        Operations
-                    </p>
-
-                    <h1 className="text-2xl font-bold text-slate-900">
-                        Operational Dashboard
-                    </h1>
-
-                    <p className="mt-1 text-sm text-slate-500">
-                        Live reservation information from the Web API.
-                    </p>
-                </div>
-
-                <Button
-                    variant="outline"
-                    onClick={loadDashboard}
-                    disabled={loading}
-                >
-                    <RefreshCw size={16} />
-                    Refresh
-                </Button>
-            </div>
+            <PageHeader
+                eyebrow="Operations"
+                title="Operational Dashboard"
+                description="Live reservation information from the Web API."
+                icon={Gauge}
+                actions={(
+                    <Button
+                        variant="outline"
+                        onClick={loadDashboard}
+                        disabled={loading}
+                    >
+                        <RefreshCw size={16} />
+                        Refresh
+                    </Button>
+                )}
+            />
 
             {error && (
                 <FeedbackAlert>
@@ -108,24 +102,28 @@ export function OperationsDashboardPage() {
                             title="Pending Reservations"
                             value={dashboard.pendingReservations}
                             icon={Clock3}
+                                tone="amber"
                         />
 
                         <DashboardCard
                             title="Approved Future"
                             value={dashboard.approvedFutureReservations}
                             icon={CalendarCheck}
+                                tone="brand"
                         />
 
                         <DashboardCard
                             title="Current Bookings"
                             value={dashboard.currentBookings}
                             icon={CalendarCheck}
+                                tone="violet"
                         />
 
                         <DashboardCard
                             title="Completed Today"
                             value={dashboard.completedToday}
                             icon={CheckCircle2}
+                                tone="emerald"
                         />
                     </div>
 
@@ -195,9 +193,7 @@ export function OperationsDashboardPage() {
                                                         </TableCell>
 
                                                         <TableCell>
-                                                            <Badge variant="secondary">
-                                                                {reservation.status}
-                                                            </Badge>
+                                                            <StatusBadge status={reservation.status} />
                                                         </TableCell>
                                                     </TableRow>
                                                 ))}
@@ -213,10 +209,18 @@ export function OperationsDashboardPage() {
     );
 }
 
+const CARD_TONES = {
+    brand: "from-brand-50 to-brand-100 text-brand-600",
+    amber: "from-amber-50 to-amber-100 text-amber-600",
+    emerald: "from-emerald-50 to-emerald-100 text-emerald-600",
+    violet: "from-violet-50 to-violet-100 text-violet-600"
+};
+
 function DashboardCard({
     title,
     value,
-    icon: Icon
+    icon: Icon,
+    tone = "brand"
 }) {
     return (
         <Card>
@@ -231,7 +235,7 @@ function DashboardCard({
                     </p>
                 </div>
 
-                <div className="grid size-11 place-items-center rounded-lg bg-brand-50 text-brand-700">
+                <div className={`grid size-11 place-items-center rounded-xl bg-gradient-to-br ${CARD_TONES[tone]}`}>
                     <Icon size={22} />
                 </div>
             </CardContent>

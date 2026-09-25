@@ -1,11 +1,12 @@
 import { useEffect, useState } from "react";
-import { ArrowLeft, Edit, MapPin, RadioTower, Battery,Zap,Map} from "lucide-react";
+import { ArrowLeft, Edit, MapPin, RadioTower, Battery, Zap, Map } from "lucide-react";
 import { Link, useParams, useNavigate } from "react-router-dom";
 
 import { FeedbackAlert } from "@/components/feedback-alert";
-import { Badge } from "@/components/ui/badge";
+import { PageHeader } from "@/components/page-header";
+import { StatusBadge } from "@/components/status-badge";
 import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardHeader, CardTitle} from "@/components/ui/card";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { api } from "@/lib/api";
 import { useAuth } from "@/lib/auth-context";
 
@@ -117,119 +118,47 @@ export function NodeDetailsPage() {
 
     return (
         <section className="space-y-6">
-            <div className="flex flex-wrap items-end justify-between gap-3">
-                <div className="flex items-center gap-3">
-                    <Button variant="outline" size="icon" asChild>
-                        <Link to="/nodes">
-                            <ArrowLeft size={18} />
-                        </Link>
-                    </Button>
+            <PageHeader
+                eyebrow="Microgrid node"
+                title={node.name}
+                description="Node details and configuration."
+                icon={RadioTower}
+                actions={(
+                    <>
+                        <Button variant="outline" size="icon" asChild>
+                            <Link to="/nodes">
+                                <ArrowLeft size={18} />
+                            </Link>
+                        </Button>
 
-                    <div>
-                        <p className="text-sm font-semibold uppercase tracking-wide text-brand-600">
-                            Microgrid node
-                        </p>
+                        <Button asChild>
+                            <Link to={`/nodes/${node.id}/edit`}>
+                                <Edit size={16} />
+                                Edit Node
+                            </Link>
+                        </Button>
+                    </>
+                )}
+            />
 
-                        <h1 className="text-2xl font-bold text-slate-900">
-                            {node.name}
-                        </h1>
+            <div className="grid gap-5 sm:grid-cols-2 lg:grid-cols-4">
+                <StatCard icon={RadioTower} tone={isActive ? "emerald" : "rose"} label="Node status">
+                    <StatusBadge status={isActive ? "Active" : "Inactive"} className="mt-1 px-3 py-1 text-sm" />
+                </StatCard>
 
-                        <p className="mt-1 text-sm text-slate-500">
-                            Node details and configuration.
-                        </p>
-                    </div>
-                </div>
+                <StatCard icon={MapPin} tone="brand" label="Latitude / Longitude">
+                    <p className="text-lg font-bold text-slate-900">
+                        {Number(node.latitude).toFixed(4)}, {Number(node.longitude).toFixed(4)}
+                    </p>
+                </StatCard>
 
-                <Button asChild>
-                    <Link to={`/nodes/${node.id}/edit`}>
-                        <Edit size={16} />
-                        Edit Node
-                    </Link>
-                </Button>
-            </div>
+                <StatCard icon={Zap} tone="solar" label="Energy capacity">
+                    <p className="text-2xl font-bold text-slate-900">{node.capacityKw} kW</p>
+                </StatCard>
 
-            <div className="grid gap-6 md:grid-cols-2">
-                <Card>
-                    <CardHeader>
-                        <CardTitle className="flex items-center gap-2">
-                            <RadioTower
-                                size={19}
-                                className="text-brand-600"
-                            />
-                            Node status
-                        </CardTitle>
-                    </CardHeader>
-
-                    <CardContent>
-                        <Badge variant={isActive ? "secondary" : "destructive"}>
-                            {isActive ? "Active" : "Inactive"}
-                        </Badge>
-                    </CardContent>
-                </Card>
-
-                <Card>
-                    <CardHeader>
-                        <CardTitle className="flex items-center gap-2">
-                            <MapPin
-                                size={19}
-                                className="text-brand-600"
-                            />
-                            Location
-                        </CardTitle>
-                    </CardHeader>
-
-                    <CardContent>
-                        <p className="font-medium text-slate-900">
-                            {Number(node.latitude).toFixed(4)},{" "}
-                            {Number(node.longitude).toFixed(4)}
-                        </p>
-
-                        <p className="mt-1 text-sm text-slate-500">
-                            Latitude / Longitude
-                        </p>
-                    </CardContent>
-                </Card>
-
-                <Card>
-                    <CardHeader>
-                        <CardTitle className="flex items-center gap-2">
-                            <Zap size={19} className="text-brand-600" />
-                            Energy capacity
-                        </CardTitle>
-                    </CardHeader>
-
-                    <CardContent>
-                        <p className="text-2xl font-bold text-slate-900">
-                            {node.capacityKw} kW
-                        </p>
-
-                        <p className="mt-1 text-sm text-slate-500">
-                            Maximum configured node capacity
-                        </p>
-                    </CardContent>
-                </Card>
-
-                <Card>
-                    <CardHeader>
-                        <CardTitle className="flex items-center gap-2">
-                            <Battery
-                                size={19}
-                                className="text-brand-600"
-                            />
-                            Battery slots
-                        </CardTitle>
-                    </CardHeader>
-
-                    <CardContent>
-                        <p className="text-2xl font-bold text-slate-900">
-                            {node.availableBatterySlots}
-                        </p>
-
-                        <p className="mt-1 text-sm text-slate-500">
-                            Currently available battery slots
-                        </p>
-                    </CardContent>
-                </Card>
+                <StatCard icon={Battery} tone="brand" label="Battery slots">
+                    <p className="text-2xl font-bold text-slate-900">{node.availableBatterySlots}</p>
+                </StatCard>
             </div>
 
             <Card>
@@ -321,5 +250,29 @@ export function NodeDetailsPage() {
                 </Button>
             )}
         </section>
+    );
+}
+
+const STAT_TONES = {
+    brand: "from-brand-50 to-brand-100 text-brand-600",
+    solar: "from-amber-50 to-amber-100 text-amber-600",
+    emerald: "from-emerald-50 to-emerald-100 text-emerald-600",
+    rose: "from-rose-50 to-rose-100 text-rose-600"
+};
+
+function StatCard({ icon: Icon, tone = "brand", label, children }) {
+    return (
+        <Card>
+            <CardContent className="flex items-start justify-between gap-3 p-5">
+                <div className="min-w-0">
+                    <p className="text-sm text-slate-500">{label}</p>
+                    <div className="mt-2">{children}</div>
+                </div>
+
+                <div className={`grid size-10 shrink-0 place-items-center rounded-xl bg-gradient-to-br ${STAT_TONES[tone]}`}>
+                    <Icon size={20} aria-hidden="true" />
+                </div>
+            </CardContent>
+        </Card>
     );
 }

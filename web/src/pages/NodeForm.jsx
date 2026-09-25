@@ -101,7 +101,7 @@ export function NodeForm() {
         try {
             await api.createNode(session.token, {
                 name: form.name.trim(),
-                address:form.address.trim(),
+                address: form.address.trim(),
                 latitude,
                 longitude,
                 capacityKw,

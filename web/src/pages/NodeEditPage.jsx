@@ -1,8 +1,9 @@
 import { useEffect, useState } from "react";
-import { ArrowLeft, Save } from "lucide-react";
+import { ArrowLeft, RadioTower, Save } from "lucide-react";
 import { Link, useNavigate, useParams } from "react-router-dom";
 
 import { FeedbackAlert } from "@/components/feedback-alert";
+import { PageHeader } from "@/components/page-header";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
@@ -143,27 +144,19 @@ export function NodeEditPage() {
 
     return (
         <section className="space-y-6">
-            <div className="flex items-center gap-3">
-                <Button variant="outline" size="icon" asChild>
-                    <Link to={`/nodes/${id}`}>
-                        <ArrowLeft size={18} />
-                    </Link>
-                </Button>
-
-                <div>
-                    <p className="text-sm font-semibold uppercase tracking-wide text-brand-600">
-                        Microgrid network
-                    </p>
-
-                    <h1 className="text-2xl font-bold text-slate-900">
-                        Edit Microgrid Node
-                    </h1>
-
-                    <p className="mt-1 text-sm text-slate-500">
-                        Update the node configuration.
-                    </p>
-                </div>
-            </div>
+            <PageHeader
+                eyebrow="Microgrid network"
+                title="Edit Microgrid Node"
+                description="Update the node configuration."
+                icon={RadioTower}
+                actions={(
+                    <Button variant="outline" size="icon" asChild>
+                        <Link to={`/nodes/${id}`}>
+                            <ArrowLeft size={18} />
+                        </Link>
+                    </Button>
+                )}
+            />
 
             {error && <FeedbackAlert>{error}</FeedbackAlert>}
 

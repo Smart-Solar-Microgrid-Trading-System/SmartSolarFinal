@@ -1,12 +1,25 @@
 @import "tailwindcss";
 
 @theme {
-  --color-brand-50: #eff8ff;
-  --color-brand-100: #d9efff;
+  --color-brand-50: #eff6ff;
+    --color-brand-100: #dbeaff;
+    --color-brand-200: #bfdcff;
+    --color-brand-300: #8fc2f7;
+    --color-brand-400: #4a9ce0;
   --color-brand-500: #1670bd;
   --color-brand-600: #0b5cab;
   --color-brand-700: #084a8b;
+  --color-brand-800: #0a3868;
+    --color-brand-900: #0a2547;
+    --color-brand-950: #071a34;
+  
+    --color-solar-300: #fbd382;
   --color-solar-400: #f6b73c;
+  --color-solar-500: #ef9f1a;
+    --color-solar-600: #d3820a;
+  
+    --font-sans: "Inter", ui-sans-serif, system-ui, sans-serif;
+    --font-display: "Outfit", "Inter", ui-sans-serif, system-ui, sans-serif;
 }
 
 @theme inline {
@@ -31,29 +44,30 @@
   --radius-sm: calc(var(--radius) - 4px);
   --radius-md: calc(var(--radius) - 2px);
   --radius-lg: var(--radius);
+  --radius-xl: calc(var(--radius) + 6px);
 }
 
 :root {
-  --radius: 0.625rem;
-  --background: #f7faff;
-  --foreground: #172033;
+  --radius: 0.75rem;
+    --background: #f5f8fd;
+    --foreground: #16213a;
   --card: #ffffff;
-  --card-foreground: #172033;
+  --card-foreground: #16213a;
   --popover: #ffffff;
-  --popover-foreground: #172033;
+  --popover-foreground: #16213a;
   --primary: #0b5cab;
   --primary-foreground: #ffffff;
-  --secondary: #e7f2ff;
+  --secondary: #eaf3ff;
   --secondary-foreground: #084a8b;
   --muted: #f1f5f9;
   --muted-foreground: #64748b;
   --accent: #eff8ff;
   --accent-foreground: #084a8b;
-  --destructive: #c83737;
-  --border: #dbe7f3;
+  --destructive: #d0342c;
+    --border: #e1eaf5;
   --input: #dbe7f3;
   --ring: #1670bd;
-  font-family: Inter, ui-sans-serif, system-ui, sans-serif;
+  font-family: var(--font-sans);
   color: var(--foreground);
   background: var(--background);
 }
@@ -66,6 +80,10 @@ body {
   min-width: 320px;
   min-height: 100vh;
   margin: 0;
+  background:
+      radial-gradient(1100px 480px at 100% -10%, rgba(22, 112, 189, 0.07), transparent 60%),
+      radial-gradient(900px 420px at -10% 0%, rgba(246, 183, 60, 0.08), transparent 55%),
+      var(--background);
 }
 
 button,
@@ -73,4 +91,67 @@ input,
 textarea,
 select {
   font: inherit;
+}
+
+h1,
+h2,
+h3,
+.font-display {
+  font-family: var(--font-display);
+  letter-spacing: -0.01em;
+}
+
+.sidebar-scroll {
+  scrollbar-width: thin;
+  scrollbar-color: rgba(255, 255, 255, 0.18) transparent;
+}
+
+.sidebar-scroll::-webkit-scrollbar {
+  width: 6px;
+}
+
+.sidebar-scroll::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+.sidebar-scroll::-webkit-scrollbar-thumb {
+  background: rgba(255, 255, 255, 0.16);
+  border-radius: 999px;
+}
+
+.sidebar-scroll::-webkit-scrollbar-thumb:hover {
+  background: rgba(255, 255, 255, 0.28);
+}
+
+/* Subtle content entrance so route changes feel alive, never distracting */
+@keyframes page-fade-in {
+  from {
+    opacity: 0;
+    transform: translateY(6px);
+  }
+
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.animate-page-in {
+  animation: page-fade-in 0.35s cubic-bezier(0.16, 1, 0.3, 1) both;
+}
+
+@keyframes glow-pulse {
+
+  0%,
+  100% {
+    opacity: 0.55;
+  }
+
+  50% {
+    opacity: 0.9;
+  }
+}
+
+.animate-glow-pulse {
+  animation: glow-pulse 4.5s ease-in-out infinite;
 }

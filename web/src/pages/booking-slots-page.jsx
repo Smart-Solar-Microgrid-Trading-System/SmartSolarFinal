@@ -1,8 +1,9 @@
 import { useEffect, useState } from "react";
-import { CalendarPlus, Pencil, RefreshCw, Trash2 } from "lucide-react";
+import { CalendarClock, CalendarPlus, Pencil, RefreshCw, Trash2 } from "lucide-react";
 
 import { FeedbackAlert } from "@/components/feedback-alert";
-import { Badge } from "@/components/ui/badge";
+import { PageHeader } from "@/components/page-header";
+import { StatusBadge } from "@/components/status-badge";
 import { Button } from "@/components/ui/button";
 import {
     Card,
@@ -192,37 +193,29 @@ export function BookingSlotsPage() {
 
     return (
         <section className="space-y-6">
-            <div className="flex flex-wrap items-end justify-between gap-3">
-                <div>
-                    <p className="text-sm font-semibold uppercase tracking-wide text-brand-600">
-                        Operations
-                    </p>
+            <PageHeader
+                eyebrow="Operations"
+                title="Booking Slots"
+                description="Create and manage available energy booking slots."
+                icon={CalendarClock}
+                actions={(
+                    <>
+                        <Button
+                            variant="outline"
+                            onClick={loadData}
+                            disabled={loading}
+                        >
+                            <RefreshCw size={16} />
+                            Refresh
+                        </Button>
 
-                    <h1 className="text-2xl font-bold text-slate-900">
-                        Booking Slots
-                    </h1>
-
-                    <p className="mt-1 text-sm text-slate-500">
-                        Create and manage available energy booking slots.
-                    </p>
-                </div>
-
-                <div className="flex gap-2">
-                    <Button
-                        variant="outline"
-                        onClick={loadData}
-                        disabled={loading}
-                    >
-                        <RefreshCw size={16} />
-                        Refresh
-                    </Button>
-
-                    <Button onClick={openCreate}>
-                        <CalendarPlus size={17} />
-                        Create slot
-                    </Button>
-                </div>
-            </div>
+                        <Button onClick={openCreate}>
+                            <CalendarPlus size={17} />
+                            Create slot
+                        </Button>
+                    </>
+                )}
+            />
 
             {error && (
                 <FeedbackAlert>
@@ -286,9 +279,7 @@ export function BookingSlotsPage() {
                                             </TableCell>
 
                                             <TableCell>
-                                                <Badge variant="secondary">
-                                                    {slot.status}
-                                                </Badge>
+                                                <StatusBadge status={slot.status} />
                                             </TableCell>
 
                                             <TableCell>
