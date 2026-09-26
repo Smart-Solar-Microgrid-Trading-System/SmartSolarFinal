@@ -35,6 +35,9 @@ builder.Services.AddSingleton<AuthService>();
 builder.Services.AddSingleton<ProsumerService>();
 builder.Services.AddSingleton<UserManagementService>();
 builder.Services.AddSingleton<MicrogridNodeService>();
+builder.Services.AddSingleton<BookingSlotService>();    //booking slots
+builder.Services.AddSingleton<ReservationQueryService>();
+builder.Services.AddSingleton<ReservationCommandService>();
 
 var key = Encoding.ASCII.GetBytes(builder.Configuration["Jwt:Secret"]!);
 builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)

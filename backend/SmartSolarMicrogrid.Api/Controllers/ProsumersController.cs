@@ -46,7 +46,7 @@ public sealed class ProsumersController : ControllerBase
         return CreatedAtAction(nameof(Register), result.User);
     }
 
-    [Authorize(Policy = UserRoles.Backoffice)]
+    [Authorize(Roles = $"{UserRoles.Backoffice},{UserRoles.GridOperator}")]
     [HttpGet]
     public async Task<IActionResult> GetByStatus([FromQuery] string? status)
     {
