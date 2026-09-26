@@ -1,5 +1,13 @@
 import { useEffect, useMemo, useState } from "react";
-import { ArrowLeft, Check, ClipboardCheck } from "lucide-react";
+import {
+  ArrowLeft,
+  CalendarDays,
+  Check,
+  ClipboardCheck,
+  Network,
+  UserRound,
+  Zap
+} from "lucide-react";
 import { useNavigate } from "react-router-dom";
 
 import { FeedbackAlert } from "@/components/feedback-alert";
@@ -166,8 +174,10 @@ export function CreateReservationPage() {
   return (
     <section className="space-y-5">
       <header>
-        <p className="text-sm font-semibold text-brand-600">Reservations / Create</p>
-        <h1 className="text-2xl font-bold text-slate-900">Create reservation</h1>
+        <p className="text-sm text-slate-500">
+          <span className="font-medium text-brand-600">Reservations</span> / Create
+        </p>
+        <h1 className="mt-2 text-3xl font-bold text-slate-900">Create Reservation</h1>
         <p className="mt-1 text-sm text-slate-500">
           Create an energy booking for an existing active Prosumer.
         </p>
@@ -176,14 +186,21 @@ export function CreateReservationPage() {
       {error && <FeedbackAlert>{error}</FeedbackAlert>}
 
       <div className="grid items-start gap-5 lg:grid-cols-[minmax(0,1fr)_360px]">
-        <Card>
+        <Card className="border-slate-200 shadow-sm">
           <CardHeader className="border-b border-slate-100">
-            <CardTitle>{reviewing ? "Review reservation" : "Reservation information"}</CardTitle>
-            <p className="text-sm text-slate-500">
-              {reviewing
-                ? "Check the details before creating the reservation."
-                : "Select the Prosumer, node, slot, and energy amount."}
-            </p>
+            <div className="flex items-center gap-3">
+              <span className="grid size-11 place-items-center rounded-lg bg-brand-600 text-white">
+                <CalendarDays size={21} />
+              </span>
+              <div>
+                <CardTitle>{reviewing ? "Review Reservation" : "Reservation Details"}</CardTitle>
+                <p className="mt-1 text-sm text-slate-500">
+                  {reviewing
+                    ? "Check the details before creating the reservation."
+                    : "Select the Prosumer, node, slot, and energy amount."}
+                </p>
+              </div>
+            </div>
           </CardHeader>
 
           <CardContent className="space-y-5 pt-5">
@@ -191,9 +208,10 @@ export function CreateReservationPage() {
               <p className="text-sm text-slate-500">Loading active Prosumers and microgrid nodes...</p>
             ) : (
               <>
-                <Field label="Prosumer (NIC or name)">
+                <Field label="Prosumer (NIC or name)" required>
                   <Select value={prosumerNic} onValueChange={updateProsumer} disabled={reviewing}>
-                    <SelectTrigger>
+                    <SelectTrigger className="h-12 bg-white">
+                      <UserRound className="mr-2 shrink-0 text-slate-500" size={18} />
                       <SelectValue placeholder="Select an active Prosumer" />
                     </SelectTrigger>
                     <SelectContent>
@@ -206,9 +224,10 @@ export function CreateReservationPage() {
                   </Select>
                 </Field>
 
-                <Field label="Microgrid node">
+                <Field label="Microgrid node" required>
                   <Select value={nodeId} onValueChange={updateNode} disabled={reviewing}>
-                    <SelectTrigger>
+                    <SelectTrigger className="h-12 bg-white">
+                      <Network className="mr-2 shrink-0 text-slate-500" size={18} />
                       <SelectValue placeholder="Select a station" />
                     </SelectTrigger>
                     <SelectContent>
@@ -221,13 +240,14 @@ export function CreateReservationPage() {
                   </Select>
                 </Field>
 
-                <Field label="Available booking slot">
+                <Field label="Available booking slot" required>
                   <Select
                     value={slotId}
                     onValueChange={updateSlot}
                     disabled={!nodeId || loadingSlots || reviewing}
                   >
-                    <SelectTrigger>
+                    <SelectTrigger className="h-12 bg-white">
+                      <CalendarDays className="mr-2 shrink-0 text-slate-500" size={18} />
                       <SelectValue
                         placeholder={loadingSlots
                           ? "Loading available slots..."
@@ -245,23 +265,32 @@ export function CreateReservationPage() {
                     </SelectContent>
                   </Select>
                   {nodeId && !loadingSlots && slots.length === 0 && (
-                    <p className="text-xs text-amber-700">
+                    <div className="rounded-lg border border-amber-200 bg-amber-50 px-3 py-2 text-sm text-amber-700">
                       No available slots were found within the next seven days.
-                    </p>
+                    </div>
                   )}
                 </Field>
 
-                <Field label="Energy amount (kWh)">
-                  <Input
-                    type="number"
-                    min="0.01"
-                    step="0.01"
-                    max={slot?.capacityKw}
-                    value={energyAmountKw}
-                    onChange={updateEnergyAmount}
-                    disabled={!slot || reviewing}
-                    placeholder="Enter an energy amount"
-                  />
+                <Field label="Energy amount (kWh)" required>
+                  <div className="flex h-12 overflow-hidden rounded-md border border-input bg-white focus-within:ring-2 focus-within:ring-ring">
+                    <span className="grid w-12 shrink-0 place-items-center border-r border-slate-200 text-slate-600">
+                      <Zap size={18} />
+                    </span>
+                    <Input
+                      className="h-full rounded-none border-0 shadow-none focus-visible:ring-0"
+                      type="number"
+                      min="0.01"
+                      step="0.01"
+                      max={slot?.capacityKw}
+                      value={energyAmountKw}
+                      onChange={updateEnergyAmount}
+                      disabled={!slot || reviewing}
+                      placeholder="Enter an energy amount"
+                    />
+                    <span className="grid w-16 shrink-0 place-items-center border-l border-slate-200 bg-slate-50 text-sm font-medium text-slate-600">
+                      kWh
+                    </span>
+                  </div>
                   {slot && energyAmount > Number(slot.capacityKw) && (
                     <p className="text-xs text-red-600">
                       The amount cannot exceed the slot capacity of {slot.capacityKw} kW.
@@ -270,6 +299,28 @@ export function CreateReservationPage() {
                 </Field>
 
                 <ReservationRulesNotice />
+
+                <div className="flex justify-end gap-3 border-t border-slate-100 pt-5">
+                  <Button
+                    variant="outline"
+                    onClick={() => reviewing ? setReviewing(false) : navigate("/reservations")}
+                  >
+                    <ArrowLeft size={16} />
+                    {reviewing ? "Back to edit" : "Cancel"}
+                  </Button>
+
+                  {reviewing ? (
+                    <Button onClick={createReservation} disabled={saving}>
+                      <Check size={16} />
+                      {saving ? "Creating..." : "Create Reservation"}
+                    </Button>
+                  ) : (
+                    <Button onClick={() => setReviewing(true)} disabled={!formIsComplete}>
+                      <ClipboardCheck size={16} />
+                      Review Reservation
+                    </Button>
+                  )}
+                </div>
               </>
             )}
           </CardContent>
@@ -291,35 +342,17 @@ export function CreateReservationPage() {
         </div>
       </div>
 
-      <div className="flex justify-end gap-3">
-        <Button
-          variant="outline"
-          onClick={() => reviewing ? setReviewing(false) : navigate("/reservations")}
-        >
-          <ArrowLeft size={16} />
-          {reviewing ? "Back to edit" : "Cancel"}
-        </Button>
-
-        {reviewing ? (
-          <Button onClick={createReservation} disabled={saving}>
-            <Check size={16} />
-            {saving ? "Creating..." : "Create reservation"}
-          </Button>
-        ) : (
-          <Button onClick={() => setReviewing(true)} disabled={!formIsComplete}>
-            <ClipboardCheck size={16} />
-            Review reservation
-          </Button>
-        )}
-      </div>
     </section>
   );
 }
 
-function Field({ label, children }) {
+function Field({ label, required = false, children }) {
   return (
     <div className="space-y-2">
-      <Label>{label}</Label>
+      <Label>
+        {label}
+        {required && <span className="ml-1 text-red-500">*</span>}
+      </Label>
       {children}
     </div>
   );
