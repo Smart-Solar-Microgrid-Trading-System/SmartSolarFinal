@@ -1,3 +1,8 @@
+/*
+ * Component: Energy Reservation Management
+ * File: ReservationsController.cs
+ * Purpose: Exposes authorized reservation query, create, update, and soft-cancellation endpoints.
+ */
 using System.Security.Claims;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
@@ -17,6 +22,7 @@ public class ReservationsController : ControllerBase
 
     public ReservationsController(ReservationQueryService reservationService, ReservationCommandService reservationCommands)
     {
+        // Retain the query and command services supplied through dependency injection.
         _reservationService = reservationService;
         _reservationCommands = reservationCommands;
     }
@@ -24,6 +30,7 @@ public class ReservationsController : ControllerBase
     [HttpPost]
     public async Task<IActionResult> Create([FromBody] CreateReservationRequest request)
     {
+        // Create a Pending reservation for the active Prosumer selected by authorized staff.
         var result = await _reservationCommands.CreateAsync(request);
         if (result.Failure != ReservationCommandFailure.None) return ToFailureResult(result);
         var reservation = await _reservationService.GetByIdAsync(result.ReservationId!, GetUserId(), GetUserRole());
@@ -34,7 +41,7 @@ public class ReservationsController : ControllerBase
     public async Task<IActionResult> GetAll(
         [FromQuery] ReservationFilterRequest request)
     {
-        // Get bookings with the selected filters
+        // Return reservations that match Member 4's operational filters.
         var reservations = await _reservationService.GetAllAsync(
             request,
             GetUserId(),
@@ -46,7 +53,7 @@ public class ReservationsController : ControllerBase
     [HttpGet("current")]
     public async Task<IActionResult> GetCurrent()
     {
-        // Get current bookings
+        // Return current Pending and Approved reservations.
         var reservations = await _reservationService.GetCurrentAsync(
             GetUserId(),
             GetUserRole());
@@ -57,7 +64,7 @@ public class ReservationsController : ControllerBase
     [HttpGet("pending")]
     public async Task<IActionResult> GetPending()
     {
-        // Get bookings waiting for approval
+        // Return reservations that are waiting for operational approval.
         var reservations = await _reservationService.GetPendingAsync(
             GetUserId(),
             GetUserRole());
@@ -68,7 +75,7 @@ public class ReservationsController : ControllerBase
     [HttpGet("history")]
     public async Task<IActionResult> GetHistory()
     {
-        // Get previous bookings
+        // Return completed, cancelled, and rejected reservation history.
         var reservations = await _reservationService.GetHistoryAsync(
             GetUserId(),
             GetUserRole());
@@ -79,7 +86,7 @@ public class ReservationsController : ControllerBase
     [HttpGet("{id}")]
     public async Task<IActionResult> GetById(string id)
     {
-        // Get one reservation
+        // Return one accessible reservation with its display details.
         var reservation = await _reservationService.GetByIdAsync(
             id,
             GetUserId(),
@@ -99,6 +106,7 @@ public class ReservationsController : ControllerBase
     [HttpPut("{id}")]
     public async Task<IActionResult> Update(string id, [FromBody] UpdateReservationRequest request)
     {
+        // Update the selected slot and energy amount after applying reservation rules.
         var result = await _reservationCommands.UpdateAsync(id, request);
         if (result.Failure != ReservationCommandFailure.None) return ToFailureResult(result);
         return Ok(await _reservationService.GetByIdAsync(id, GetUserId(), GetUserRole()));
@@ -107,6 +115,7 @@ public class ReservationsController : ControllerBase
     [HttpDelete("{id}")]
     public async Task<IActionResult> Cancel(string id)
     {
+        // Soft-cancel the reservation and return the updated record.
         var result = await _reservationCommands.CancelAsync(id);
         if (result.Failure != ReservationCommandFailure.None) return ToFailureResult(result);
         return Ok(await _reservationService.GetByIdAsync(id, GetUserId(), GetUserRole()));
@@ -114,19 +123,25 @@ public class ReservationsController : ControllerBase
 
     private string GetUserId()
     {
+        // Read the immutable authenticated user identifier from the JWT.
         return User.FindFirstValue(ClaimTypes.NameIdentifier)!;
     }
 
     private string GetUserRole()
     {
+        // Read the authenticated role used by the shared query service.
         return User.FindFirstValue(ClaimTypes.Role)!;
     }
 
-    private IActionResult ToFailureResult(ReservationCommandResult result) => result.Failure switch
+    private IActionResult ToFailureResult(ReservationCommandResult result)
     {
-        ReservationCommandFailure.Invalid => BadRequest(new { error = result.Error }),
-        ReservationCommandFailure.NotFound => NotFound(new { error = result.Error }),
-        ReservationCommandFailure.Conflict => Conflict(new { error = result.Error }),
-        _ => StatusCode(StatusCodes.Status500InternalServerError, new { error = "The reservation request could not be completed." })
-    };
+        // Translate categorized command failures into stable HTTP responses.
+        return result.Failure switch
+        {
+            ReservationCommandFailure.Invalid => BadRequest(new { error = result.Error }),
+            ReservationCommandFailure.NotFound => NotFound(new { error = result.Error }),
+            ReservationCommandFailure.Conflict => Conflict(new { error = result.Error }),
+            _ => StatusCode(StatusCodes.Status500InternalServerError, new { error = "The reservation request could not be completed." })
+        };
+    }
 }

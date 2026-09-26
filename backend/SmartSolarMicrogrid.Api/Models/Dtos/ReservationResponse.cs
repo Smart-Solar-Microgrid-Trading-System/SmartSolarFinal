@@ -1,3 +1,8 @@
+/*
+ * Component: Energy Reservation Management
+ * File: ReservationResponse.cs
+ * Purpose: Provides the shared reservation details used by operational lists and CRUD screens.
+ */
 namespace SmartSolarMicrogrid.Api.Models.Dtos;
 
 public class ReservationResponse

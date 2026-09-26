@@ -1,3 +1,8 @@
+/*
+ * Component: Energy Reservation Management
+ * File: CreateReservationRequest.cs
+ * Purpose: Defines validated staff input for creating a reservation for an active Prosumer.
+ */
 using System.ComponentModel.DataAnnotations;
 
 namespace SmartSolarMicrogrid.Api.Models.Dtos;

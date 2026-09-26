@@ -1,3 +1,8 @@
+/*
+ * Component: Energy Reservation Management
+ * File: UpdateReservationRequest.cs
+ * Purpose: Defines the slot and energy values that staff may change on a reservation.
+ */
 using System.ComponentModel.DataAnnotations;
 
 namespace SmartSolarMicrogrid.Api.Models.Dtos;

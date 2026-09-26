@@ -1,3 +1,8 @@
+/*
+ * Component: Energy Reservation Management
+ * File: ReservationCommandService.cs
+ * Purpose: Applies reservation business rules and coordinates MongoDB create, update, and cancellation operations.
+ */
 using MongoDB.Driver;
 using SmartSolarMicrogrid.Api.Models;
 using SmartSolarMicrogrid.Api.Models.Dtos;
@@ -16,6 +21,7 @@ public sealed class ReservationCommandService
 
     public ReservationCommandService(IMongoDatabase database)
     {
+        // Connect the service to the shared reservation, slot, node, and user collections.
         _reservations = database.GetCollection<EnergyReservation>("EnergyReservations");
         _slots = database.GetCollection<EnergyBookingSlot>("EnergyBookingSlots");
         _nodes = database.GetCollection<MicrogridNode>("MicrogridNodes");
@@ -24,6 +30,7 @@ public sealed class ReservationCommandService
 
     public async Task<ReservationCommandResult> CreateAsync(CreateReservationRequest request)
     {
+        // Validate the selected dependencies before atomically reserving a slot.
         var prosumerNic = request.ProsumerNic?.Trim();
         var nodeId = request.NodeId?.Trim();
         var slotId = request.SlotId?.Trim();
@@ -83,6 +90,7 @@ public sealed class ReservationCommandService
 
     public async Task<ReservationCommandResult> UpdateAsync(string id, UpdateReservationRequest request)
     {
+        // Enforce status and notice rules before changing the reservation's slot or energy.
         var reservation = await _reservations.Find(item => item.Id == id).FirstOrDefaultAsync();
         if (reservation is null)
             return ReservationCommandResult.NotFound("Reservation was not found.");
@@ -128,6 +136,7 @@ public sealed class ReservationCommandService
 
     public async Task<ReservationCommandResult> CancelAsync(string id)
     {
+        // Mark an eligible reservation as Cancelled without deleting its database record.
         var reservation = await _reservations.Find(item => item.Id == id).FirstOrDefaultAsync();
         if (reservation is null)
             return ReservationCommandResult.NotFound("Reservation was not found.");
@@ -152,6 +161,7 @@ public sealed class ReservationCommandService
     private async Task<(EnergyBookingSlot? Slot, ReservationCommandResult? Error)> ValidateSlotAsync(
         string slotId, string nodeId, decimal energyAmount, bool allowReservedSlot)
     {
+        // Confirm that the requested slot belongs to the node and satisfies availability rules.
         var slot = await _slots.Find(item => item.Id == slotId && item.IsActive).FirstOrDefaultAsync();
         if (slot is null) return (null, ReservationCommandResult.NotFound("Booking slot was not found."));
         if (slot.NodeId != nodeId) return (null, ReservationCommandResult.Invalid("The booking slot does not belong to the selected microgrid node."));
@@ -168,6 +178,7 @@ public sealed class ReservationCommandService
 
     private static ReservationCommandResult? ValidateMutable(EnergyReservation reservation, string action)
     {
+        // Reject terminal reservations and changes attempted inside the 12-hour window.
         if (reservation.Status is ReservationStatuses.Cancelled or ReservationStatuses.Completed)
             return ReservationCommandResult.Invalid($"A {reservation.Status} reservation cannot be {action}.");
         if (reservation.StartTime - DateTime.UtcNow < ModificationNotice)
@@ -175,17 +186,40 @@ public sealed class ReservationCommandService
         return null;
     }
 
-    private Task ReleaseSlotAsync(string slotId) => _slots.UpdateOneAsync(
-        item => item.Id == slotId && item.Status == BookingSlotStatuses.Reserved,
-        Builders<EnergyBookingSlot>.Update.Set(item => item.Status, BookingSlotStatuses.Available).Set(item => item.UpdatedAt, DateTime.UtcNow));
+    private Task ReleaseSlotAsync(string slotId)
+    {
+        // Return a previously reserved slot to the Available state.
+        return _slots.UpdateOneAsync(
+            item => item.Id == slotId && item.Status == BookingSlotStatuses.Reserved,
+            Builders<EnergyBookingSlot>.Update.Set(item => item.Status, BookingSlotStatuses.Available).Set(item => item.UpdatedAt, DateTime.UtcNow));
+    }
 }
 
 public enum ReservationCommandFailure { None, Invalid, NotFound, Conflict }
 
 public sealed record ReservationCommandResult(string? ReservationId, string? Error, ReservationCommandFailure Failure)
 {
-    public static ReservationCommandResult Success(string id) => new(id, null, ReservationCommandFailure.None);
-    public static ReservationCommandResult Invalid(string error) => new(null, error, ReservationCommandFailure.Invalid);
-    public static ReservationCommandResult NotFound(string error) => new(null, error, ReservationCommandFailure.NotFound);
-    public static ReservationCommandResult Conflict(string error) => new(null, error, ReservationCommandFailure.Conflict);
+    public static ReservationCommandResult Success(string id)
+    {
+        // Represent a completed reservation command.
+        return new(id, null, ReservationCommandFailure.None);
+    }
+
+    public static ReservationCommandResult Invalid(string error)
+    {
+        // Represent input or business-rule validation failure.
+        return new(null, error, ReservationCommandFailure.Invalid);
+    }
+
+    public static ReservationCommandResult NotFound(string error)
+    {
+        // Represent a missing reservation or dependency.
+        return new(null, error, ReservationCommandFailure.NotFound);
+    }
+
+    public static ReservationCommandResult Conflict(string error)
+    {
+        // Represent a concurrency or slot-availability conflict.
+        return new(null, error, ReservationCommandFailure.Conflict);
+    }
 }
