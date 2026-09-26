@@ -5,6 +5,7 @@ import {
   Check,
   ClipboardCheck,
   Network,
+  Search,
   UserRound,
   Zap
 } from "lucide-react";
@@ -35,6 +36,8 @@ export function CreateReservationPage() {
   const [nodes, setNodes] = useState([]);
   const [slots, setSlots] = useState([]);
   const [prosumerNic, setProsumerNic] = useState("");
+  const [prosumerSearch, setProsumerSearch] = useState("");
+  const [showProsumerOptions, setShowProsumerOptions] = useState(false);
   const [nodeId, setNodeId] = useState("");
   const [slotId, setSlotId] = useState("");
   const [energyAmountKw, setEnergyAmountKw] = useState("");
@@ -109,6 +112,18 @@ export function CreateReservationPage() {
     () => prosumers.find((item) => item.id === prosumerNic),
     [prosumers, prosumerNic]
   );
+  const filteredProsumers = useMemo(() => {
+    const searchText = prosumerSearch.trim().toLowerCase();
+
+    if (!searchText) {
+      return prosumers;
+    }
+
+    return prosumers.filter((item) =>
+      item.id.toLowerCase().includes(searchText) ||
+      item.fullName.toLowerCase().includes(searchText)
+    );
+  }, [prosumers, prosumerSearch]);
   const node = useMemo(
     () => nodes.find((item) => item.id === nodeId),
     [nodes, nodeId]
@@ -147,9 +162,19 @@ export function CreateReservationPage() {
     }
   }
 
-  function updateProsumer(value) {
-    // Store the selected Prosumer and return the form to edit mode.
-    setProsumerNic(value);
+  function updateProsumerSearch(event) {
+    // Search by NIC or name and clear the previous selection when the text changes.
+    setProsumerSearch(event.target.value);
+    setProsumerNic("");
+    setShowProsumerOptions(true);
+    setReviewing(false);
+  }
+
+  function selectProsumer(item) {
+    // Store the selected Prosumer and show its name and NIC in the search field.
+    setProsumerNic(item.id);
+    setProsumerSearch(`${item.fullName} - ${item.id}`);
+    setShowProsumerOptions(false);
     setReviewing(false);
   }
 
@@ -209,19 +234,69 @@ export function CreateReservationPage() {
             ) : (
               <>
                 <Field label="Prosumer (NIC or name)" required>
-                  <Select value={prosumerNic} onValueChange={updateProsumer} disabled={reviewing}>
-                    <SelectTrigger className="h-12 bg-white">
-                      <UserRound className="mr-2 shrink-0 text-slate-500" size={18} />
-                      <SelectValue placeholder="Select an active Prosumer" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      {prosumers.map((item) => (
-                        <SelectItem key={item.id} value={item.id}>
-                          {item.fullName} - {item.id} ({item.accountStatus})
-                        </SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
+                  <div className="relative">
+                    <Search
+                      className="pointer-events-none absolute left-3 top-1/2 z-10 -translate-y-1/2 text-slate-500"
+                      size={18}
+                    />
+                    <Input
+                      className="h-12 bg-white pl-10"
+                      value={prosumerSearch}
+                      onChange={updateProsumerSearch}
+                      onFocus={() => setShowProsumerOptions(true)}
+                      onBlur={() => setShowProsumerOptions(false)}
+                      onKeyDown={(event) => {
+                        if (event.key === "Escape") {
+                          setShowProsumerOptions(false);
+                        }
+                      }}
+                      disabled={reviewing}
+                      placeholder="Type a Prosumer name or NIC"
+                      role="combobox"
+                      aria-expanded={showProsumerOptions}
+                      aria-controls="prosumer-options"
+                      autoComplete="off"
+                    />
+
+                    {showProsumerOptions && !reviewing && (
+                      <div
+                        id="prosumer-options"
+                        role="listbox"
+                        className="absolute z-20 mt-1 max-h-56 w-full overflow-y-auto rounded-md border border-slate-200 bg-white p-1 shadow-md"
+                      >
+                        {filteredProsumers.length > 0 ? (
+                          filteredProsumers.map((item) => (
+                            <button
+                              key={item.id}
+                              type="button"
+                              role="option"
+                              aria-selected={item.id === prosumerNic}
+                              className="flex w-full items-center justify-between gap-3 rounded px-3 py-2 text-left hover:bg-slate-50"
+                              onMouseDown={(event) => event.preventDefault()}
+                              onClick={() => selectProsumer(item)}
+                            >
+                              <span className="flex min-w-0 items-center gap-3">
+                                <UserRound className="shrink-0 text-slate-500" size={17} />
+                                <span className="min-w-0">
+                                  <span className="block truncate text-sm font-medium text-slate-800">
+                                    {item.fullName}
+                                  </span>
+                                  <span className="block text-xs text-slate-500">NIC: {item.id}</span>
+                                </span>
+                              </span>
+                              <span className="rounded-full bg-emerald-50 px-2 py-1 text-xs text-emerald-700">
+                                {item.accountStatus}
+                              </span>
+                            </button>
+                          ))
+                        ) : (
+                          <p className="px-3 py-3 text-sm text-slate-500">
+                            No active Prosumer matches this search.
+                          </p>
+                        )}
+                      </div>
+                    )}
+                  </div>
                 </Field>
 
                 <Field label="Microgrid node" required>
