@@ -1,6 +1,12 @@
 <?xml version="1.0" encoding="utf-8"?>
 <manifest xmlns:android="http://schemas.android.com/apk/res/android">
+
+    <uses-feature android:name="android.hardware.camera" android:required="false" />
+
     <uses-permission android:name="android.permission.INTERNET" />
+    <uses-permission android:name="android.permission.ACCESS_FINE_LOCATION" />
+    <uses-permission android:name="android.permission.ACCESS_COARSE_LOCATION" />
+    <uses-permission android:name="android.permission.CAMERA" />
 
     <application
         android:allowBackup="true"
@@ -9,6 +15,7 @@
         android:supportsRtl="true"
         android:theme="@style/AppTheme"
         android:usesCleartextTraffic="true">
+
         <activity
             android:name=".LaunchActivity"
             android:exported="true">
@@ -25,5 +32,8 @@
         <activity android:name=".LoginActivity" />
         <activity android:name=".ProsumerRegistrationActivity" />
         <activity android:name=".ServerSettingsActivity" />
+        <activity android:name=".GridOperatorHomeActivity" />
+        <activity android:name=".NearbyStationsActivity" />
+        <activity android:name=".StationDetailsActivity" />
     </application>
 </manifest>

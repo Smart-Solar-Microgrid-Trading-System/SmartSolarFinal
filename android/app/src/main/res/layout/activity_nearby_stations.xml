@@ -6,7 +6,7 @@
     android:layout_height="match_parent"
     android:orientation="vertical">
 
-    <!-- Header -->
+    <!-- Page Header -->
     <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
@@ -26,14 +26,15 @@
         <TextView
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:text="Grid Nodes Map"
+            android:layout_marginStart="12dp"
+            android:text="Nearby Stations"
             android:textColor="@color/brand_blue"
-            android:textSize="28sp"
+            android:textSize="24sp"
             android:textStyle="bold" />
 
     </LinearLayout>
 
-    <!-- Loading -->
+    <!-- Loading indicator -->
     <ProgressBar
         android:id="@+id/progressBar"
         android:layout_width="wrap_content"
@@ -41,24 +42,29 @@
         android:layout_gravity="center_horizontal"
         android:visibility="gone" />
 
-    <!-- Error -->
+    <!-- Error / information message -->
     <TextView
         android:id="@+id/feedbackText"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:padding="16dp"
-        android:textSize="15sp"
+        android:textSize="16sp"
         android:visibility="gone" />
 
-    <!-- OpenStreetMap -->
-    <org.osmdroid.views.MapView
-        android:id="@+id/map"
+    <!-- Station list -->
+    <ScrollView
         android:layout_width="match_parent"
         android:layout_height="0dp"
-        android:layout_weight="1" />
+        android:layout_weight="1"
+        android:fillViewport="true">
 
-    <!-- Bottom navigation -->
-    <include
-        layout="@layout/view_bottom_navigation" />
+        <LinearLayout
+            android:id="@+id/stationContainer"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="vertical"
+            android:padding="12dp" />
+
+    </ScrollView>
 
 </LinearLayout>
