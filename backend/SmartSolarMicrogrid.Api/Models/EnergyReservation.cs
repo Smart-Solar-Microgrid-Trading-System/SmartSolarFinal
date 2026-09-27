@@ -30,4 +30,5 @@ public class EnergyReservation
     public DateTime? CancelledAt { get; set; }
 
     public DateTime? CompletedAt { get; set; }
+
 }

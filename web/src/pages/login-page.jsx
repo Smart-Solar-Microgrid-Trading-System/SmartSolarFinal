@@ -21,15 +21,17 @@ export function LoginPage() {
 
   async function handleSubmit(event) {
     event.preventDefault();
+
     setError("");
     setSubmitting(true);
 
     try {
       const session = await signIn(identifier, password);
 
-      // go back to the page they tried to open, otherwise the default page for the role
       const defaultPage = session.role === "Backoffice" ? "/users" : "/";
-      navigate(location.state?.from || defaultPage, { replace: true });
+      const nextPage = location.state?.from || defaultPage;
+
+      navigate(nextPage, { replace: true });
     } catch (err) {
       setError(err.message);
     } finally {
@@ -43,19 +45,22 @@ export function LoginPage() {
         aria-hidden="true"
         className="animate-glow-pulse pointer-events-none absolute -top-28 -left-20 size-96 rounded-full bg-solar-400/20 blur-3xl"
       />
+
       <div
         aria-hidden="true"
         className="pointer-events-none absolute -bottom-28 -right-16 size-96 rounded-full bg-brand-400/25 blur-3xl"
       />
 
       <div className="relative z-10 grid w-full max-w-4xl items-center gap-10 md:grid-cols-2">
-        {/* left side text, hidden on small screens */}
         <div className="hidden flex-col gap-6 px-2 text-white md:flex">
           <div className="flex items-center gap-3">
             <div className="grid size-12 place-items-center rounded-2xl bg-gradient-to-br from-brand-400 via-brand-500 to-solar-500 shadow-lg shadow-brand-900/40">
               <Zap size={24} aria-hidden="true" />
             </div>
-            <p className="font-display text-lg font-bold tracking-tight">Smart Solar Microgrid</p>
+
+            <p className="font-display text-lg font-bold tracking-tight">
+              Smart Solar Microgrid
+            </p>
           </div>
 
           <h1 className="font-display text-4xl leading-tight font-bold tracking-tight">
@@ -70,7 +75,11 @@ export function LoginPage() {
           </p>
 
           <div className="flex items-center gap-2 text-sm text-white/50">
-            <ShieldCheck size={16} className="text-solar-300" aria-hidden="true" />
+            <ShieldCheck
+              size={16}
+              className="text-solar-300"
+              aria-hidden="true"
+            />
             Secure access for Backoffice &amp; Grid Operators
           </div>
         </div>
@@ -81,11 +90,18 @@ export function LoginPage() {
               aria-hidden="true"
               className="pointer-events-none absolute -top-10 -right-10 size-32 rounded-full bg-solar-400/25 blur-2xl"
             />
+
             <div className="grid size-11 place-items-center rounded-xl bg-white/15 backdrop-blur">
               <SunMedium size={24} aria-hidden="true" />
             </div>
-            <h2 className="mt-5 font-display text-2xl font-bold">Welcome back</h2>
-            <p className="mt-1 text-sm text-brand-100">Sign in to the Smart Solar Microgrid portal</p>
+
+            <h2 className="mt-5 font-display text-2xl font-bold">
+              Welcome back
+            </h2>
+
+            <p className="mt-1 text-sm text-brand-100">
+              Sign in to the Smart Solar Microgrid portal
+            </p>
           </div>
 
           <CardContent className="p-6">
@@ -97,7 +113,7 @@ export function LoginPage() {
                 <Input
                   id="identifier"
                   value={identifier}
-                  onChange={(e) => setIdentifier(e.target.value)}
+                  onChange={(event) => setIdentifier(event.target.value)}
                   required
                   autoComplete="username"
                 />
@@ -109,13 +125,18 @@ export function LoginPage() {
                   id="password"
                   type="password"
                   value={password}
-                  onChange={(e) => setPassword(e.target.value)}
+                  onChange={(event) => setPassword(event.target.value)}
                   required
                   autoComplete="current-password"
                 />
               </div>
 
-              <Button className="w-full" size="lg" type="submit" disabled={submitting}>
+              <Button
+                className="w-full"
+                size="lg"
+                type="submit"
+                disabled={submitting}
+              >
                 {submitting ? (
                   "Signing in..."
                 ) : (

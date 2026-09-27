@@ -1,11 +1,17 @@
+/*
+ * Project: Smart Solar Microgrid Trading System
+ * Component: Energy Reservation Management
+ * File: CreateReservationRequest.cs
+ * Purpose: Defines validated staff input for creating a reservation for an active Prosumer.
+ * Contributor: Rathnayake R.M.S.B
+ */
 using System.ComponentModel.DataAnnotations;
 
 namespace SmartSolarMicrogrid.Api.Models.Dtos;
 
 public sealed class CreateReservationRequest
 {
-    [Required]
-    public string ProsumerNic { get; set; } = null!;
+    public string? ProsumerNic { get; set; }
 
     [Required]
     public string NodeId { get; set; } = null!;

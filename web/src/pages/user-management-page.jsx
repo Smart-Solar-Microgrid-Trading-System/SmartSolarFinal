@@ -66,23 +66,29 @@ export function UserManagementPage() {
     setForm((current) => ({ ...current, [name]: value }));
   }
 
-  // clear the form error when the dialog is closed
+  // Clear any previous form error when the dialog closes
   function handleDialogChange(open) {
     setDialogOpen(open);
-    if (!open) setFormError("");
+
+    if (!open) {
+      setFormError("");
+    }
   }
 
   async function handleSubmit(event) {
     event.preventDefault();
+
     setFormError("");
     setMessage("");
     setSubmitting(true);
 
     try {
       const user = await api.createWebUser(session.token, form);
+
       setMessage(`${user.fullName} was created as ${user.role}.`);
       setForm(initialForm);
       handleDialogChange(false);
+
       await loadUsers();
     } catch (err) {
       setFormError(err.message);
@@ -113,6 +119,7 @@ export function UserManagementPage() {
           <CardTitle className="flex items-center gap-2">
             <UsersRound size={19} className="text-brand-600" /> Web users
           </CardTitle>
+
           <Button variant="outline" onClick={loadUsers} disabled={loading}>
             <RefreshCw size={16} /> Refresh
           </Button>
@@ -178,10 +185,15 @@ export function UserManagementPage() {
 
             <div className="space-y-2">
               <Label>Role</Label>
-              <Select value={form.role} onValueChange={(role) => setForm((current) => ({ ...current, role }))}>
+
+              <Select
+                value={form.role}
+                onValueChange={(role) => setForm((current) => ({ ...current, role }))}
+              >
                 <SelectTrigger>
                   <SelectValue />
                 </SelectTrigger>
+
                 <SelectContent>
                   <SelectItem value="GridOperator">Grid Operator</SelectItem>
                   <SelectItem value="Backoffice">Backoffice</SelectItem>
@@ -197,6 +209,7 @@ export function UserManagementPage() {
               onChange={handleChange}
               required
             />
+
             <Field label="Email" name="email" type="email" value={form.email} onChange={handleChange} required />
             <Field label="Phone (optional)" name="phone" value={form.phone} onChange={handleChange} />
 
@@ -206,6 +219,7 @@ export function UserManagementPage() {
                   Cancel
                 </Button>
               </DialogClose>
+
               <Button type="submit" disabled={submitting}>
                 {submitting ? (
                   "Creating..."
