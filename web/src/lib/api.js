@@ -75,6 +75,20 @@ export const api = {
       { token }
     ),
 
+  createProsumer: (token, prosumer) =>
+    request("/api/prosumers", {
+      token,
+      method: "POST",
+      body: prosumer
+    }),
+
+  updateProsumer: (token, nic, profile) =>
+    request(`/api/prosumers/${encodeURIComponent(nic)}`, {
+      token,
+      method: "PUT",
+      body: profile
+    }),
+
   getPendingProsumers: (token) =>
     request("/api/prosumers?status=Pending", { token }),
 

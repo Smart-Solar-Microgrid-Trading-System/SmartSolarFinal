@@ -46,6 +46,33 @@ public sealed class ProsumersController : ControllerBase
         return CreatedAtAction(nameof(Register), result.User);
     }
 
+    [Authorize(Policy = UserRoles.Backoffice)]
+    [HttpPost]
+    public async Task<IActionResult> Create([FromBody] ProsumerRegistrationRequest request)
+    {
+        ProsumerRegistrationResult result;
+        try
+        {
+            result = await _prosumerService.RegisterAsync(request);
+        }
+        catch (MongoWriteException exception) when (exception.WriteError?.Category == ServerErrorCategory.DuplicateKey)
+        {
+            return Conflict(new { error = "A user with this NIC or email address already exists." });
+        }
+
+        if (result.IsConflict)
+        {
+            return Conflict(new { error = result.Error });
+        }
+
+        if (result.IsInvalid)
+        {
+            return BadRequest(new { error = result.Error });
+        }
+
+        return CreatedAtAction(nameof(Create), result.User);
+    }
+
     [Authorize(Roles = $"{UserRoles.Backoffice},{UserRoles.GridOperator}")]
     [HttpGet]
     public async Task<IActionResult> GetByStatus([FromQuery] string? status)
@@ -66,6 +93,20 @@ public sealed class ProsumersController : ControllerBase
         return result.Failure switch
         {
             UserManagementFailure.Invalid => BadRequest(new { error = result.Error }),
+            UserManagementFailure.NotFound => NotFound(new { error = result.Error }),
+            _ => Ok(result.User)
+        };
+    }
+
+    [Authorize(Policy = UserRoles.Backoffice)]
+    [HttpPut("{nic}")]
+    public async Task<IActionResult> Update(string nic, [FromBody] UpdateUserProfileRequest request)
+    {
+        var result = await _userManagementService.UpdateProsumerProfileAsync(nic, request);
+        return result.Failure switch
+        {
+            UserManagementFailure.Invalid => BadRequest(new { error = result.Error }),
+            UserManagementFailure.Conflict => Conflict(new { error = result.Error }),
             UserManagementFailure.NotFound => NotFound(new { error = result.Error }),
             _ => Ok(result.User)
         };

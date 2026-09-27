@@ -140,6 +140,36 @@ public sealed class UserManagementService
         return UserManagementResult.Success(ToResponse(user));
     }
 
+    public async Task<UserManagementResult> UpdateProsumerProfileAsync(string nic, UpdateUserProfileRequest request)
+    {
+        var user = await _usersCollection.Find(candidate =>
+                candidate.Id == nic && candidate.Role == UserRoles.Prosumer)
+            .FirstOrDefaultAsync();
+        if (user is null)
+        {
+            return UserManagementResult.NotFound("Prosumer not found.");
+        }
+
+        if (string.IsNullOrWhiteSpace(request.FullName))
+        {
+            return UserManagementResult.Invalid("Full name is required.");
+        }
+
+        var email = string.IsNullOrWhiteSpace(request.Email) ? null : request.Email.Trim().ToLowerInvariant();
+        if (email is not null && await _usersCollection.Find(candidate =>
+                candidate.Email == email && candidate.Id != nic).AnyAsync())
+        {
+            return UserManagementResult.Conflict("A user with this email address already exists.");
+        }
+
+        user.FullName = request.FullName.Trim();
+        user.Email = email;
+        user.Phone = string.IsNullOrWhiteSpace(request.Phone) ? null : request.Phone.Trim();
+        user.UpdatedAt = DateTime.UtcNow;
+        await _usersCollection.ReplaceOneAsync(candidate => candidate.Id == nic, user);
+        return UserManagementResult.Success(ToResponse(user));
+    }
+
     public async Task<UserManagementResult> DeactivateProsumerAsync(string userId)
     {
         var user = await _usersCollection.Find(candidate =>
