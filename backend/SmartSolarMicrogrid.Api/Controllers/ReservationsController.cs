@@ -1,7 +1,9 @@
 /*
+ * Project: Smart Solar Microgrid Trading System
  * Component: Energy Reservation Management
  * File: ReservationsController.cs
  * Purpose: Exposes authorized reservation query, create, update, and soft-cancellation endpoints.
+ * Contributor: Rathnayake R.M.S.B
  */
 using System.Security.Claims;
 using Microsoft.AspNetCore.Authorization;

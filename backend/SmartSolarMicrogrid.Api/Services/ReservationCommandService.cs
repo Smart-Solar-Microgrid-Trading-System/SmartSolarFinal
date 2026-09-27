@@ -1,7 +1,9 @@
 /*
+ * Project: Smart Solar Microgrid Trading System
  * Component: Energy Reservation Management
  * File: ReservationCommandService.cs
  * Purpose: Applies reservation business rules and coordinates MongoDB create, update, and cancellation operations.
+ * Contributor: Rathnayake R.M.S.B
  */
 using MongoDB.Driver;
 using SmartSolarMicrogrid.Api.Models;
