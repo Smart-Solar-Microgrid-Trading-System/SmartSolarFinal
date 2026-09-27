@@ -1,3 +1,11 @@
+/*
+ * Student Name: Ruwanmali K.H
+ * Component: Booking Slot Management
+ * File Name: BookingSlotsController.cs
+ * Description: Provides REST API endpoints for creating, viewing,
+ *              updating, and deactivating energy booking slots.
+ */
+
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using SmartSolarMicrogrid.Api.Models;
