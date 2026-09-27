@@ -83,7 +83,7 @@ public sealed class UserManagementService
         return users.Select(ToResponse).ToList();
     }
 
-    public async Task<UserManagementResult> UpdateProsumerStatusAsync(string nic, UpdateProsumerStatusRequest request)
+    public async Task<UserManagementResult> UpdateProsumerStatusAsync(string nic, UpdateAccountStatusRequest request)
     {
         if (request.AccountStatus is not AccountStatuses.Active and not AccountStatuses.Deactivated)
         {
@@ -104,7 +104,7 @@ public sealed class UserManagementService
         return UserManagementResult.Success(ToResponse(user));
     }
 
-    public async Task<UserManagementResult> UpdateWebUserStatusAsync(string id, UpdateProsumerStatusRequest request)
+    public async Task<UserManagementResult> UpdateWebUserStatusAsync(string id, UpdateAccountStatusRequest request)
     {
         if (request.AccountStatus is not AccountStatuses.Active and not AccountStatuses.Deactivated)
         {

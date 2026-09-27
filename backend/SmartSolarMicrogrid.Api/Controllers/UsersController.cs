@@ -44,7 +44,7 @@ public sealed class UsersController : ControllerBase
 
     [Authorize(Policy = UserRoles.Backoffice)]
     [HttpPatch("{id}/status")]
-    public async Task<IActionResult> UpdateWebUserStatus(string id, [FromBody] UpdateProsumerStatusRequest request)
+    public async Task<IActionResult> UpdateWebUserStatus(string id, [FromBody] UpdateAccountStatusRequest request)
     {
         if (id == GetCurrentUserId() && request.AccountStatus == AccountStatuses.Deactivated)
         {
