@@ -1,5 +1,12 @@
 <?xml version="1.0" encoding="utf-8"?>
 
+<!--
+  Component: Energy Reservation Management
+  File: activity_bookings.xml
+  Purpose: Defines the Android reservation screen layout and shared navigation area.
+  Contributor: Rathnayake R.M.S.B
+-->
+
 <LinearLayout
     xmlns:android="http://schemas.android.com/apk/res/android"
     android:layout_width="match_parent"

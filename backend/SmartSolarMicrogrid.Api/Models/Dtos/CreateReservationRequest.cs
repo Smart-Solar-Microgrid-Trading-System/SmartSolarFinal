@@ -1,5 +1,4 @@
 /*
- * Project: Smart Solar Microgrid Trading System
  * Component: Energy Reservation Management
  * File: CreateReservationRequest.cs
  * Purpose: Defines validated staff input for creating a reservation for an active Prosumer.

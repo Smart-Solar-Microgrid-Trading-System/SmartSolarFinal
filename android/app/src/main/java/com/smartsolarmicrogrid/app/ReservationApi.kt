@@ -1,3 +1,9 @@
+/*
+ * Component: Energy Reservation Management
+ * File: ReservationApi.kt
+ * Purpose: Connects the Android reservation screens to reservation, node, slot, and dashboard APIs.
+ * Contributor: Rathnayake R.M.S.B
+ */
 package com.smartsolarmicrogrid.app
 
 import android.content.Context

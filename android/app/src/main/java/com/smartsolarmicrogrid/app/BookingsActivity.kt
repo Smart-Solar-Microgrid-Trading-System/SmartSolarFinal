@@ -1,3 +1,9 @@
+/*
+ * Component: Energy Reservation Management
+ * File: BookingsActivity.kt
+ * Purpose: Provides the Android reservation create, view, edit, and cancellation screens.
+ * Contributor: Rathnayake R.M.S.B
+ */
 package com.smartsolarmicrogrid.app
 
 import android.app.Activity
@@ -1122,7 +1128,12 @@ class BookingsActivity : Activity() {
 
         title(
             "Reservation Details",
-            reservation.status
+            "View your energy reservation information."
+        )
+
+        content.addView(
+            statusText(reservation.status),
+            matchWrap(bottom = 10)
         )
 
         val card =
@@ -1146,7 +1157,7 @@ class BookingsActivity : Activity() {
         detail(
             card,
             "Booking Slot",
-            reservation.slotId
+            slotDisplayName(reservation.startTime)
         )
 
         detail(
@@ -2210,4 +2221,36 @@ class BookingsActivity : Activity() {
         }.getOrDefault(
             value
         )
+
+    private fun slotDisplayName(
+        startTime: String
+    ): String {
+        // Build a readable slot label while keeping the slot ID for API operations.
+        val startEpoch = epoch(startTime)
+
+        if (startEpoch <= 0) {
+            return "Scheduled slot"
+        }
+
+        val instant =
+            Instant.ofEpochMilli(
+                startEpoch
+            )
+
+        val period =
+            when (instant.atZone(ZoneOffset.UTC).hour) {
+                in 5..11 -> "Morning"
+                in 12..16 -> "Afternoon"
+                in 17..20 -> "Evening"
+                else -> "Night"
+            }
+
+        val date =
+            DateTimeFormatter
+                .ofPattern("MMM dd, yyyy")
+                .withZone(ZoneOffset.UTC)
+                .format(instant)
+
+        return "$period slot - $date"
+    }
 }
