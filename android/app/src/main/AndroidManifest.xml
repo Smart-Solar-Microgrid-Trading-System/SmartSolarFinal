@@ -8,6 +8,8 @@
     <uses-permission android:name="android.permission.ACCESS_COARSE_LOCATION" />
     <uses-permission android:name="android.permission.CAMERA" />
 
+    <uses-feature android:name="android.hardware.camera" android:required="false" />
+
     <application
         android:allowBackup="true"
         android:label="Smart Solar Microgrid"
@@ -35,5 +37,25 @@
         <activity android:name=".GridOperatorHomeActivity" />
         <activity android:name=".NearbyStationsActivity" />
         <activity android:name=".StationDetailsActivity" />
+        <activity
+            android:name=".PendingReservationsActivity"
+            android:exported="false" />
+
+        <activity
+            android:name=".VerifiedReservationsActivity"
+            android:exported="false" />
+
+        <activity
+            android:name=".BookingVerificationActivity"
+            android:exported="false" />
+
+        <activity
+            android:name=".TransferCompleteActivity"
+            android:exported="false" />
+        <activity
+            android:name=".QrScannerActivity"
+            android:exported="false"
+            android:theme="@style/Theme.AppCompat.Light.NoActionBar" />
+
     </application>
 </manifest>

@@ -56,6 +56,11 @@ android {
 
         implementation("androidx.recyclerview:recyclerview:1.4.0")
         implementation("androidx.cardview:cardview:1.0.0")
+        implementation("androidx.camera:camera-core:1.6.2")
+        implementation("androidx.camera:camera-camera2:1.6.2")
+        implementation("androidx.camera:camera-lifecycle:1.6.2")
+        implementation("androidx.camera:camera-view:1.6.2")
+
     }
 }
 dependencies {

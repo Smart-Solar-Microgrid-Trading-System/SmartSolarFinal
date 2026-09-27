@@ -30,17 +30,16 @@ class GridOperatorHomeActivity : Activity() {
 
         // Open QR Scanner
         findViewById<Button>(R.id.scanQrButton).setOnClickListener {
-            startActivity(Intent(this, QRScannerActivity::class.java))
+            startActivity(Intent(this, QrScannerActivity::class.java))
         }
 
-        // Open Booking Verification
         findViewById<Button>(R.id.verifyBookingButton).setOnClickListener {
-            startActivity(Intent(this, BookingVerificationActivity::class.java))
-        }
-
-        // Open Transfer
-        findViewById<Button>(R.id.finalizeTransferButton).setOnClickListener {
-            startActivity(Intent(this, TransferActivity::class.java))
+            startActivity(
+                Intent(
+                    this,
+                    PendingReservationsActivity::class.java
+                )
+            )
         }
     }
 }

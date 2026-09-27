@@ -29,6 +29,18 @@ object ReservationApi {
     fun reservation(context: Context, token: String, id: String): Result<Reservation> = parseObject(
         ApiClient.request(context, "GET", "/api/reservations/${encode(id)}", token = token), ::parseReservation
     )
+    fun pendingReservations(
+        context: Context,
+        token: String
+    ): Result<List<Reservation>> {
+
+        return reservations(context, token).map { reservations ->
+
+            reservations.filter {
+                it.status.uppercase() == "PENDING"
+            }
+        }
+    }
 
     fun create(context: Context, token: String, nodeId: String, slotId: String, energy: Double): Result<Reservation> = parseObject(
         ApiClient.request(context, "POST", "/api/reservations", JSONObject().apply {
