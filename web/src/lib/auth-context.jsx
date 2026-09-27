@@ -4,6 +4,7 @@ import { api } from "@/lib/api";
 
 const AuthContext = createContext(null);
 const storageKey = "smart-solar-microgrid-session";
+const webPortalRoles = ["Backoffice", "GridOperator"];
 
 export function AuthProvider({ children }) {
   const [session, setSession] = useState(() => {
@@ -20,6 +21,11 @@ export function AuthProvider({ children }) {
 
   const signIn = useCallback(async (identifier, password) => {
     const response = await api.login(identifier, password);
+
+    if (!webPortalRoles.includes(response.role)) {
+      throw new Error("Prosumer accounts must use the mobile application.");
+    }
+
     const nextSession = { token: response.token, role: response.role, name: response.name };
     localStorage.setItem(storageKey, JSON.stringify(nextSession));
     setSession(nextSession);

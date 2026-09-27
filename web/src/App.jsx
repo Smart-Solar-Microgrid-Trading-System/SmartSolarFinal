@@ -55,22 +55,9 @@ export default function App() {
               path="prosumers"
               element={<ProsumerManagementPage />}
             />
-                      <Route path="users" element={<UserManagementPage />} />
-                      <Route path="/nodes" element={<MicrogridNodesPage />} />
-
-                      <Route path="/nodes/new" element={<NodeCreatePage />} />
-
-                      <Route path="/nodes/map" element={<NodeMapPage />} />
-
-                      <Route path="/nodes/:id/edit" element={<NodeEditPage />} />
-
-                      <Route path="/nodes/:id" element={<NodeDetailsPage />} />
+            <Route path="nodes/new" element={<NodeCreatePage />} />
+            <Route path="nodes/:id/edit" element={<NodeEditPage />} />
           </Route>
-
-          <Route
-            path="nodes"
-            element={<MicrogridNodesPage />}
-          />
 
           <Route
             element={
@@ -82,6 +69,9 @@ export default function App() {
               />
             }
           >
+            <Route path="nodes" element={<MicrogridNodesPage />} />
+            <Route path="nodes/map" element={<NodeMapPage />} />
+            <Route path="nodes/:id" element={<NodeDetailsPage />} />
             <Route path="booking-slots" element={<BookingSlotsPage />} />
             <Route path="reservations" element={<ReservationsPage />} />
             <Route path="reservations/new" element={<CreateReservationPage />} />
