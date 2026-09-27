@@ -1,15 +1,34 @@
 import { useEffect, useState } from "react";
-import { Check, Power, RefreshCw, RotateCcw, UsersRound } from "lucide-react";
+import { Check, Pencil, Power, RefreshCw, RotateCcw, UserPlus, UsersRound } from "lucide-react";
 
 import { FeedbackAlert } from "@/components/feedback-alert";
 import { PageHeader } from "@/components/page-header";
 import { StatusBadge } from "@/components/status-badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import {
+  Dialog,
+  DialogClose,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle
+} from "@/components/ui/dialog";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { api } from "@/lib/api";
 import { useAuth } from "@/lib/auth-context";
+
+const initialForm = {
+  nic: "",
+  password: "",
+  fullName: "",
+  email: "",
+  phone: ""
+};
 
 export function ProsumerManagementPage() {
   const { session } = useAuth();
@@ -17,8 +36,13 @@ export function ProsumerManagementPage() {
   const [prosumers, setProsumers] = useState([]);
   const [filterStatus, setFilterStatus] = useState("All");
   const [loading, setLoading] = useState(true);
+  const [dialogOpen, setDialogOpen] = useState(false);
+  const [editingNic, setEditingNic] = useState(null);
+  const [form, setForm] = useState(initialForm);
+  const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState("");
   const [message, setMessage] = useState("");
+  const [formError, setFormError] = useState("");
 
   async function loadProsumers() {
     setLoading(true);
@@ -50,6 +74,67 @@ export function ProsumerManagementPage() {
       await loadProsumers();
     } catch (err) {
       setError(err.message);
+    }
+  }
+
+  function handleDialogChange(open) {
+    setDialogOpen(open);
+
+    if (!open) {
+      setFormError("");
+    }
+  }
+
+  function openCreateDialog() {
+    setEditingNic(null);
+    setForm(initialForm);
+    setFormError("");
+    setDialogOpen(true);
+  }
+
+  function openEditDialog(prosumer) {
+    setEditingNic(prosumer.id);
+    setForm({
+      nic: prosumer.id,
+      password: "",
+      fullName: prosumer.fullName ?? "",
+      email: prosumer.email ?? "",
+      phone: prosumer.phone ?? ""
+    });
+    setFormError("");
+    setDialogOpen(true);
+  }
+
+  function handleChange(event) {
+    const { name, value } = event.target;
+    setForm((current) => ({ ...current, [name]: value }));
+  }
+
+  async function handleSubmit(event) {
+    event.preventDefault();
+
+    setFormError("");
+    setMessage("");
+    setSubmitting(true);
+
+    try {
+      const user = editingNic
+        ? await api.updateProsumer(session.token, editingNic, {
+            fullName: form.fullName,
+            email: form.email,
+            phone: form.phone
+          })
+        : await api.createProsumer(session.token, form);
+
+      setMessage(editingNic
+        ? `${user.fullName}'s profile was updated.`
+        : `${user.fullName} was created and is pending activation.`);
+      handleDialogChange(false);
+      await loadProsumers();
+    } catch (err) {
+      setFormError(err.message);
+    } finally {
+      setSubmitting(false);
     }
   }
 
@@ -101,6 +186,9 @@ export function ProsumerManagementPage() {
             <Button variant="outline" onClick={loadProsumers} disabled={loading}>
               <RefreshCw size={16} /> Refresh
             </Button>
+            <Button onClick={openCreateDialog}>
+              <UserPlus size={17} /> Create Prosumer
+            </Button>
           </>
         }
       />
@@ -122,7 +210,7 @@ export function ProsumerManagementPage() {
             <p className="text-sm text-slate-500">No Prosumers match this status.</p>
           ) : (
             <div className="overflow-x-auto">
-              <Table className="min-w-[850px]">
+              <Table className="min-w-[950px]">
                 <TableHeader>
                   <TableRow>
                     <TableHead>NIC</TableHead>
@@ -144,7 +232,14 @@ export function ProsumerManagementPage() {
                       <TableCell>
                         <StatusBadge status={prosumer.accountStatus} />
                       </TableCell>
-                      <TableCell className="text-right">{renderAction(prosumer)}</TableCell>
+                      <TableCell className="text-right">
+                        <div className="flex justify-end gap-2">
+                          <Button size="sm" variant="outline" onClick={() => openEditDialog(prosumer)}>
+                            <Pencil size={15} /> Edit
+                          </Button>
+                          {renderAction(prosumer)}
+                        </div>
+                      </TableCell>
                     </TableRow>
                   ))}
                 </TableBody>
@@ -153,6 +248,56 @@ export function ProsumerManagementPage() {
           )}
         </CardContent>
       </Card>
+
+      <Dialog open={dialogOpen} onOpenChange={handleDialogChange}>
+        <DialogContent className="max-h-[90vh] overflow-y-auto">
+          <DialogHeader>
+            <DialogTitle>{editingNic ? "Edit Prosumer" : "Create Prosumer"}</DialogTitle>
+            <DialogDescription>
+              {editingNic
+                ? "Update the Prosumer profile. NIC cannot be changed."
+                : "Create a Prosumer profile using the NIC as the primary identifier."}
+            </DialogDescription>
+          </DialogHeader>
+
+          <form className="grid gap-4 sm:grid-cols-2" onSubmit={handleSubmit}>
+            {formError && (
+              <div className="sm:col-span-2">
+                <FeedbackAlert>{formError}</FeedbackAlert>
+              </div>
+            )}
+
+            <Field label="NIC" name="nic" value={form.nic} onChange={handleChange} disabled={Boolean(editingNic)} required />
+            <Field label="Full name" name="fullName" value={form.fullName} onChange={handleChange} required />
+            {!editingNic && (
+              <Field label="Password" name="password" type="password" value={form.password} onChange={handleChange} required />
+            )}
+            <Field label="Email" name="email" type="email" value={form.email} onChange={handleChange} required />
+            <Field label="Phone (optional)" name="phone" value={form.phone} onChange={handleChange} />
+
+            <DialogFooter className="sm:col-span-2">
+              <DialogClose asChild>
+                <Button type="button" variant="outline" disabled={submitting}>
+                  Cancel
+                </Button>
+              </DialogClose>
+
+              <Button type="submit" disabled={submitting}>
+                {submitting ? "Saving..." : editingNic ? "Save changes" : "Create Prosumer"}
+              </Button>
+            </DialogFooter>
+          </form>
+        </DialogContent>
+      </Dialog>
     </section>
+  );
+}
+
+function Field({ label, name, type, ...props }) {
+  return (
+    <div className="space-y-2">
+      <Label htmlFor={name}>{label}</Label>
+      <Input id={name} name={name} type={type} {...props} />
+    </div>
   );
 }
