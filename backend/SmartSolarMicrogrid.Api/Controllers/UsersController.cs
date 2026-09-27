@@ -42,6 +42,19 @@ public sealed class UsersController : ControllerBase
     [HttpGet]
     public async Task<IActionResult> GetWebUsers() => Ok(await _userManagementService.GetWebUsersAsync());
 
+    [Authorize(Policy = UserRoles.Backoffice)]
+    [HttpPatch("{id}/status")]
+    public async Task<IActionResult> UpdateWebUserStatus(string id, [FromBody] UpdateProsumerStatusRequest request)
+    {
+        if (id == GetCurrentUserId() && request.AccountStatus == AccountStatuses.Deactivated)
+        {
+            return BadRequest(new { error = "You cannot deactivate your own account." });
+        }
+
+        var result = await _userManagementService.UpdateWebUserStatusAsync(id, request);
+        return ToUserResult(result);
+    }
+
     [Authorize]
     [HttpGet("me")]
     public async Task<IActionResult> GetMe()

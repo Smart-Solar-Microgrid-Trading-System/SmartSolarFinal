@@ -69,6 +69,13 @@ export const api = {
       body: user
     }),
 
+  updateWebUserStatus: (token, id, accountStatus) =>
+    request(`/api/users/${encodeURIComponent(id)}/status`, {
+      token,
+      method: "PATCH",
+      body: { accountStatus }
+    }),
+
   getProsumers: (token, status) =>
     request(
       `/api/prosumers${status ? `?status=${encodeURIComponent(status)}` : ""}`,

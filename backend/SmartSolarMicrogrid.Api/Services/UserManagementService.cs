@@ -104,6 +104,28 @@ public sealed class UserManagementService
         return UserManagementResult.Success(ToResponse(user));
     }
 
+    public async Task<UserManagementResult> UpdateWebUserStatusAsync(string id, UpdateProsumerStatusRequest request)
+    {
+        if (request.AccountStatus is not AccountStatuses.Active and not AccountStatuses.Deactivated)
+        {
+            return UserManagementResult.Invalid("AccountStatus must be Active or Deactivated.");
+        }
+
+        var user = await _usersCollection.Find(candidate =>
+                candidate.Id == id &&
+                (candidate.Role == UserRoles.Backoffice || candidate.Role == UserRoles.GridOperator))
+            .FirstOrDefaultAsync();
+        if (user is null)
+        {
+            return UserManagementResult.NotFound("Web user not found.");
+        }
+
+        user.AccountStatus = request.AccountStatus;
+        user.UpdatedAt = DateTime.UtcNow;
+        await _usersCollection.ReplaceOneAsync(candidate => candidate.Id == id, user);
+        return UserManagementResult.Success(ToResponse(user));
+    }
+
     public async Task<UserManagementResult> GetUserAsync(string userId)
     {
         var user = await _usersCollection.Find(candidate => candidate.Id == userId).FirstOrDefaultAsync();
