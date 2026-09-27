@@ -1,3 +1,10 @@
+/*
+ * Project: Smart Solar Microgrid Trading System
+ * Component: Energy Reservation Management
+ * File: ReservationCommandService.cs
+ * Purpose: Applies reservation business rules and coordinates MongoDB create, update, and cancellation operations.
+ * Contributor: Rathnayake R.M.S.B
+ */
 using MongoDB.Driver;
 using SmartSolarMicrogrid.Api.Models;
 using SmartSolarMicrogrid.Api.Models.Dtos;
@@ -16,6 +23,7 @@ public sealed class ReservationCommandService
 
     public ReservationCommandService(IMongoDatabase database)
     {
+        // Get the MongoDB collections used by reservation commands.
         _reservations = database.GetCollection<EnergyReservation>("EnergyReservations");
         _slots = database.GetCollection<EnergyBookingSlot>("EnergyBookingSlots");
         _nodes = database.GetCollection<MicrogridNode>("MicrogridNodes");
@@ -24,6 +32,7 @@ public sealed class ReservationCommandService
 
     public async Task<ReservationCommandResult> CreateAsync(CreateReservationRequest request, string actorId, string actorRole)
     {
+        // Check the request and reserve the selected slot before saving the reservation.
         var prosumerNic = actorRole == UserRoles.Prosumer ? actorId : request.ProsumerNic?.Trim();
         var nodeId = request.NodeId?.Trim();
         var slotId = request.SlotId?.Trim();
@@ -83,6 +92,7 @@ public sealed class ReservationCommandService
 
     public async Task<ReservationCommandResult> UpdateAsync(string id, UpdateReservationRequest request, string actorId, string actorRole)
     {
+        // Check the reservation rules before changing the slot or energy amount.
         var reservation = await FindAccessibleAsync(id, actorId, actorRole);
         if (reservation is null)
             return ReservationCommandResult.NotFound("Reservation was not found.");
@@ -128,6 +138,7 @@ public sealed class ReservationCommandService
 
     public async Task<ReservationCommandResult> CancelAsync(string id, string actorId, string actorRole)
     {
+        // Mark the reservation as Cancelled without deleting it.
         var reservation = await FindAccessibleAsync(id, actorId, actorRole);
         if (reservation is null)
             return ReservationCommandResult.NotFound("Reservation was not found.");
@@ -152,6 +163,7 @@ public sealed class ReservationCommandService
     private async Task<(EnergyBookingSlot? Slot, ReservationCommandResult? Error)> ValidateSlotAsync(
         string slotId, string nodeId, decimal energyAmount, bool allowReservedSlot)
     {
+        // Check that the slot belongs to the node and can be used for this reservation.
         var slot = await _slots.Find(item => item.Id == slotId && item.IsActive).FirstOrDefaultAsync();
         if (slot is null) return (null, ReservationCommandResult.NotFound("Booking slot was not found."));
         if (slot.NodeId != nodeId) return (null, ReservationCommandResult.Invalid("The booking slot does not belong to the selected microgrid node."));
@@ -168,6 +180,7 @@ public sealed class ReservationCommandService
 
     private static ReservationCommandResult? ValidateMutable(EnergyReservation reservation, string action)
     {
+        // Stop changes to finished reservations or reservations inside the 12-hour limit.
         if (reservation.Status is ReservationStatuses.Cancelled or ReservationStatuses.Completed)
             return ReservationCommandResult.Invalid($"A {reservation.Status} reservation cannot be {action}.");
         if (reservation.StartTime - DateTime.UtcNow < ModificationNotice)
@@ -177,23 +190,47 @@ public sealed class ReservationCommandService
 
     private async Task<EnergyReservation?> FindAccessibleAsync(string id, string actorId, string actorRole)
     {
+        // Limit Prosumer access to reservations that belong to the signed-in account.
         var filter = Builders<EnergyReservation>.Filter.Eq(item => item.Id, id);
         if (actorRole == UserRoles.Prosumer)
             filter &= Builders<EnergyReservation>.Filter.Eq(item => item.ProsumerNic, actorId);
         return await _reservations.Find(filter).FirstOrDefaultAsync();
     }
 
-    private Task ReleaseSlotAsync(string slotId) => _slots.UpdateOneAsync(
-        item => item.Id == slotId && item.Status == BookingSlotStatuses.Reserved,
-        Builders<EnergyBookingSlot>.Update.Set(item => item.Status, BookingSlotStatuses.Available).Set(item => item.UpdatedAt, DateTime.UtcNow));
+    private Task ReleaseSlotAsync(string slotId)
+    {
+        // Make the old slot available again.
+        return _slots.UpdateOneAsync(
+            item => item.Id == slotId && item.Status == BookingSlotStatuses.Reserved,
+            Builders<EnergyBookingSlot>.Update.Set(item => item.Status, BookingSlotStatuses.Available).Set(item => item.UpdatedAt, DateTime.UtcNow));
+    }
 }
 
 public enum ReservationCommandFailure { None, Invalid, NotFound, Conflict }
 
 public sealed record ReservationCommandResult(string? ReservationId, string? Error, ReservationCommandFailure Failure)
 {
-    public static ReservationCommandResult Success(string id) => new(id, null, ReservationCommandFailure.None);
-    public static ReservationCommandResult Invalid(string error) => new(null, error, ReservationCommandFailure.Invalid);
-    public static ReservationCommandResult NotFound(string error) => new(null, error, ReservationCommandFailure.NotFound);
-    public static ReservationCommandResult Conflict(string error) => new(null, error, ReservationCommandFailure.Conflict);
+    public static ReservationCommandResult Success(string id)
+    {
+        // Return a successful command result.
+        return new(id, null, ReservationCommandFailure.None);
+    }
+
+    public static ReservationCommandResult Invalid(string error)
+    {
+        // Return a validation failure result.
+        return new(null, error, ReservationCommandFailure.Invalid);
+    }
+
+    public static ReservationCommandResult NotFound(string error)
+    {
+        // Return a result when a required record cannot be found.
+        return new(null, error, ReservationCommandFailure.NotFound);
+    }
+
+    public static ReservationCommandResult Conflict(string error)
+    {
+        // Return a result when the request conflicts with current data.
+        return new(null, error, ReservationCommandFailure.Conflict);
+    }
 }

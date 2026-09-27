@@ -19,6 +19,10 @@ import { ReservationsPage } from "@/pages/reservations-page";
 import { ReservationDetailsPage } from "@/pages/reservation-details-page";
 import { ReservationSummaryPage } from "@/pages/reservation-summary-page";
 import { UserManagementPage } from "@/pages/user-management-page";
+import { NodeCreatePage } from "@/pages/NodeCreatePage";
+import { NodeEditPage } from "@/pages/NodeEditPage";
+import { NodeDetailsPage } from "@/pages/NodeDetails";
+import { NodeMapPage } from "@/pages/NodeMap";
 
 export default function App() {
   return (
@@ -51,6 +55,16 @@ export default function App() {
               path="prosumers"
               element={<ProsumerManagementPage />}
             />
+                      <Route path="users" element={<UserManagementPage />} />
+                      <Route path="/nodes" element={<MicrogridNodesPage />} />
+
+                      <Route path="/nodes/new" element={<NodeCreatePage />} />
+
+                      <Route path="/nodes/map" element={<NodeMapPage />} />
+
+                      <Route path="/nodes/:id/edit" element={<NodeEditPage />} />
+
+                      <Route path="/nodes/:id" element={<NodeDetailsPage />} />
           </Route>
 
           <Route

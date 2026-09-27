@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { MapPin, RadioTower, RefreshCw } from "lucide-react";
+import { MapPin, RadioTower, RefreshCw,Map } from "lucide-react";
 
 import { FeedbackAlert } from "@/components/feedback-alert";
 import { Badge } from "@/components/ui/badge";
@@ -8,6 +8,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { api } from "@/lib/api";
 import { useAuth } from "@/lib/auth-context";
+import { Link } from "react-router-dom";
 
 export function MicrogridNodesPage() {
   const { session } = useAuth();
@@ -49,16 +50,32 @@ export function MicrogridNodesPage() {
                   <TableCell className="font-medium">{node.name}</TableCell>
                   <TableCell><span className="flex items-center gap-1.5 text-slate-600"><MapPin size={15} className="text-brand-600" />{node.latitude.toFixed(4)}, {node.longitude.toFixed(4)}</span></TableCell>
                   <TableCell>{node.capacityKw} kW</TableCell>
-                  <TableCell>{node.availableBatterySlots}</TableCell>
-                  <TableCell><Badge variant="secondary">Active</Badge></TableCell>
+                    <TableCell>{node.availableBatterySlots}</TableCell>
+                    <TableCell><Badge variant="secondary">{node.isActive ? "Active" : "Inactive"}</Badge></TableCell>
+                    <TableCell>
+                        <Button variant="outline" size="sm" asChild>
+                            <Link to={`/nodes/${node.id}`}> View</Link>
+                        </Button>
+                    </TableCell>
                 </TableRow>)}</TableBody>
               </Table>
             </div>
           )}
         </CardContent>
-      </Card>
+          </Card>
+          <Button variant="outline" asChild>
+              <Link to={`/nodes/map`}>
+                  <Map size={16} />
+                  View on Map
+              </Link>
+          </Button>
+          <Button asChild>
+              <Link to="/nodes/new">
+                  Add New Node
+              </Link>
+          </Button>
 
-      <p className="text-sm text-slate-500">This read-only network view uses seeded data. Backoffice node creation, schedules, updates, and deactivation controls are the next Node Management feature.</p>
+      <p className="text-sm text-slate-500"></p>
     </section>
   );
 }
