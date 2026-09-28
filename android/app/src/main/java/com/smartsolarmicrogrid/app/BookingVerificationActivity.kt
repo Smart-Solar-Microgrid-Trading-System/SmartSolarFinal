@@ -19,10 +19,8 @@ class BookingVerificationActivity :
     private lateinit var finalizeButton: Button
     private lateinit var scanAnotherButton: Button
 
-    private var reservationId: String = ""
+    private var transactionToken: String = ""
     private var token: String = ""
-
-    private var fromVerifiedList: Boolean = false
 
     override fun onCreate(
         savedInstanceState: Bundle?
@@ -35,41 +33,32 @@ class BookingVerificationActivity :
 
         initializeViews()
 
-        reservationId =
+        transactionToken =
             intent.getStringExtra(
-                "reservationId"
+                "transactionToken"
             ) ?: ""
+
+        val session =
+            SessionDatabaseHelper(this).getSession()
 
         token =
-            intent.getStringExtra(
-                "token"
-            ) ?: ""
-
-        fromVerifiedList =
-            intent.getBooleanExtra(
-                "fromVerifiedList",
-                false
-            )
+            session?.token.orEmpty()
 
         scanAnotherButton.setOnClickListener {
-
             openScanner()
         }
 
         finalizeButton.setOnClickListener {
-
             finalizeTransfer()
         }
 
         if (
-            reservationId.isBlank() ||
+            transactionToken.isBlank() ||
             token.isBlank()
         ) {
-
             showError(
-                "Missing reservation or authentication information."
+                "Missing transaction or authentication information."
             )
-
             return
         }
 
@@ -137,7 +126,7 @@ class BookingVerificationActivity :
                 TransactionApi.verify(
                     this,
                     token,
-                    reservationId
+                    transactionToken
                 )
 
             runOnUiThread {
@@ -161,28 +150,14 @@ class BookingVerificationActivity :
                         )
 
                         /*
-                         * The reservation has now been
-                         * successfully verified.
+                         * Keep track of the verified
+                         * reservation locally.
                          */
                         VerifiedReservationStore
                             .markVerified(
                                 this,
-                                reservationId
+                                verification.reservationId
                             )
-
-                        /*
-                         * If this was opened from the
-                         * pending list, go to the verified
-                         * reservations page.
-                         *
-                         * If it was already opened from
-                         * the verified list, stay here so
-                         * that the operator can finalize it.
-                         */
-                        if (!fromVerifiedList) {
-
-                            openVerifiedReservations()
-                        }
                     }
 
                     .onFailure { error ->
@@ -261,7 +236,7 @@ class BookingVerificationActivity :
                 TransactionApi.finalizeTransfer(
                     this,
                     token,
-                    reservationId
+                    transactionToken
                 )
 
             runOnUiThread {
@@ -281,15 +256,10 @@ class BookingVerificationActivity :
                             return@onSuccess
                         }
 
-                        /*
-                         * The reservation has now been
-                         * finalized, so remove it from
-                         * the local verified list.
-                         */
                         VerifiedReservationStore
                             .removeVerified(
                                 this,
-                                reservationId
+                                response.reservationId
                             )
 
                         val intent =
@@ -328,18 +298,13 @@ class BookingVerificationActivity :
         }.start()
     }
 
-    private fun openVerifiedReservations() {
+    private fun openScanner() {
 
         val intent =
             Intent(
                 this,
-                VerifiedReservationsActivity::class.java
+                QrScannerActivity::class.java
             )
-
-        intent.putExtra(
-            "token",
-            token
-        )
 
         startActivity(intent)
 
@@ -366,18 +331,5 @@ class BookingVerificationActivity :
 
         scanAnotherButton.isEnabled =
             !loading
-    }
-
-    private fun openScanner() {
-
-        val intent =
-            Intent(
-                this,
-                QrScannerActivity::class.java
-            )
-
-        startActivity(intent)
-
-        finish()
     }
 }

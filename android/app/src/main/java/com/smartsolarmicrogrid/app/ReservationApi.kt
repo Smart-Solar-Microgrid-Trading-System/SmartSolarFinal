@@ -44,18 +44,6 @@ object ReservationApi {
         val currentBookings: Long,
         val completedToday: Long
     )
-    fun pendingReservations(
-        context: Context,
-        token: String
-    ): Result<List<Reservation>> {
-
-        return reservations(context, token).map { reservations ->
-
-            reservations.filter {
-                it.status.uppercase() == "PENDING"
-            }
-        }
-    }
 
     fun nodes(
         context: Context,
@@ -365,7 +353,7 @@ object ReservationApi {
                 .optString("cancelledAt")
                 .takeIf {
                     it.isNotBlank() &&
-                    it != "null"
+                            it != "null"
                 }
         )
     }

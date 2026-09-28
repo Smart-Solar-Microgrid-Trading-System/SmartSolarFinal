@@ -14,10 +14,10 @@ object AppNavigation {
 
     fun openProfile(activity: Activity) = activity.startActivity(Intent(activity, ProfileActivity::class.java))
 
-    fun openMap(activity: Activity) = activity.startActivity(Intent(activity,//MapActivity::class.java))
-    GridOperatorHomeActivity::class.java))
+    fun openMap(activity: Activity) = activity.startActivity(Intent(activity,MapActivity::class.java))
+    //GridOperatorHomeActivity::class.java))
 
-    fun openOperations(activity: Activity) = activity.startActivity(Intent(activity, OperationsActivity::class.java))
+    fun openOperations(activity: Activity) = activity.startActivity(Intent(activity, GridOperatorHomeActivity::class.java))
 
     fun configure(activity: Activity, current: Destination) {
         val isGridOperator = SessionDatabaseHelper(activity).getSession()?.role == "GridOperator"

@@ -66,6 +66,12 @@ public class ReservationsController : ControllerBase
     [HttpGet("pending")]
     public async Task<IActionResult> GetPending()
     {
+        var userId = GetUserId();
+        var role = GetUserRole();
+
+        Console.WriteLine(
+            $"PENDING RESERVATIONS REQUEST - UserId={userId}, Role={role}");
+
         // Return reservations that are waiting for approval.
         var reservations = await _reservationService.GetPendingAsync(
             GetUserId(),

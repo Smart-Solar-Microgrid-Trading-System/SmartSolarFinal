@@ -4,11 +4,9 @@ import android.app.Activity
 import android.content.Intent
 import android.os.Bundle
 import android.graphics.Typeface
-import android.view.Gravity
 import android.widget.Button
 import android.widget.LinearLayout
 import android.widget.TextView
-import androidx.appcompat.app.AppCompatActivity
 
 class PendingReservationsActivity : Activity() {
 
@@ -17,9 +15,7 @@ class PendingReservationsActivity : Activity() {
 
     private var token: String = ""
 
-    override fun onCreate(
-        savedInstanceState: Bundle?
-    ) {
+    override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
 
         setContentView(
@@ -30,19 +26,13 @@ class PendingReservationsActivity : Activity() {
             findViewById(R.id.statusText)
 
         reservationsContainer =
-            findViewById(
-                R.id.reservationsContainer
-            )
+            findViewById(R.id.reservationsContainer)
 
-        token =
-            intent.getStringExtra("token")
-                ?: ""
+        loadSession()
 
         if (token.isBlank()) {
-
             statusText.text =
                 "Authentication information is missing."
-
             return
         }
 
@@ -52,12 +42,23 @@ class PendingReservationsActivity : Activity() {
     override fun onResume() {
         super.onResume()
 
-        if (
-            ::reservationsContainer.isInitialized &&
-            token.isNotBlank()
-        ) {
-            loadReservations()
+        if (::reservationsContainer.isInitialized) {
+
+            loadSession()
+
+            if (token.isNotBlank()) {
+                loadReservations()
+            }
         }
+    }
+
+    private fun loadSession() {
+
+        val session =
+            SessionDatabaseHelper(this).getSession()
+
+        token =
+            session?.token.orEmpty()
     }
 
     private fun loadReservations() {
@@ -84,7 +85,6 @@ class PendingReservationsActivity : Activity() {
                             reservations
                         )
                     }
-
                     .onFailure { error ->
 
                         statusText.text =
@@ -163,9 +163,11 @@ class PendingReservationsActivity : Activity() {
             TextView(this)
 
         title.text =
-            reservation.nodeName.ifBlank {
-                "Unknown Station"
-            }
+            reservation.nodeName
+                .takeIf { it.isNotBlank() }
+                ?: reservation.nodeId
+                    .takeIf { it.isNotBlank() }
+                        ?: "Unknown Station"
 
         title.textSize = 19f
 
@@ -176,14 +178,29 @@ class PendingReservationsActivity : Activity() {
 
         card.addView(title)
 
+        val reservationId =
+            TextView(this)
+
+        reservationId.text =
+            "Reservation ID: ${reservation.id}"
+
+        reservationId.textSize = 14f
+
+        card.addView(reservationId)
+
         val prosumer =
             TextView(this)
 
         prosumer.text =
-            "Prosumer: ${reservation.prosumerName}\n" +
-                    "NIC: ${reservation.prosumerNic}"
+            "Prosumer: ${
+                reservation.prosumerName
+                    .takeIf { it.isNotBlank() }
+                    ?: "Unknown"
+            }\nNIC: ${reservation.prosumerNic}"
 
         prosumer.textSize = 16f
+
+        card.addView(prosumer)
 
         val time =
             TextView(this)
@@ -193,6 +210,8 @@ class PendingReservationsActivity : Activity() {
 
         time.textSize = 15f
 
+        card.addView(time)
+
         val energy =
             TextView(this)
 
@@ -200,6 +219,8 @@ class PendingReservationsActivity : Activity() {
             "Energy: ${reservation.energyAmountKw} kW"
 
         energy.textSize = 15f
+
+        card.addView(energy)
 
         val status =
             TextView(this)
@@ -209,50 +230,31 @@ class PendingReservationsActivity : Activity() {
 
         status.textSize = 15f
 
-        card.addView(prosumer)
-        card.addView(time)
-        card.addView(energy)
         card.addView(status)
 
         val button =
             Button(this)
 
         button.text =
-            "Verify Booking"
+            "Scan Booking QR"
 
         button.setOnClickListener {
 
-            openVerification(
-                reservation.id
-            )
+            openScanner()
         }
 
         card.addView(button)
 
-        reservationsContainer.addView(
-            card
-        )
+        reservationsContainer.addView(card)
     }
 
-    private fun openVerification(
-        reservationId: String
-    ) {
+    private fun openScanner() {
 
         val intent =
             Intent(
                 this,
-                BookingVerificationActivity::class.java
+                QrScannerActivity::class.java
             )
-
-        intent.putExtra(
-            "reservationId",
-            reservationId
-        )
-
-        intent.putExtra(
-            "token",
-            token
-        )
 
         startActivity(intent)
     }

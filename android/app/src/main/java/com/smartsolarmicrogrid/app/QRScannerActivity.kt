@@ -168,33 +168,48 @@ class QrScannerActivity : AppCompatActivity() {
 
     private fun handleQrResult(rawValue: String) {
 
-        scannerStatus.text = "QR detected. Verifying transaction..."
+        scannerStatus.text =
+            "QR detected. Verifying transaction..."
 
-        val transactionToken = TransactionApi.extractTransactionToken(rawValue)
+        val transactionToken =
+            TransactionApi.extractTransactionToken(rawValue)
 
         if (transactionToken.isNullOrBlank()) {
 
-            scannerStatus.text = "Invalid transaction QR code."
+            scannerStatus.text =
+                "Invalid transaction QR code."
 
             scanned.set(false)
+
             return
         }
 
-        val token = getSharedPreferences("auth", MODE_PRIVATE).getString("token", null)
+        val session =
+            SessionDatabaseHelper(this).getSession()
 
-        if (token.isNullOrBlank()) {
+        val token =
+            session?.token.orEmpty()
 
-            scannerStatus.text = "Your session has expired. Please log in again."
+        if (token.isBlank()) {
+
+            scannerStatus.text =
+                "Your session has expired. Please log in again."
 
             scanned.set(false)
+
             return
         }
 
-        val intent = Intent(this, BookingVerificationActivity::class.java)
+        val intent =
+            Intent(
+                this,
+                BookingVerificationActivity::class.java
+            )
 
-        intent.putExtra("transactionToken", transactionToken)
-
-        intent.putExtra("token", token)
+        intent.putExtra(
+            "transactionToken",
+            transactionToken
+        )
 
         startActivity(intent)
 

@@ -20,19 +20,26 @@ class GridOperatorHomeActivity : Activity() {
 
         // Open Map
         findViewById<Button>(R.id.mapButton).setOnClickListener {
-            startActivity(Intent(this, MapActivity::class.java))
+            startActivity(
+                Intent(this, MapActivity::class.java)
+            )
         }
 
         // Open Nearby Stations
         findViewById<Button>(R.id.nearbyStationsButton).setOnClickListener {
-            startActivity(Intent(this, NearbyStationsActivity::class.java))
+            startActivity(
+                Intent(this, NearbyStationsActivity::class.java)
+            )
         }
 
         // Open QR Scanner
         findViewById<Button>(R.id.scanQrButton).setOnClickListener {
-            startActivity(Intent(this, QrScannerActivity::class.java))
+            startActivity(
+                Intent(this, QrScannerActivity::class.java)
+            )
         }
 
+        // Open Pending Reservations
         findViewById<Button>(R.id.verifyBookingButton).setOnClickListener {
             startActivity(
                 Intent(
