@@ -14,7 +14,8 @@ object AppNavigation {
 
     fun openProfile(activity: Activity) = activity.startActivity(Intent(activity, ProfileActivity::class.java))
 
-    fun openMap(activity: Activity) = activity.startActivity(Intent(activity, MapActivity::class.java))
+    fun openMap(activity: Activity) = activity.startActivity(Intent(activity,MapActivity::class.java))
+    //GridOperatorHomeActivity::class.java))
 
     fun openOperations(activity: Activity) = activity.startActivity(Intent(activity, OperationsActivity::class.java))
 
@@ -25,7 +26,8 @@ object AppNavigation {
         val operations = activity.findViewById<Button>(R.id.operationsNavigationButton)
 
         bookings.visibility = if (isGridOperator) View.GONE else View.VISIBLE
-        map.visibility = if (isGridOperator) View.GONE else View.VISIBLE
+        //map.visibility = if (isGridOperator) View.GONE else View.VISIBLE
+        map.visibility = View.VISIBLE
         operations.visibility = if (isGridOperator) View.VISIBLE else View.GONE
 
         activity.findViewById<Button>(R.id.homeNavigationButton).apply {
@@ -50,5 +52,5 @@ object AppNavigation {
         }
     }
 
-    enum class Destination { Home, Bookings, Map, Operations, Profile }
+    enum class Destination { Home, Bookings, Map, Operations, Profile, GridOperatorHome }
 }

@@ -136,6 +136,121 @@ public sealed class ReservationCommandService
         return ReservationCommandResult.Success(id);
     }
 
+    public async Task<ReservationCommandResult> ApproveAsync(
+    string id,
+    string actorId,
+    string actorRole)
+    {
+        // Only a Grid Operator can approve a reservation.
+        if (actorRole != UserRoles.GridOperator)
+        {
+            return ReservationCommandResult.Invalid(
+                "Only a Grid Operator can approve reservations.");
+        }
+
+        // Find the reservation.
+        var reservation = await _reservations
+            .Find(item => item.Id == id)
+            .FirstOrDefaultAsync();
+
+        if (reservation is null)
+        {
+            return ReservationCommandResult.NotFound(
+                "Reservation was not found.");
+        }
+
+        // Only Pending reservations can be approved.
+        if (reservation.Status != ReservationStatuses.Pending)
+        {
+            return ReservationCommandResult.Conflict(
+                "Only pending reservations can be approved.");
+        }
+
+        // Generate a secure transaction code.
+        var transactionCode = Convert.ToHexString(
+            System.Security.Cryptography.RandomNumberGenerator.GetBytes(32)
+        ).ToLowerInvariant();
+
+        var now = DateTime.UtcNow;
+
+        // Change Pending -> Approved and create the transaction code.
+        var update = Builders<EnergyReservation>.Update
+            .Set(item => item.Status, ReservationStatuses.Approved)
+            .Set(item => item.TransactionCode, transactionCode)
+            .Set(item => item.UpdatedAt, now);
+
+        // Make sure the reservation is still Pending when the update occurs.
+        // This prevents two operators from approving it simultaneously.
+        var updated = await _reservations.UpdateOneAsync(
+            item =>
+                item.Id == id &&
+                item.Status == ReservationStatuses.Pending,
+            update);
+
+        if (updated.ModifiedCount != 1)
+        {
+            return ReservationCommandResult.Conflict(
+                "The reservation changed while it was being approved. Reload and try again.");
+        }
+
+        return ReservationCommandResult.Success(id);
+    }
+
+    public async Task<ReservationCommandResult> RejectAsync(
+        string id,
+        string actorId,
+        string actorRole)
+    {
+        // Only a Grid Operator can reject a reservation.
+        if (actorRole != UserRoles.GridOperator)
+        {
+            return ReservationCommandResult.Invalid(
+                "Only a Grid Operator can reject reservations.");
+        }
+
+        // Find the reservation.
+        var reservation = await _reservations
+            .Find(item => item.Id == id)
+            .FirstOrDefaultAsync();
+
+        if (reservation is null)
+        {
+            return ReservationCommandResult.NotFound(
+                "Reservation was not found.");
+        }
+
+        // Only Pending reservations can be rejected.
+        if (reservation.Status != ReservationStatuses.Pending)
+        {
+            return ReservationCommandResult.Conflict(
+                "Only pending reservations can be rejected.");
+        }
+
+        var now = DateTime.UtcNow;
+
+        // Change Pending -> Rejected.
+        var update = Builders<EnergyReservation>.Update
+            .Set(item => item.Status, ReservationStatuses.Rejected)
+            .Set(item => item.UpdatedAt, now);
+
+        var updated = await _reservations.UpdateOneAsync(
+            item =>
+                item.Id == id &&
+                item.Status == ReservationStatuses.Pending,
+            update);
+
+        if (updated.ModifiedCount != 1)
+        {
+            return ReservationCommandResult.Conflict(
+                "The reservation changed while it was being rejected. Reload and try again.");
+        }
+
+        // The rejected reservation no longer needs the slot.
+        await ReleaseSlotAsync(reservation.SlotId);
+
+        return ReservationCommandResult.Success(id);
+    }
+    
     public async Task<ReservationCommandResult> CancelAsync(string id, string actorId, string actorRole)
     {
         // Mark the reservation as Cancelled without deleting it.
@@ -233,4 +348,5 @@ public sealed record ReservationCommandResult(string? ReservationId, string? Err
         // Return a result when the request conflicts with current data.
         return new(null, error, ReservationCommandFailure.Conflict);
     }
+
 }

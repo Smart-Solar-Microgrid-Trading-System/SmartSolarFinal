@@ -7,4 +7,5 @@ public sealed class CreateMicrogridNodeRequest
     public double Longitude { get; set; }
 
     public decimal CapacityKw { get; set; }
+    public int availableBatterySlots { get; set; }
 }
