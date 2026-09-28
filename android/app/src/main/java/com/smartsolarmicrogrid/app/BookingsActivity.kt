@@ -1,9 +1,3 @@
-/*
- * Component: Energy Reservation Management
- * File: BookingsActivity.kt
- * Purpose: Provides the Android reservation create, view, edit, and cancellation screens.
- * Contributor: Rathnayake R.M.S.B
- */
 package com.smartsolarmicrogrid.app
 
 import android.app.Activity
