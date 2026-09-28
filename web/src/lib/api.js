@@ -56,6 +56,12 @@ export const api = {
       body: { identifier, password }
     }),
 
+  changePassword: (token, body) =>
+    request("/api/auth/change-password", { token, method: "POST", body }),
+
+  changeEmail: (token, body) =>
+    request("/api/users/me/email", { token, method: "PATCH", body }),
+
   getMe: (token) =>
     request("/api/users/me", { token }),
 

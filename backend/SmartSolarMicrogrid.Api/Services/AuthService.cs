@@ -42,6 +42,7 @@ public class AuthService
             {
                 new Claim(ClaimTypes.NameIdentifier, user.Id),
                 new Claim(ClaimTypes.Role, user.Role),
+                new Claim("session_version", user.SessionVersion),
                 new Claim(ClaimTypes.Name, user.FullName)
             }),
             Expires = DateTime.UtcNow.AddHours(24),
@@ -59,6 +60,25 @@ public class AuthService
             Name = user.FullName,
             AccountStatus = user.AccountStatus
         });
+    }
+    public async Task<string?> ChangePasswordAsync(string userId, ChangePasswordRequest request)
+    {
+        var user = await _usersCollection.Find(u => u.Id == userId).FirstOrDefaultAsync();
+        if (user is null || user.AccountStatus != AccountStatuses.Active)
+            return "Account is unavailable.";
+        if (!BCrypt.Net.BCrypt.Verify(request.CurrentPassword, user.PasswordHash))
+            return "Current password is incorrect.";
+        if (BCrypt.Net.BCrypt.Verify(request.NewPassword, user.PasswordHash))
+            return "New password must differ from your current password.";
+
+        // Compare the old hash so concurrent password changes cannot overwrite each other.
+        var result = await _usersCollection.UpdateOneAsync(
+            u => u.Id == userId && u.PasswordHash == user.PasswordHash && u.AccountStatus == AccountStatuses.Active,
+            Builders<User>.Update
+                .Set(u => u.PasswordHash, BCrypt.Net.BCrypt.HashPassword(request.NewPassword))
+                .Set(u => u.SessionVersion, Guid.NewGuid().ToString("N"))
+                .Set(u => u.UpdatedAt, DateTime.UtcNow));
+        return result.ModifiedCount == 1 ? null : "Account changed. Please sign in again and retry.";
     }
 }
 

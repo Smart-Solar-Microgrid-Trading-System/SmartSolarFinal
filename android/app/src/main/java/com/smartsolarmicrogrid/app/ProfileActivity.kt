@@ -34,13 +34,14 @@ class ProfileActivity : Activity() {
         session = SessionDatabaseHelper(this).getSession()
 
         AppNavigation.configure(this, AppNavigation.Destination.Profile)
+        findViewById<Button>(R.id.changePasswordButton).setOnClickListener { changePassword() }
         saveButton.setOnClickListener { updateProfile() }
         deactivateButton.setOnClickListener { showDeactivationConfirmation() }
 
         if (session?.role != "Prosumer") {
             saveButton.visibility = View.GONE
             deactivateButton.visibility = View.GONE
-            showFeedback("Grid Operator profile is read-only in the current account-management scope.", null)
+            showFeedback("Grid Operator profile details are read-only. You can change your password below.", null)
         }
         SessionDatabaseHelper(this).getProfile()?.let { cached ->
             nameInput.setText(cached.fullName)
@@ -48,6 +49,49 @@ class ProfileActivity : Activity() {
             phoneInput.setText(cached.phone)
         }
         loadProfile()
+    }
+
+    private fun changePassword() {
+        val token = session?.token ?: return
+        val currentInput = findViewById<EditText>(R.id.currentPasswordInput)
+        val newInput = findViewById<EditText>(R.id.newPasswordInput)
+        val confirmInput = findViewById<EditText>(R.id.confirmNewPasswordInput)
+        val current = currentInput.text.toString()
+        val newPassword = newInput.text.toString()
+        val confirm = confirmInput.text.toString()
+        val error = when {
+            current.isBlank() -> "Enter your current password."
+            newPassword.isBlank() || newPassword.length !in 8..72 -> "New password must be 8-72 characters."
+            newPassword.toByteArray(Charsets.UTF_8).size > 72 -> "New password must not exceed 72 UTF-8 bytes."
+            newPassword != confirm -> "New passwords must match."
+            newPassword == current -> "Choose a different new password."
+            else -> null
+        }
+        if (error != null) { showFeedback(error, false); return }
+        val button = findViewById<Button>(R.id.changePasswordButton)
+        button.isEnabled = false
+        Thread {
+            val result = ApiClient.request(this, "POST", "/api/auth/change-password", JSONObject().apply {
+                put("currentPassword", current)
+                put("newPassword", newPassword)
+                put("confirmNewPassword", confirm)
+            }, token)
+            runOnUiThread {
+                button.isEnabled = true
+                if (result.statusCode == 200 || result.statusCode == 401) {
+                    currentInput.text.clear()
+                    newInput.text.clear()
+                    confirmInput.text.clear()
+                    SessionDatabaseHelper(this).clearSession()
+                    SessionDatabaseHelper(this).clearProfile()
+                    val message = if (result.statusCode == 200) "Password changed. Sign in with your new password." else "Session expired. Please sign in again."
+                    Toast.makeText(this, message, Toast.LENGTH_LONG).show()
+                    startActivity(Intent(this, LoginActivity::class.java).addFlags(
+                        Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TASK))
+                    finish()
+                } else showFeedback(ApiClient.errorMessage(result, "Password change failed."), false)
+            }
+        }.start()
     }
 
     private fun loadProfile() {
