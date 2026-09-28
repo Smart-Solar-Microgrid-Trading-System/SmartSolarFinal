@@ -10,6 +10,7 @@ import android.app.Activity
 import android.app.AlertDialog
 import android.content.res.ColorStateList
 import android.graphics.Color
+import android.graphics.drawable.GradientDrawable
 import android.os.Bundle
 import android.view.View
 import android.widget.*
@@ -32,6 +33,7 @@ class BookingsActivity : Activity() {
     private var energyAmount = ""
 
     override fun onCreate(savedInstanceState: Bundle?) {
+        // Prepare the reservation screen and connect its local navigation controls.
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_bookings)
 
@@ -1123,7 +1125,7 @@ class BookingsActivity : Activity() {
         reservation:
         ReservationApi.Reservation
     ) {
-
+        // Present the selected reservation in a compact, readable details card.
         clearContent()
 
         title(
@@ -1133,19 +1135,26 @@ class BookingsActivity : Activity() {
 
         content.addView(
             statusText(reservation.status),
-            matchWrap(bottom = 10)
+            wrapContent(bottom = 12)
         )
 
         val card =
             card()
 
-        detail(
+        card.addView(
+            label("Reservation information").apply {
+                textSize = 17f
+                setPadding(0, 0, 0, dp(8))
+            }
+        )
+
+        detailRow(
             card,
             "Reservation ID",
             reservation.id
         )
 
-        detail(
+        detailRow(
             card,
             "Station",
             reservation.nodeName
@@ -1154,13 +1163,13 @@ class BookingsActivity : Activity() {
                 }
         )
 
-        detail(
+        detailRow(
             card,
             "Booking Slot",
             slotDisplayName(reservation.startTime)
         )
 
-        detail(
+        detailRow(
             card,
             "Scheduled Time (UTC)",
             "${utc(reservation.startTime)} – " +
@@ -1169,19 +1178,19 @@ class BookingsActivity : Activity() {
                     )
         )
 
-        detail(
+        detailRow(
             card,
             "Energy Amount",
             "${number(reservation.energyAmountKw)} kWh"
         )
 
-        detail(
+        detailRow(
             card,
             "Status",
             reservation.status
         )
 
-        detail(
+        detailRow(
             card,
             "Created",
             utc(
@@ -1189,7 +1198,7 @@ class BookingsActivity : Activity() {
             )
         )
 
-        detail(
+        detailRow(
             card,
             "Last Updated",
             utc(
@@ -1200,7 +1209,7 @@ class BookingsActivity : Activity() {
         reservation.cancelledAt
             ?.let {
 
-                detail(
+                detailRow(
                     card,
                     "Cancelled",
                     utc(it)
@@ -1231,7 +1240,7 @@ class BookingsActivity : Activity() {
         )
 
         content.addView(
-            secondaryButton(
+            dangerButton(
                 "Cancel Reservation"
             ) {
                 confirmCancellation(
@@ -1730,12 +1739,44 @@ class BookingsActivity : Activity() {
     private fun markTab(
         active: Button
     ) {
+        // Show which reservation tab is active without changing shared navigation.
+        createTab.isEnabled = true
+        listTab.isEnabled = true
+        createTab.isSelected = active === createTab
+        listTab.isSelected = active === listTab
 
-        createTab.isEnabled =
-            active !== createTab
+        styleTab(
+            createTab,
+            active === createTab
+        )
 
-        listTab.isEnabled =
-            active !== listTab
+        styleTab(
+            listTab,
+            active === listTab
+        )
+    }
+
+    private fun styleTab(
+        button: Button,
+        active: Boolean
+    ) {
+        // Apply a simple local tab style that matches the reservation screen.
+        button.backgroundTintList = null
+        button.elevation = 0f
+        button.setTextColor(
+            if (active) {
+                Color.WHITE
+            } else {
+                getColor(R.color.text_secondary)
+            }
+        )
+        button.background = roundedBackground(
+            if (active) {
+                getColor(R.color.brand_blue)
+            } else {
+                Color.rgb(235, 241, 247)
+            }
+        )
     }
 
     private fun title(
@@ -1898,7 +1939,7 @@ class BookingsActivity : Activity() {
         status: String
     ) =
         TextView(this).apply {
-
+            // Display the reservation status as a small badge.
             text =
                 "● $status"
 
@@ -1911,13 +1952,13 @@ class BookingsActivity : Activity() {
             )
 
             setPadding(
-                0,
-                dp(6),
-                0,
-                dp(6)
+                dp(12),
+                dp(7),
+                dp(12),
+                dp(7)
             )
 
-            setTextColor(
+            val statusColor =
                 when (status) {
 
                     "Approved",
@@ -1937,6 +1978,11 @@ class BookingsActivity : Activity() {
                             R.color.brand_blue
                         )
                 }
+
+            setTextColor(statusColor)
+            background = roundedBackground(
+                colorWithAlpha(statusColor, 24),
+                statusColor
             )
         }
 
@@ -1995,13 +2041,60 @@ class BookingsActivity : Activity() {
         name: String,
         detail: String
     ) {
-
+        // Add a stacked label and value to summary-style cards.
         parent.addView(
             value(name)
         )
 
         parent.addView(
             label(detail)
+        )
+    }
+
+    private fun detailRow(
+        parent: LinearLayout,
+        name: String,
+        detail: String
+    ) {
+        // Add one aligned label and value row to the reservation details card.
+        val row = LinearLayout(this).apply {
+            orientation = LinearLayout.HORIZONTAL
+            gravity = android.view.Gravity.TOP
+            setPadding(0, dp(10), 0, dp(10))
+        }
+
+        row.addView(
+            value(name).apply {
+                setPadding(0, 0, dp(12), 0)
+            },
+            LinearLayout.LayoutParams(
+                0,
+                LinearLayout.LayoutParams.WRAP_CONTENT,
+                0.42f
+            )
+        )
+
+        row.addView(
+            label(detail).apply {
+                textSize = 14f
+                setPadding(0, 0, 0, 0)
+            },
+            LinearLayout.LayoutParams(
+                0,
+                LinearLayout.LayoutParams.WRAP_CONTENT,
+                0.58f
+            )
+        )
+
+        parent.addView(row)
+        parent.addView(
+            View(this).apply {
+                setBackgroundColor(Color.rgb(220, 229, 238))
+            },
+            LinearLayout.LayoutParams(
+                LinearLayout.LayoutParams.MATCH_PARENT,
+                dp(1)
+            )
         )
     }
 
@@ -2108,6 +2201,54 @@ class BookingsActivity : Activity() {
             }
         }
 
+    private fun dangerButton(
+        text: String,
+        action: () -> Unit
+    ) =
+        Button(this).apply {
+            // Use a restrained outline for the destructive reservation action.
+            this.text = text
+            isAllCaps = false
+            elevation = 0f
+            setTextColor(getColor(R.color.status_error))
+            backgroundTintList = null
+            background = roundedBackground(
+                Color.TRANSPARENT,
+                getColor(R.color.status_error)
+            )
+            setOnClickListener {
+                action()
+            }
+        }
+
+    private fun roundedBackground(
+        color: Int,
+        strokeColor: Int? = null
+    ) =
+        GradientDrawable().apply {
+            // Build a component-local background for tabs and badges.
+            shape = GradientDrawable.RECTANGLE
+            cornerRadius = dp(9).toFloat()
+            setColor(color)
+
+            if (strokeColor != null) {
+                setStroke(dp(1), strokeColor)
+            }
+        }
+
+    private fun colorWithAlpha(
+        color: Int,
+        alpha: Int
+    ): Int {
+        // Retain the source colour while creating a light badge background.
+        return Color.argb(
+            alpha,
+            Color.red(color),
+            Color.green(color),
+            Color.blue(color)
+        )
+    }
+
     private fun weightedButton() =
         LinearLayout.LayoutParams(
             0,
@@ -2133,6 +2274,19 @@ class BookingsActivity : Activity() {
 
             bottomMargin =
                 dp(bottom)
+        }
+
+    private fun wrapContent(
+        top: Int = 0,
+        bottom: Int = 0
+    ) =
+        LinearLayout.LayoutParams(
+            LinearLayout.LayoutParams.WRAP_CONTENT,
+            LinearLayout.LayoutParams.WRAP_CONTENT
+        ).apply {
+            // Keep compact elements such as status badges from filling the row.
+            topMargin = dp(top)
+            bottomMargin = dp(bottom)
         }
 
     private fun dp(
