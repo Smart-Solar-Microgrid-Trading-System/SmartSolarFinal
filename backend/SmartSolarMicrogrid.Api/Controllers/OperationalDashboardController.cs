@@ -1,4 +1,12 @@
 
+/*
+ * Student Name: Ruwanmali K.H
+ * Component: Operational Dashboard
+ * File Name: OperationalDashboardController.cs
+ * Description: Provides dashboard endpoints for operational users
+ *              and logged-in Prosumers.
+ */
+
 using System.Security.Claims;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;

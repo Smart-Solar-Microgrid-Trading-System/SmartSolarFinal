@@ -1,3 +1,10 @@
+/*
+ * Student Name: Ruwanmali K.H
+ * Component: Reservation Monitoring and Dashboard
+ * File Name: EnergyReservation.cs
+ * Description: Represents an energy reservation stored in the MongoDB database.
+ */
+
 using MongoDB.Bson.Serialization.Attributes;
 
 namespace SmartSolarMicrogrid.Api.Models;

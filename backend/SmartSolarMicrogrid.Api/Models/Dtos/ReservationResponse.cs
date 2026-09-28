@@ -1,4 +1,11 @@
 /*
+ * Student Name: Ruwanmali K.H
+ * Component: Reservation Monitoring and Dashboard
+ * File Name: ReservationResponse.cs
+ * Description: Defines the reservation information returned to web and mobile clients.
+ */
+
+/*
  * Project: Smart Solar Microgrid Trading System
  * Component: Energy Reservation Management
  * File: ReservationResponse.cs
