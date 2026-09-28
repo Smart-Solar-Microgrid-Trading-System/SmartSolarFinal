@@ -1,3 +1,12 @@
+/*
+ * Student Name: Ruwanmali K.H
+ * Component: Reservation Monitoring and Dashboard
+ * File Name: ReservationsController.cs
+ * Description: Provides REST API endpoints for retrieving reservations,
+ *              including current, pending, history, search, and filter views.
+ */
+
+/*
  /*
  * Project: Smart Solar Microgrid Trading System
  * Component: Energy Reservation Management
@@ -5,6 +14,7 @@
  * Purpose: Exposes authorized reservation query, create, update, and soft-cancellation endpoints.
  * Contributor: Rathnayake R.M.S.B
  */
+
 using System.Security.Claims;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
