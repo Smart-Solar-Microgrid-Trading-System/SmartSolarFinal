@@ -48,5 +48,14 @@ class GridOperatorHomeActivity : Activity() {
                 )
             )
         }
+
+        findViewById<Button>(R.id.finalizeTransferButton).setOnClickListener {
+            startActivity(
+                Intent(
+                    this,
+                    VerifiedReservationsActivity::class.java
+                )
+            )
+        }
     }
 }

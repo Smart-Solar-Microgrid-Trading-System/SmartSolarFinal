@@ -123,15 +123,12 @@ class PendingReservationsActivity : Activity() {
     }
 
     private fun addReservationCard(
-        reservation:
-        ReservationApi.Reservation
+        reservation: ReservationApi.Reservation
     ) {
 
-        val card =
-            LinearLayout(this)
+        val card = LinearLayout(this)
 
-        card.orientation =
-            LinearLayout.VERTICAL
+        card.orientation = LinearLayout.VERTICAL
 
         card.setPadding(
             24,
@@ -144,11 +141,10 @@ class PendingReservationsActivity : Activity() {
             android.R.drawable.dialog_holo_light_frame
         )
 
-        val params =
-            LinearLayout.LayoutParams(
-                LinearLayout.LayoutParams.MATCH_PARENT,
-                LinearLayout.LayoutParams.WRAP_CONTENT
-            )
+        val params = LinearLayout.LayoutParams(
+            LinearLayout.LayoutParams.MATCH_PARENT,
+            LinearLayout.LayoutParams.WRAP_CONTENT
+        )
 
         params.setMargins(
             0,
@@ -159,15 +155,12 @@ class PendingReservationsActivity : Activity() {
 
         card.layoutParams = params
 
-        val title =
-            TextView(this)
+        val title = TextView(this)
 
         title.text =
             reservation.nodeName
                 .takeIf { it.isNotBlank() }
-                ?: reservation.nodeId
-                    .takeIf { it.isNotBlank() }
-                        ?: "Unknown Station"
+                ?: "Unknown Station"
 
         title.textSize = 19f
 
@@ -178,8 +171,7 @@ class PendingReservationsActivity : Activity() {
 
         card.addView(title)
 
-        val reservationId =
-            TextView(this)
+        val reservationId = TextView(this)
 
         reservationId.text =
             "Reservation ID: ${reservation.id}"
@@ -188,8 +180,7 @@ class PendingReservationsActivity : Activity() {
 
         card.addView(reservationId)
 
-        val prosumer =
-            TextView(this)
+        val prosumer = TextView(this)
 
         prosumer.text =
             "Prosumer: ${
@@ -202,8 +193,7 @@ class PendingReservationsActivity : Activity() {
 
         card.addView(prosumer)
 
-        val time =
-            TextView(this)
+        val time = TextView(this)
 
         time.text =
             "Time: ${reservation.startTime} - ${reservation.endTime}"
@@ -212,8 +202,7 @@ class PendingReservationsActivity : Activity() {
 
         card.addView(time)
 
-        val energy =
-            TextView(this)
+        val energy = TextView(this)
 
         energy.text =
             "Energy: ${reservation.energyAmountKw} kW"
@@ -222,8 +211,7 @@ class PendingReservationsActivity : Activity() {
 
         card.addView(energy)
 
-        val status =
-            TextView(this)
+        val status = TextView(this)
 
         status.text =
             "Status: ${reservation.status}"
@@ -232,30 +220,104 @@ class PendingReservationsActivity : Activity() {
 
         card.addView(status)
 
-        val button =
-            Button(this)
+        val approveButton = Button(this)
 
-        button.text =
-            "Scan Booking QR"
+        approveButton.text = "Approve"
 
-        button.setOnClickListener {
+        approveButton.setOnClickListener {
 
-            openScanner()
+            approveReservation(
+                reservation.id
+            )
         }
 
-        card.addView(button)
+        card.addView(approveButton)
+
+        val rejectButton = Button(this)
+
+        rejectButton.text = "Reject"
+
+        rejectButton.setOnClickListener {
+
+            rejectReservation(
+                reservation.id
+            )
+        }
+
+        card.addView(rejectButton)
 
         reservationsContainer.addView(card)
     }
+    private fun approveReservation(
+        reservationId: String
+    ) {
 
-    private fun openScanner() {
+        statusText.text =
+            "Approving reservation..."
 
-        val intent =
-            Intent(
-                this,
-                QrScannerActivity::class.java
-            )
+        Thread {
 
-        startActivity(intent)
+            val result =
+                ReservationApi.approve(
+                    this,
+                    token,
+                    reservationId
+                )
+
+            runOnUiThread {
+
+                result
+                    .onSuccess {
+
+                        statusText.text =
+                            "Reservation approved."
+
+                        loadReservations()
+                    }
+                    .onFailure { error ->
+
+                        statusText.text =
+                            error.message
+                                ?: "Unable to approve reservation."
+                    }
+            }
+
+        }.start()
+    }
+    private fun rejectReservation(
+        reservationId: String
+    ) {
+
+        statusText.text =
+            "Rejecting reservation..."
+
+        Thread {
+
+            val result =
+                ReservationApi.reject(
+                    this,
+                    token,
+                    reservationId
+                )
+
+            runOnUiThread {
+
+                result
+                    .onSuccess {
+
+                        statusText.text =
+                            "Reservation rejected."
+
+                        loadReservations()
+                    }
+                    .onFailure { error ->
+
+                        statusText.text =
+                            error.message
+                                ?: "Unable to reject reservation."
+                    }
+            }
+
+        }.start()
     }
 }

@@ -1,41 +1,33 @@
 package com.smartsolarmicrogrid.app
 
+import android.app.Activity
 import android.content.Intent
-import android.os.Bundle
 import android.graphics.Typeface
+import android.os.Bundle
 import android.widget.Button
 import android.widget.LinearLayout
 import android.widget.TextView
-import androidx.appcompat.app.AppCompatActivity
 
-class VerifiedReservationsActivity :
-    AppCompatActivity() {
+class VerifiedReservationsActivity : Activity() {
 
     private lateinit var statusText: TextView
     private lateinit var reservationsContainer: LinearLayout
 
     private var token: String = ""
 
-    override fun onCreate(
-        savedInstanceState: Bundle?
-    ) {
+    override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
 
         setContentView(
             R.layout.activity_verified_reservations
         )
 
-        statusText =
-            findViewById(R.id.statusText)
+        statusText = findViewById(R.id.statusText)
 
         reservationsContainer =
-            findViewById(
-                R.id.reservationsContainer
-            )
+            findViewById(R.id.reservationsContainer)
 
-        token =
-            intent.getStringExtra("token")
-                ?: ""
+        loadSession()
 
         if (token.isBlank()) {
 
@@ -45,33 +37,47 @@ class VerifiedReservationsActivity :
             return
         }
 
-        loadVerifiedReservations()
+        loadApprovedReservations()
     }
 
     override fun onResume() {
+
         super.onResume()
 
-        if (
-            ::reservationsContainer.isInitialized &&
-            token.isNotBlank()
-        ) {
-            loadVerifiedReservations()
+        if (::reservationsContainer.isInitialized) {
+
+            loadSession()
+
+            if (token.isNotBlank()) {
+
+                loadApprovedReservations()
+            }
         }
     }
 
-    private fun loadVerifiedReservations() {
+    private fun loadSession() {
+
+        val session =
+            SessionDatabaseHelper(this).getSession()
+
+        token =
+            session?.token.orEmpty()
+    }
+
+    private fun loadApprovedReservations() {
 
         statusText.text =
-            "Loading verified reservations..."
+            "Loading approved reservations..."
 
         reservationsContainer.removeAllViews()
 
         Thread {
 
             val result =
-                ReservationApi.reservations(
+                ReservationApi.filteredReservations(
                     this,
-                    token
+                    token,
+                    status = "Approved"
                 )
 
             runOnUiThread {
@@ -79,27 +85,15 @@ class VerifiedReservationsActivity :
                 result
                     .onSuccess { reservations ->
 
-                        val verifiedIds =
-                            VerifiedReservationStore
-                                .getVerifiedIds(this)
-
-                        val verifiedReservations =
-                            reservations.filter {
-                                verifiedIds.contains(
-                                    it.id
-                                )
-                            }
-
                         displayReservations(
-                            verifiedReservations
+                            reservations
                         )
                     }
-
                     .onFailure { error ->
 
                         statusText.text =
                             error.message
-                                ?: "Unable to load reservations."
+                                ?: "Unable to load approved reservations."
                     }
             }
 
@@ -107,8 +101,7 @@ class VerifiedReservationsActivity :
     }
 
     private fun displayReservations(
-        reservations:
-        List<ReservationApi.Reservation>
+        reservations: List<ReservationApi.Reservation>
     ) {
 
         reservationsContainer.removeAllViews()
@@ -116,29 +109,25 @@ class VerifiedReservationsActivity :
         if (reservations.isEmpty()) {
 
             statusText.text =
-                "There are no verified reservations."
+                "There are no approved reservations."
 
             return
         }
 
         statusText.text =
-            "${reservations.size} verified reservation(s)"
+            "${reservations.size} approved reservation(s)"
 
         reservations.forEach { reservation ->
 
-            addReservationCard(
-                reservation
-            )
+            addReservationCard(reservation)
         }
     }
 
     private fun addReservationCard(
-        reservation:
-        ReservationApi.Reservation
+        reservation: ReservationApi.Reservation
     ) {
 
-        val card =
-            LinearLayout(this)
+        val card = LinearLayout(this)
 
         card.orientation =
             LinearLayout.VERTICAL
@@ -154,11 +143,10 @@ class VerifiedReservationsActivity :
             android.R.drawable.dialog_holo_light_frame
         )
 
-        val params =
-            LinearLayout.LayoutParams(
-                LinearLayout.LayoutParams.MATCH_PARENT,
-                LinearLayout.LayoutParams.WRAP_CONTENT
-            )
+        val params = LinearLayout.LayoutParams(
+            LinearLayout.LayoutParams.MATCH_PARENT,
+            LinearLayout.LayoutParams.WRAP_CONTENT
+        )
 
         params.setMargins(
             0,
@@ -169,13 +157,11 @@ class VerifiedReservationsActivity :
 
         card.layoutParams = params
 
-        val title =
-            TextView(this)
+        val title = TextView(this)
 
         title.text =
-            reservation.nodeName.ifBlank {
-                "Unknown Station"
-            }
+            reservation.nodeName
+                .ifBlank { "Unknown Station" }
 
         title.textSize = 19f
 
@@ -186,8 +172,16 @@ class VerifiedReservationsActivity :
 
         card.addView(title)
 
-        val prosumer =
-            TextView(this)
+        val idText = TextView(this)
+
+        idText.text =
+            "Reservation ID: ${reservation.id}"
+
+        idText.textSize = 14f
+
+        card.addView(idText)
+
+        val prosumer = TextView(this)
 
         prosumer.text =
             "Prosumer: ${reservation.prosumerName}\n" +
@@ -195,78 +189,76 @@ class VerifiedReservationsActivity :
 
         prosumer.textSize = 16f
 
-        val time =
-            TextView(this)
+        card.addView(prosumer)
+
+        val time = TextView(this)
 
         time.text =
-            "Time: ${reservation.startTime} - ${reservation.endTime}"
+            "Time: ${reservation.startTime} - " +
+                    reservation.endTime
 
         time.textSize = 15f
 
-        val energy =
-            TextView(this)
+        card.addView(time)
+
+        val energy = TextView(this)
 
         energy.text =
             "Energy: ${reservation.energyAmountKw} kW"
 
         energy.textSize = 15f
 
-        val status =
-            TextView(this)
+        card.addView(energy)
+
+        val status = TextView(this)
 
         status.text =
             "Status: ${reservation.status}"
 
         status.textSize = 15f
 
-        card.addView(prosumer)
-        card.addView(time)
-        card.addView(energy)
         card.addView(status)
 
-        val button =
-            Button(this)
+        // --------------------------------------------------------
+        // FINALIZE TRANSFER
+        // This starts the QR verification path.
+        // --------------------------------------------------------
 
-        button.text =
+        val finalizeButton = Button(this)
+
+        finalizeButton.text =
             "Finalize Transfer"
 
-        button.setOnClickListener {
+        finalizeButton.setOnClickListener {
 
-            openVerification(
+            openScanner(
                 reservation.id
             )
         }
 
-        card.addView(button)
+        card.addView(finalizeButton)
 
-        reservationsContainer.addView(
-            card
-        )
+        reservationsContainer.addView(card)
     }
 
-    private fun openVerification(
+    private fun openScanner(
         reservationId: String
     ) {
 
         val intent =
             Intent(
                 this,
-                BookingVerificationActivity::class.java
+                QrScannerActivity::class.java
             )
 
         intent.putExtra(
-            "reservationId",
+            "expectedReservationId",
             reservationId
         )
 
         intent.putExtra(
             "token",
             token
-        )
-
-        intent.putExtra(
-            "fromVerifiedList",
-            true
         )
 
         startActivity(intent)

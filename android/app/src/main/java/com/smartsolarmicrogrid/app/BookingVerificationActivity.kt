@@ -36,7 +36,7 @@ class BookingVerificationActivity :
         transactionToken =
             intent.getStringExtra(
                 "transactionToken"
-            ) ?: ""
+            ).orEmpty()
 
         val session =
             SessionDatabaseHelper(this).getSession()
@@ -52,13 +52,23 @@ class BookingVerificationActivity :
             finalizeTransfer()
         }
 
-        if (
-            transactionToken.isBlank() ||
-            token.isBlank()
-        ) {
+        finalizeButton.isEnabled = false
+
+        if (transactionToken.isBlank()) {
+
             showError(
-                "Missing transaction or authentication information."
+                "Transaction QR information is missing."
             )
+
+            return
+        }
+
+        if (token.isBlank()) {
+
+            showError(
+                "Authentication information is missing."
+            )
+
             return
         }
 
@@ -68,49 +78,31 @@ class BookingVerificationActivity :
     private fun initializeViews() {
 
         statusText =
-            findViewById(
-                R.id.statusText
-            )
+            findViewById(R.id.statusText)
 
         reservationIdText =
-            findViewById(
-                R.id.reservationIdText
-            )
+            findViewById(R.id.reservationIdText)
 
         prosumerText =
-            findViewById(
-                R.id.prosumerText
-            )
+            findViewById(R.id.prosumerText)
 
         nodeText =
-            findViewById(
-                R.id.nodeText
-            )
+            findViewById(R.id.nodeText)
 
         slotText =
-            findViewById(
-                R.id.slotText
-            )
+            findViewById(R.id.slotText)
 
         energyText =
-            findViewById(
-                R.id.energyText
-            )
+            findViewById(R.id.energyText)
 
         bookingStatusText =
-            findViewById(
-                R.id.bookingStatusText
-            )
+            findViewById(R.id.bookingStatusText)
 
         finalizeButton =
-            findViewById(
-                R.id.finalizeButton
-            )
+            findViewById(R.id.finalizeButton)
 
         scanAnotherButton =
-            findViewById(
-                R.id.scanAnotherButton
-            )
+            findViewById(R.id.scanAnotherButton)
     }
 
     private fun verifyBooking() {
@@ -149,15 +141,11 @@ class BookingVerificationActivity :
                             verification
                         )
 
-                        /*
-                         * Keep track of the verified
-                         * reservation locally.
-                         */
-                        VerifiedReservationStore
-                            .markVerified(
-                                this,
-                                verification.reservationId
-                            )
+                        statusText.text =
+                            "Booking verified successfully."
+
+                        finalizeButton.isEnabled =
+                            true
                     }
 
                     .onFailure { error ->
@@ -177,9 +165,6 @@ class BookingVerificationActivity :
         TransactionApi.Verification
     ) {
 
-        statusText.text =
-            booking.message
-
         reservationIdText.text =
             "Reservation ID: ${booking.reservationId}"
 
@@ -198,34 +183,12 @@ class BookingVerificationActivity :
 
         bookingStatusText.text =
             "Booking Status: ${booking.status}"
-
-        finalizeButton.isEnabled =
-            booking.valid &&
-                    isFinalizableStatus(
-                        booking.status
-                    )
-    }
-
-    private fun isFinalizableStatus(
-        status: String
-    ): Boolean {
-
-        return when (
-            status.uppercase()
-        ) {
-
-            "APPROVED",
-            "CONFIRMED",
-            "READY" -> true
-
-            else -> false
-        }
     }
 
     private fun finalizeTransfer() {
 
-        finalizeButton.isEnabled =
-            false
+        finalizeButton.isEnabled = false
+        scanAnotherButton.isEnabled = false
 
         statusText.text =
             "Finalizing energy transfer..."
@@ -242,6 +205,7 @@ class BookingVerificationActivity :
             runOnUiThread {
 
                 result
+
                     .onSuccess { response ->
 
                         if (!response.success) {
@@ -253,14 +217,11 @@ class BookingVerificationActivity :
                             finalizeButton.isEnabled =
                                 true
 
+                            scanAnotherButton.isEnabled =
+                                true
+
                             return@onSuccess
                         }
-
-                        VerifiedReservationStore
-                            .removeVerified(
-                                this,
-                                response.reservationId
-                            )
 
                         val intent =
                             Intent(
@@ -292,6 +253,9 @@ class BookingVerificationActivity :
 
                         finalizeButton.isEnabled =
                             true
+
+                        scanAnotherButton.isEnabled =
+                            true
                     }
             }
 
@@ -300,13 +264,12 @@ class BookingVerificationActivity :
 
     private fun openScanner() {
 
-        val intent =
+        startActivity(
             Intent(
                 this,
                 QrScannerActivity::class.java
             )
-
-        startActivity(intent)
+        )
 
         finish()
     }
@@ -315,11 +278,9 @@ class BookingVerificationActivity :
         message: String
     ) {
 
-        statusText.text =
-            message
+        statusText.text = message
 
-        finalizeButton.isEnabled =
-            false
+        finalizeButton.isEnabled = false
     }
 
     private fun setLoading(

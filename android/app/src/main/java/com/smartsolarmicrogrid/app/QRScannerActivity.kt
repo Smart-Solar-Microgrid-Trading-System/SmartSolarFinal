@@ -25,9 +25,11 @@ class QrScannerActivity : AppCompatActivity() {
     private lateinit var cameraPreview: PreviewView
     private lateinit var scannerStatus: TextView
 
-    private val cameraExecutor = Executors.newSingleThreadExecutor()
+    private val cameraExecutor =
+        Executors.newSingleThreadExecutor()
 
-    private val scanned = AtomicBoolean(false)
+    private val scanned =
+        AtomicBoolean(false)
 
     private val cameraPermissionLauncher =
         registerForActivityResult(
@@ -35,21 +37,31 @@ class QrScannerActivity : AppCompatActivity() {
         ) { granted ->
 
             if (granted) {
+
                 startCamera()
+
             } else {
+
                 scannerStatus.text =
                     "Camera permission is required to scan a booking QR."
             }
         }
 
-    override fun onCreate(savedInstanceState: Bundle?) {
+    override fun onCreate(
+        savedInstanceState: Bundle?
+    ) {
+
         super.onCreate(savedInstanceState)
 
-        setContentView(R.layout.activity_qr_scanner)
+        setContentView(
+            R.layout.activity_qr_scanner
+        )
 
-        cameraPreview = findViewById(R.id.cameraPreview)
+        cameraPreview =
+            findViewById(R.id.cameraPreview)
 
-        scannerStatus = findViewById(R.id.scannerStatus)
+        scannerStatus =
+            findViewById(R.id.scannerStatus)
 
         checkCameraPermission()
     }
@@ -57,53 +69,70 @@ class QrScannerActivity : AppCompatActivity() {
     private fun checkCameraPermission() {
 
         if (
-            ContextCompat.checkSelfPermission(this, Manifest.permission.CAMERA) == PackageManager.PERMISSION_GRANTED
+            ContextCompat.checkSelfPermission(
+                this,
+                Manifest.permission.CAMERA
+            ) == PackageManager.PERMISSION_GRANTED
         ) {
 
             startCamera()
 
         } else {
 
-            cameraPermissionLauncher.launch(Manifest.permission.CAMERA)
+            cameraPermissionLauncher.launch(
+                Manifest.permission.CAMERA
+            )
         }
     }
 
     @OptIn(ExperimentalGetImage::class)
     private fun startCamera() {
 
-        val cameraProviderFuture = ProcessCameraProvider.getInstance(this)
+        val cameraProviderFuture =
+            ProcessCameraProvider.getInstance(this)
 
         cameraProviderFuture.addListener({
 
-            val cameraProvider = cameraProviderFuture.get()
+            val cameraProvider =
+                cameraProviderFuture.get()
 
-            val preview = Preview.Builder()
+            val preview =
+                Preview.Builder()
                     .build()
                     .also {
-                        it.surfaceProvider = cameraPreview.surfaceProvider
+                        it.surfaceProvider =
+                            cameraPreview.surfaceProvider
                     }
 
-            val barcodeScanner = BarcodeScanning.getClient()
+            val barcodeScanner =
+                BarcodeScanning.getClient()
 
-            val imageAnalysis = ImageAnalysis.Builder()
+            val imageAnalysis =
+                ImageAnalysis.Builder()
                     .setBackpressureStrategy(
                         ImageAnalysis.STRATEGY_KEEP_ONLY_LATEST
                     )
                     .build()
 
-            imageAnalysis.setAnalyzer(cameraExecutor) { imageProxy ->
+            imageAnalysis.setAnalyzer(
+                cameraExecutor
+            ) { imageProxy ->
 
-                val mediaImage = imageProxy.image
+                val mediaImage =
+                    imageProxy.image
 
                 if (mediaImage == null) {
+
                     imageProxy.close()
+
                     return@setAnalyzer
                 }
 
-                val image = InputImage.fromMediaImage(
-                    mediaImage,
-                    imageProxy.imageInfo.rotationDegrees
-                )
+                val image =
+                    InputImage.fromMediaImage(
+                        mediaImage,
+                        imageProxy.imageInfo.rotationDegrees
+                    )
 
                 barcodeScanner.process(image)
                     .addOnSuccessListener { barcodes ->
@@ -128,10 +157,17 @@ class QrScannerActivity : AppCompatActivity() {
                             ) {
 
                                 if (
-                                    scanned.compareAndSet(false, true)
+                                    scanned.compareAndSet(
+                                        false,
+                                        true
+                                    )
                                 ) {
 
-                                    runOnUiThread { handleQrResult(rawValue)
+                                    runOnUiThread {
+
+                                        handleQrResult(
+                                            rawValue
+                                        )
                                     }
 
                                     break
@@ -140,9 +176,11 @@ class QrScannerActivity : AppCompatActivity() {
                         }
                     }
                     .addOnFailureListener {
-                        // Keep scanning.
+
+                        // Ignore individual frame failures.
                     }
                     .addOnCompleteListener {
+
                         imageProxy.close()
                     }
             }
@@ -160,19 +198,24 @@ class QrScannerActivity : AppCompatActivity() {
 
             } catch (e: Exception) {
 
-                scannerStatus.text = "Unable to start camera: ${e.message}"
+                scannerStatus.text =
+                    "Unable to start camera: ${e.message}"
             }
 
         }, ContextCompat.getMainExecutor(this))
     }
 
-    private fun handleQrResult(rawValue: String) {
+    private fun handleQrResult(
+        rawValue: String
+    ) {
 
         scannerStatus.text =
-            "QR detected. Verifying transaction..."
+            "QR detected. Preparing verification..."
 
         val transactionToken =
-            TransactionApi.extractTransactionToken(rawValue)
+            TransactionApi.extractTransactionToken(
+                rawValue
+            )
 
         if (transactionToken.isNullOrBlank()) {
 
@@ -185,7 +228,8 @@ class QrScannerActivity : AppCompatActivity() {
         }
 
         val session =
-            SessionDatabaseHelper(this).getSession()
+            SessionDatabaseHelper(this)
+                .getSession()
 
         val token =
             session?.token.orEmpty()
@@ -200,21 +244,42 @@ class QrScannerActivity : AppCompatActivity() {
             return
         }
 
-        val intent =
+        val expectedReservationId =
+            intent.getStringExtra(
+                "expectedReservationId"
+            ).orEmpty()
+
+        val verificationIntent =
             Intent(
                 this,
                 BookingVerificationActivity::class.java
             )
 
-        intent.putExtra(
+        verificationIntent.putExtra(
             "transactionToken",
             transactionToken
         )
 
-        startActivity(intent)
+        verificationIntent.putExtra(
+            "token",
+            token
+        )
+
+        if (expectedReservationId.isNotBlank()) {
+
+            verificationIntent.putExtra(
+                "expectedReservationId",
+                expectedReservationId
+            )
+        }
+
+        startActivity(
+            verificationIntent
+        )
 
         finish()
     }
+
     override fun onDestroy() {
 
         super.onDestroy()
@@ -222,5 +287,3 @@ class QrScannerActivity : AppCompatActivity() {
         cameraExecutor.shutdown()
     }
 }
-
-
