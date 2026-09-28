@@ -35,14 +35,6 @@
 			android:layout_marginTop="12dp"
 			android:text="Nearby Grid Nodes" />
 
-		<!-- QR Scanner -->
-		<Button
-			android:id="@+id/scanQrButton"
-			android:layout_width="match_parent"
-			android:layout_height="wrap_content"
-			android:layout_marginTop="12dp"
-			android:text="Scan QR Code" />
-
 		<!-- Booking Verification -->
 		<Button
 			android:id="@+id/verifyBookingButton"
@@ -50,14 +42,6 @@
 			android:layout_height="wrap_content"
 			android:layout_marginTop="12dp"
 			android:text="Verify Booking" />
-
-		<!-- Finalize Transfer -->
-		<Button
-			android:id="@+id/finalizeTransferButton"
-			android:layout_width="match_parent"
-			android:layout_height="wrap_content"
-			android:layout_marginTop="12dp"
-			android:text="Finalize Transfer" />
 
 	</LinearLayout>
 

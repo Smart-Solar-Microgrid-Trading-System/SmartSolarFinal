@@ -44,6 +44,12 @@
         <activity
             android:name=".VerifiedReservationsActivity"
             android:exported="false" />
+        <activity
+            android:name=".TransactionQrActivity"
+            android:exported="false" />
+        <activity
+            android:name=".ApprovedReservationsActivity"
+            android:exported="false" />
 
         <activity
             android:name=".BookingVerificationActivity"

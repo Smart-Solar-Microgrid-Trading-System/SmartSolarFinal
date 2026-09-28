@@ -55,11 +55,11 @@ object TransactionApi {
         ) { json ->
 
             QrTransaction(
-                reservationId = json.getString("reservationId"),
+                reservationId = json.optString("reservationId"),
                 transactionToken = json.optString("transactionToken"),
-                qrPayload = json.getString("qrPayload"),
-                expiresAt = json.getString("expiresAt"),
-                status = json.getString("status")
+                qrPayload = json.optString("qrPayload"),
+                expiresAt = json.optString("expiresAt"),
+                status = json.optString("status")
             )
         }
     }
@@ -139,9 +139,11 @@ object TransactionApi {
             return null
         }
 
-        val token = value.removePrefix(prefix)
+        val transactionToken = value
+            .removePrefix(prefix)
+            .trim()
 
-        return token.takeIf {
+        return transactionToken.takeIf {
             it.isNotBlank()
         }
     }
@@ -154,7 +156,7 @@ object TransactionApi {
         if (result.statusCode !in 200..299) {
             return Result.failure(
                 Exception(
-                    ApiClient.errorMessage(result)
+                    "HTTP ${result.statusCode}: ${ApiClient.errorMessage(result)}"
                 )
             )
         }

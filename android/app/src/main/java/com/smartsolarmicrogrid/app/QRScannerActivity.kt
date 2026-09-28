@@ -4,6 +4,7 @@ import android.Manifest
 import android.content.Intent
 import android.content.pm.PackageManager
 import android.os.Bundle
+import android.widget.ImageButton
 import android.widget.TextView
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.annotation.OptIn
@@ -24,6 +25,7 @@ class QrScannerActivity : AppCompatActivity() {
 
     private lateinit var cameraPreview: PreviewView
     private lateinit var scannerStatus: TextView
+    private lateinit var pageBackButton: ImageButton
 
     private val cameraExecutor =
         Executors.newSingleThreadExecutor()
@@ -37,11 +39,8 @@ class QrScannerActivity : AppCompatActivity() {
         ) { granted ->
 
             if (granted) {
-
                 startCamera()
-
             } else {
-
                 scannerStatus.text =
                     "Camera permission is required to scan a booking QR."
             }
@@ -50,7 +49,6 @@ class QrScannerActivity : AppCompatActivity() {
     override fun onCreate(
         savedInstanceState: Bundle?
     ) {
-
         super.onCreate(savedInstanceState)
 
         setContentView(
@@ -62,6 +60,13 @@ class QrScannerActivity : AppCompatActivity() {
 
         scannerStatus =
             findViewById(R.id.scannerStatus)
+
+        pageBackButton =
+            findViewById(R.id.pageBackButton)
+
+        pageBackButton.setOnClickListener {
+            finish()
+        }
 
         checkCameraPermission()
     }
@@ -122,9 +127,7 @@ class QrScannerActivity : AppCompatActivity() {
                     imageProxy.image
 
                 if (mediaImage == null) {
-
                     imageProxy.close()
-
                     return@setAnalyzer
                 }
 
@@ -212,6 +215,13 @@ class QrScannerActivity : AppCompatActivity() {
         scannerStatus.text =
             "QR detected. Preparing verification..."
 
+        /*
+         * The QR should contain a transaction token,
+         * not trusted reservation information.
+         *
+         * TransactionApi extracts the token from the
+         * QR payload.
+         */
         val transactionToken =
             TransactionApi.extractTransactionToken(
                 rawValue
@@ -227,6 +237,10 @@ class QrScannerActivity : AppCompatActivity() {
             return
         }
 
+        /*
+         * Get the Grid Operator's authenticated
+         * session token.
+         */
         val session =
             SessionDatabaseHelper(this)
                 .getSession()
@@ -244,6 +258,12 @@ class QrScannerActivity : AppCompatActivity() {
             return
         }
 
+        /*
+         * If this scanner was opened from a specific
+         * approved reservation, keep its ID so that
+         * BookingVerificationActivity can compare it
+         * against the server response.
+         */
         val expectedReservationId =
             intent.getStringExtra(
                 "expectedReservationId"

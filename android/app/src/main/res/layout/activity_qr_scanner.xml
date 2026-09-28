@@ -1,58 +1,57 @@
 <?xml version="1.0" encoding="utf-8"?>
 
-<FrameLayout
+<LinearLayout
     xmlns:android="http://schemas.android.com/apk/res/android"
     android:layout_width="match_parent"
-    android:layout_height="match_parent">
+    android:layout_height="match_parent"
+    android:orientation="vertical"
+    android:background="@android:color/black">
 
-    <androidx.camera.view.PreviewView
-        android:id="@+id/cameraPreview"
-        android:layout_width="match_parent"
-        android:layout_height="match_parent" />
-
-    <View
-        android:id="@+id/scannerFrame"
-        android:layout_width="280dp"
-        android:layout_height="280dp"
-        android:layout_gravity="center"
-        android:background="@drawable/qr_scanner_frame" />
-
+    <!-- Header -->
     <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:layout_gravity="top"
-        android:orientation="vertical"
-        android:padding="24dp">
+        android:gravity="center_vertical"
+        android:background="@android:color/white"
+        android:padding="12dp">
+
+        <ImageButton
+            android:id="@+id/pageBackButton"
+            android:layout_width="48dp"
+            android:layout_height="48dp"
+            android:background="?android:attr/selectableItemBackgroundBorderless"
+            android:contentDescription="Back"
+            android:padding="12dp"
+            android:src="@drawable/ic_back" />
 
         <TextView
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:text="Scan Booking QR"
-            android:textColor="@android:color/white"
-            android:textSize="24sp"
+            android:layout_marginStart="8dp"
+            android:text="Scan Transaction QR"
+            android:textColor="@color/brand_blue"
+            android:textSize="22sp"
             android:textStyle="bold" />
-
-        <TextView
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:layout_marginTop="8dp"
-            android:text="Place the customer's booking QR code inside the frame."
-            android:textColor="@android:color/white"
-            android:textSize="14sp" />
 
     </LinearLayout>
 
+    <!-- Camera -->
+    <androidx.camera.view.PreviewView
+        android:id="@+id/cameraPreview"
+        android:layout_width="match_parent"
+        android:layout_height="0dp"
+        android:layout_weight="1" />
+
+    <!-- Status -->
     <TextView
         android:id="@+id/scannerStatus"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:layout_gravity="bottom"
-        android:layout_margin="24dp"
-        android:background="#CC000000"
-        android:padding="16dp"
-        android:text="Point the camera at a QR code"
-        android:textAlignment="center"
-        android:textColor="@android:color/white"
-        android:textSize="15sp" />
+        android:background="@android:color/white"
+        android:gravity="center"
+        android:padding="20dp"
+        android:text="Point the camera at the prosumer's transaction QR code."
+        android:textColor="@color/text_secondary"
+        android:textSize="16sp" />
 
-</FrameLayout>
+</LinearLayout>

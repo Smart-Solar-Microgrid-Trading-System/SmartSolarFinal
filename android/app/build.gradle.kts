@@ -60,6 +60,7 @@ android {
         implementation("androidx.camera:camera-camera2:1.6.2")
         implementation("androidx.camera:camera-lifecycle:1.6.2")
         implementation("androidx.camera:camera-view:1.6.2")
+        implementation("com.journeyapps:zxing-android-embedded:4.3.0")
 
     }
 }

@@ -1,14 +1,15 @@
 package com.smartsolarmicrogrid.app
 
 import android.app.Activity
-import android.content.Intent
 import android.graphics.Typeface
 import android.os.Bundle
 import android.widget.Button
+import android.widget.ImageButton
 import android.widget.LinearLayout
 import android.widget.TextView
+import android.content.Intent
 
-class VerifiedReservationsActivity : Activity() {
+class ApprovedReservationsActivity : Activity() {
 
     private lateinit var statusText: TextView
     private lateinit var reservationsContainer: LinearLayout
@@ -18,22 +19,25 @@ class VerifiedReservationsActivity : Activity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
 
-        setContentView(
-            R.layout.activity_verified_reservations
+        setContentView(R.layout.activity_approved_reservations)
+
+        val pageBackButton = findViewById<ImageButton>(
+            R.id.pageBackButton
         )
 
         statusText = findViewById(R.id.statusText)
-
         reservationsContainer =
             findViewById(R.id.reservationsContainer)
+
+        pageBackButton.setOnClickListener {
+            finish()
+        }
 
         loadSession()
 
         if (token.isBlank()) {
-
             statusText.text =
                 "Authentication information is missing."
-
             return
         }
 
@@ -41,27 +45,22 @@ class VerifiedReservationsActivity : Activity() {
     }
 
     override fun onResume() {
-
         super.onResume()
 
         if (::reservationsContainer.isInitialized) {
-
             loadSession()
 
             if (token.isNotBlank()) {
-
                 loadApprovedReservations()
             }
         }
     }
 
     private fun loadSession() {
-
         val session =
             SessionDatabaseHelper(this).getSession()
 
-        token =
-            session?.token.orEmpty()
+        token = session?.token.orEmpty()
     }
 
     private fun loadApprovedReservations() {
@@ -82,26 +81,26 @@ class VerifiedReservationsActivity : Activity() {
 
             runOnUiThread {
 
-                result
-                    .onSuccess { reservations ->
+                result.onSuccess { reservations ->
 
-                        displayReservations(
-                            reservations
-                        )
-                    }
-                    .onFailure { error ->
+                    displayReservations(
+                        reservations
+                    )
 
-                        statusText.text =
-                            error.message
-                                ?: "Unable to load approved reservations."
-                    }
+                }.onFailure { error ->
+
+                    statusText.text =
+                        error.message
+                            ?: "Unable to load approved reservations."
+                }
             }
 
         }.start()
     }
 
     private fun displayReservations(
-        reservations: List<ReservationApi.Reservation>
+        reservations:
+        List<ReservationApi.Reservation>
     ) {
 
         reservationsContainer.removeAllViews()
@@ -109,7 +108,7 @@ class VerifiedReservationsActivity : Activity() {
         if (reservations.isEmpty()) {
 
             statusText.text =
-                "There are no approved reservations."
+                "You do not have any approved reservations."
 
             return
         }
@@ -143,10 +142,11 @@ class VerifiedReservationsActivity : Activity() {
             android.R.drawable.dialog_holo_light_frame
         )
 
-        val params = LinearLayout.LayoutParams(
-            LinearLayout.LayoutParams.MATCH_PARENT,
-            LinearLayout.LayoutParams.WRAP_CONTENT
-        )
+        val params =
+            LinearLayout.LayoutParams(
+                LinearLayout.LayoutParams.MATCH_PARENT,
+                LinearLayout.LayoutParams.WRAP_CONTENT
+            )
 
         params.setMargins(
             0,
@@ -160,8 +160,9 @@ class VerifiedReservationsActivity : Activity() {
         val title = TextView(this)
 
         title.text =
-            reservation.nodeName
-                .ifBlank { "Unknown Station" }
+            reservation.nodeName.ifBlank {
+                "Unknown Station"
+            }
 
         title.textSize = 19f
 
@@ -180,16 +181,6 @@ class VerifiedReservationsActivity : Activity() {
         idText.textSize = 14f
 
         card.addView(idText)
-
-        val prosumer = TextView(this)
-
-        prosumer.text =
-            "Prosumer: ${reservation.prosumerName}\n" +
-                    "NIC: ${reservation.prosumerNic}"
-
-        prosumer.textSize = 16f
-
-        card.addView(prosumer)
 
         val time = TextView(this)
 
@@ -219,49 +210,29 @@ class VerifiedReservationsActivity : Activity() {
 
         card.addView(status)
 
-        // --------------------------------------------------------
-        // FINALIZE TRANSFER
-        // This starts the QR verification path.
-        // --------------------------------------------------------
+        val qrButton = Button(this)
 
-        val finalizeButton = Button(this)
+        qrButton.text =
+            "View Transaction QR"
 
-        finalizeButton.text =
-            "Finalize Transfer"
+        qrButton.setOnClickListener {
 
-        finalizeButton.setOnClickListener {
+            val intent =
+                Intent(
+                    this,
+                    TransactionQrActivity::class.java
+                )
 
-            openScanner(
+            intent.putExtra(
+                "reservationId",
                 reservation.id
             )
+
+            startActivity(intent)
         }
-        card.addView(finalizeButton)
+
+        card.addView(qrButton)
 
         reservationsContainer.addView(card)
-    }
-
-
-
-    private fun openScanner(
-        reservationId: String
-    ) {
-
-        val intent =
-            Intent(
-                this,
-                QrScannerActivity::class.java
-            )
-
-        intent.putExtra(
-            "expectedReservationId",
-            reservationId
-        )
-
-        intent.putExtra(
-            "token",
-            token
-        )
-
-        startActivity(intent)
     }
 }

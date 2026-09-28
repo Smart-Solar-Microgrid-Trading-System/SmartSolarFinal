@@ -17,7 +17,7 @@ object AppNavigation {
     fun openMap(activity: Activity) = activity.startActivity(Intent(activity,MapActivity::class.java))
     //GridOperatorHomeActivity::class.java))
 
-    fun openOperations(activity: Activity) = activity.startActivity(Intent(activity, GridOperatorHomeActivity::class.java))
+    fun openOperations(activity: Activity) = activity.startActivity(Intent(activity, OperationsActivity::class.java))
 
     fun configure(activity: Activity, current: Destination) {
         val isGridOperator = SessionDatabaseHelper(activity).getSession()?.role == "GridOperator"
@@ -26,7 +26,8 @@ object AppNavigation {
         val operations = activity.findViewById<Button>(R.id.operationsNavigationButton)
 
         bookings.visibility = if (isGridOperator) View.GONE else View.VISIBLE
-        map.visibility = if (isGridOperator) View.GONE else View.VISIBLE
+        //map.visibility = if (isGridOperator) View.GONE else View.VISIBLE
+        map.visibility = View.VISIBLE
         operations.visibility = if (isGridOperator) View.VISIBLE else View.GONE
 
         activity.findViewById<Button>(R.id.homeNavigationButton).apply {
