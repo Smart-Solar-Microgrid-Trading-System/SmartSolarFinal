@@ -63,6 +63,24 @@ public sealed class UsersController : ControllerBase
         return ToUserResult(result);
     }
 
+    [Authorize(Roles = UserRoles.Backoffice + "," + UserRoles.GridOperator)]
+    [HttpPatch("me/email")]
+    public async Task<IActionResult> ChangeEmail([FromBody] ChangeEmailRequest request)
+    {
+        try
+        {
+            return ToUserResult(await _userManagementService.ChangeEmailAsync(GetCurrentUserId(), request));
+        }
+        catch (MongoCommandException exception) when (exception.Code == 11000)
+        {
+            return Conflict(new { error = "This email address is already in use." });
+        }
+        catch (MongoWriteException exception) when (exception.WriteError?.Category == ServerErrorCategory.DuplicateKey)
+        {
+            return Conflict(new { error = "This email address is already in use." });
+        }
+    }
+
     [Authorize(Policy = UserRoles.Prosumer)]
     [HttpPut("me")]
     public async Task<IActionResult> UpdateMe([FromBody] UpdateUserProfileRequest request)

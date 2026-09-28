@@ -126,6 +126,20 @@ Open the URL printed by Vite, normally `http://localhost:5173/login`. Sign in wi
 
 `10.0.2.2` is the Android Emulator alias for the host laptop. Do not use `localhost` inside the emulator.
 
+## Change your password
+
+Signed-in Backoffice and GridOperator users can select **My Profile** at the end of the web navigation. Android Prosumer and GridOperator users can open **My Profile** and use **Change my password**.
+
+Enter your current password, a new password, and its confirmation. The new password must differ from the current password and contain 8–72 characters (at most 72 UTF-8 bytes). A successful change signs you out and invalidates previous login tokens on all devices. Sign in again with the new password. This feature does not provide forgotten-password recovery.
+
+With local MongoDB running, run the automated password checks with:
+
+```powershell
+dotnet run --project backend/PasswordChange.Checks -p:UseAppHost=false -p:OutputPath=bin/PasswordChecks/
+```
+
+The checks use and remove a uniquely named temporary database, covering all three roles, validation, old/new passwords, and session invalidation.
+
 # IIS and LAN deployment
 
 Use this workflow for a demonstration with other laptops or physical phones on the same LAN/hotspot.
@@ -279,3 +293,5 @@ seed passwords
 LAN IP addresses
 personal deployment paths
 ```
+
+Web Backoffice and GridOperator users can also change their contact email in **My Profile** by confirming their current password. Other account details are read-only. Email addresses must be unique. Email ownership verification and email-based password recovery are not implemented.

@@ -24,6 +24,8 @@ import { NodeEditPage } from "@/pages/NodeEditPage";
 import { NodeDetailsPage } from "@/pages/NodeDetails";
 import { NodeMapPage } from "@/pages/NodeMap";
 
+import { ProfilePage } from "@/pages/profile-page";
+
 export default function App() {
   return (
     <Routes>
@@ -69,6 +71,8 @@ export default function App() {
               />
             }
           >
+            <Route path="profile" element={<ProfilePage />} />
+            <Route path="change-password" element={<Navigate to="/profile" replace />} />
             <Route path="nodes" element={<MicrogridNodesPage />} />
             <Route path="nodes/map" element={<NodeMapPage />} />
             <Route path="nodes/:id" element={<NodeDetailsPage />} />

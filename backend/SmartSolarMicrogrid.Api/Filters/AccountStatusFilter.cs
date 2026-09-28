@@ -27,7 +27,7 @@ public class AccountStatusFilter : IAsyncAuthorizationFilter
                 var usersCollection = _database.GetCollection<User>("Users");
                 var dbUser = await usersCollection.Find(u => u.Id == userId).FirstOrDefaultAsync();
 
-                if (dbUser == null)
+                if (dbUser == null || (user.FindFirst("session_version")?.Value ?? "") != dbUser.SessionVersion)
                 {
                     context.Result = new UnauthorizedResult();
                     return;

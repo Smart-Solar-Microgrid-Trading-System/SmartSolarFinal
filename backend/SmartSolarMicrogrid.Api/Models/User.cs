@@ -9,6 +9,7 @@ public class User
     public string Id { get; set; } = null!; // NIC for Prosumer, username for Backoffice/GridOperator
 
     public string PasswordHash { get; set; } = null!;
+    public string SessionVersion { get; set; } = "";
 
     public string Role { get; set; } = null!; // Backoffice, GridOperator, Prosumer
 
