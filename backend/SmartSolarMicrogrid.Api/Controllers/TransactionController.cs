@@ -13,11 +13,9 @@ public sealed class TransactionsController : ControllerBase
 {
     private readonly TransactionService _transactionService;
 
-    public TransactionsController(
-        TransactionService transactionService)
+    public TransactionsController(TransactionService transactionService)
     {
-        _transactionService =
-            transactionService;
+        _transactionService = transactionService;
     }
 
     /*
@@ -30,8 +28,7 @@ public sealed class TransactionsController : ControllerBase
     public async Task<IActionResult> GenerateQr(
         [FromBody] GenerateTransactionQrRequest request)
     {
-        if (string.IsNullOrWhiteSpace(
-                request.ReservationId))
+        if (string.IsNullOrWhiteSpace(request.ReservationId))
         {
             return BadRequest(new
             {
@@ -41,11 +38,10 @@ public sealed class TransactionsController : ControllerBase
 
         try
         {
-            var result =
-                await _transactionService.GenerateQrAsync(
-                    request.ReservationId,
-                    GetUserId(),
-                    GetUserRole());
+            var result = await _transactionService.GenerateQrAsync(
+                request.ReservationId,
+                GetUserId(),
+                GetUserRole());
 
             if (result == null)
             {
@@ -76,8 +72,7 @@ public sealed class TransactionsController : ControllerBase
     public async Task<IActionResult> Verify(
         [FromBody] VerifyTransactionRequest request)
     {
-        if (string.IsNullOrWhiteSpace(
-                request.TransactionToken))
+        if (string.IsNullOrWhiteSpace(request.TransactionToken))
         {
             return BadRequest(new
             {
@@ -87,11 +82,10 @@ public sealed class TransactionsController : ControllerBase
 
         try
         {
-            var result =
-                await _transactionService.VerifyAsync(
-                    request.TransactionToken,
-                    GetUserId(),
-                    GetUserRole());
+            var result = await _transactionService.VerifyAsync(
+                request.TransactionToken,
+                GetUserId(),
+                GetUserRole());
 
             return Ok(result);
         }
@@ -115,8 +109,7 @@ public sealed class TransactionsController : ControllerBase
     public async Task<IActionResult> Finalize(
         [FromBody] FinalizeTransactionRequest request)
     {
-        if (string.IsNullOrWhiteSpace(
-                request.TransactionToken))
+        if (string.IsNullOrWhiteSpace(request.TransactionToken))
         {
             return BadRequest(new
             {
@@ -126,11 +119,10 @@ public sealed class TransactionsController : ControllerBase
 
         try
         {
-            var result =
-                await _transactionService.FinalizeAsync(
-                    request.TransactionToken,
-                    GetUserId(),
-                    GetUserRole());
+            var result = await _transactionService.FinalizeAsync(
+                request.TransactionToken,
+                GetUserId(),
+                GetUserRole());
 
             return Ok(result);
         }
@@ -146,17 +138,15 @@ public sealed class TransactionsController : ControllerBase
 
     private string GetUserId()
     {
-        return User.FindFirstValue(
-                   ClaimTypes.NameIdentifier)
-               ?? throw new UnauthorizedAccessException(
-                   "User ID is missing from the access token.");
+        return User.FindFirstValue(ClaimTypes.NameIdentifier)
+            ?? throw new UnauthorizedAccessException(
+                "User ID is missing from the access token.");
     }
 
     private string GetUserRole()
     {
-        return User.FindFirstValue(
-                   ClaimTypes.Role)
-               ?? throw new UnauthorizedAccessException(
-                   "User role is missing from the access token.");
+        return User.FindFirstValue(ClaimTypes.Role)
+            ?? throw new UnauthorizedAccessException(
+                "User role is missing from the access token.");
     }
 }

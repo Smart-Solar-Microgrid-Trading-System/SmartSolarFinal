@@ -23,126 +23,6 @@ public sealed class TransactionService
     }
 
     public async Task<TransactionQrResponse?> GenerateQrAsync(
-        string reservationId,
-        string userId,
-        string role)
-    {
-        var reservation =
-            await _reservationService.GetByIdAsync(
-                reservationId,
-                userId,
-                role);
-
-        if (reservation == null)
-            return null;
-
-        /*
-         * Only approved reservations can receive
-         * a transaction QR.
-         */
-        if (!string.Equals(
-                reservation.Status,
-                "Approved",
-                StringComparison.OrdinalIgnoreCase))
-        {
-            throw new InvalidOperationException(
-                "Only approved reservations can generate a transaction QR.");
-        }
-
-        /*
-         * Prevent generating a second active transaction
-         * for the same reservation.
-         */
-        var existing =
-            await _transactions
-                .Find(x =>
-                    x.ReservationId == reservationId &&
-                    x.Status != "COMPLETED" &&
-                    x.ExpiresAt > DateTime.UtcNow)
-                .FirstOrDefaultAsync();
-
-        if (existing != null)
-        {
-            return new TransactionQrResponse
-            {
-                ReservationId = reservationId,
-                TransactionToken = string.Empty,
-                QrPayload = string.Empty,
-                ExpiresAt = existing.ExpiresAt,
-                Status = existing.Status
-            };
-        }
-
-        /*
-         * Generate cryptographically secure random token.
-         */
-        var tokenBytes =
-            RandomNumberGenerator.GetBytes(32);
-
-        var token =
-            Convert.ToBase64String(tokenBytes);
-
-        var tokenHash =
-            HashToken(token);
-
-        var expiresAt =
-            DateTime.UtcNow.AddMinutes(15);
-
-        var transaction =
-            new EnergyTransaction
-            {
-                ReservationId = reservationId,
-
-                /*
-                 * ReservationQueryService already limits
-                 * the reservation to the authenticated user.
-                 */
-                ProsumerId = userId,
-
-                NodeId = reservation.NodeId,
-
-                SlotId = reservation.SlotId,
-
-                TransactionTokenHash = tokenHash,
-
-                Status = "ISSUED",
-
-                CreatedAt = DateTime.UtcNow,
-
-                ExpiresAt = expiresAt
-            };
-
-        await _transactions.InsertOneAsync(
-            transaction);
-
-        /*
-         * Keep QR payload small.
-         *
-         * The QR contains the transaction token,
-         * not the user's private booking data.
-         */
-        var qrPayload =
-            $"SMARTSOLAR|TX|{token}";
-
-        return new TransactionQrResponse
-        {
-            ReservationId = reservationId,
-
-            /*
-             * Return this only because the client needs
-             * to render the QR.
-             */
-            TransactionToken = token,
-
-            QrPayload = qrPayload,
-
-            ExpiresAt = expiresAt,
-
-            Status = transaction.Status
-        };
-    }
-
-    public async Task<TransactionQrResponse?> GenerateQrAsync(
     string reservationId,
     string userId,
     string role)
@@ -277,6 +157,131 @@ public sealed class TransactionService
             ExpiresAt = expiresAt,
 
             Status = transaction.Status
+        };
+    }
+
+    public async Task<TransactionVerificationResponse> VerifyAsync(
+    string transactionToken,
+    string operatorId,
+    string operatorRole)
+    {
+        if (string.IsNullOrWhiteSpace(transactionToken))
+        {
+            throw new InvalidOperationException(
+                "Transaction token is required.");
+        }
+
+        // ---------------------------------------------------------
+        // 1. Hash the supplied token
+        // ---------------------------------------------------------
+
+        var hash = HashToken(transactionToken);
+
+        // ---------------------------------------------------------
+        // 2. Find the transaction
+        // ---------------------------------------------------------
+
+        var transaction = await _transactions
+            .Find(x => x.TransactionTokenHash == hash)
+            .FirstOrDefaultAsync();
+
+        if (transaction == null)
+        {
+            throw new InvalidOperationException(
+                "Invalid transaction QR.");
+        }
+
+        // ---------------------------------------------------------
+        // 3. Check expiration
+        // ---------------------------------------------------------
+
+        if (transaction.ExpiresAt < DateTime.UtcNow)
+        {
+            throw new InvalidOperationException(
+                "This transaction QR has expired.");
+        }
+
+        // ---------------------------------------------------------
+        // 4. Check transaction status
+        // ---------------------------------------------------------
+
+        if (transaction.Status == "COMPLETED")
+        {
+            throw new InvalidOperationException(
+                "This transaction has already been completed.");
+        }
+
+        if (transaction.Status == "VERIFIED")
+        {
+            return new TransactionVerificationResponse
+            {
+                Valid = true,
+                TransactionToken = transactionToken,
+                ReservationId = transaction.ReservationId,
+                Status = "VERIFIED",
+                Message = "Transaction QR is already verified."
+            };
+        }
+
+        if (transaction.Status != "ISSUED")
+        {
+            throw new InvalidOperationException(
+                $"Transaction cannot be verified because its current status is '{transaction.Status}'.");
+        }
+
+        // ---------------------------------------------------------
+        // 5. Get reservation
+        // ---------------------------------------------------------
+
+        var reservation = await _reservationService.GetByIdAsync(
+            transaction.ReservationId,
+            operatorId,
+            operatorRole);
+
+        if (reservation == null)
+        {
+            throw new InvalidOperationException(
+                "The reservation could not be found.");
+        }
+
+        // ---------------------------------------------------------
+        // 6. Reservation must still be approved
+        // ---------------------------------------------------------
+
+        if (!string.Equals(
+                reservation.Status,
+                "Approved",
+                StringComparison.OrdinalIgnoreCase))
+        {
+            throw new InvalidOperationException(
+                "The reservation is no longer approved.");
+        }
+
+        // ---------------------------------------------------------
+        // 7. Mark transaction as verified
+        // ---------------------------------------------------------
+
+        transaction.Status = "VERIFIED";
+
+        await _transactions.ReplaceOneAsync(
+            x => x.Id == transaction.Id,
+            transaction);
+
+        // ---------------------------------------------------------
+        // 8. Return verification result
+        // ---------------------------------------------------------
+
+        return new TransactionVerificationResponse
+        {
+            Valid = true,
+
+            TransactionToken = transactionToken,
+
+            ReservationId = transaction.ReservationId,
+
+            Status = "VERIFIED",
+
+            Message = "Transaction QR verified successfully."
         };
     }
 
