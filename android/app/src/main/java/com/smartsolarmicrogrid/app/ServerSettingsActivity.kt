@@ -1,6 +1,7 @@
 package com.smartsolarmicrogrid.app
 
 import android.app.Activity
+import android.content.Intent
 import android.graphics.Color
 import android.os.Bundle
 import android.view.View
@@ -23,9 +24,15 @@ class ServerSettingsActivity : Activity() {
         resultText = findViewById(R.id.resultText)
         saveButton = findViewById(R.id.saveButton)
         val backButton = findViewById<ImageButton>(R.id.settingsBackButton)
-        if (intent.getBooleanExtra("opened_from_home", false)) {
-            backButton.visibility = View.VISIBLE
-            backButton.setOnClickListener { finish() }
+        val openedFromHome = intent.getBooleanExtra("opened_from_home", false)
+        backButton.visibility = View.VISIBLE
+        backButton.setOnClickListener {
+            if (openedFromHome) {
+                finish()
+            } else {
+                startActivity(Intent(this, LoginActivity::class.java))
+                finish()
+            }
         }
         apiUrlInput.setText(getSharedPreferences(PREFERENCES_NAME, MODE_PRIVATE).getString(API_URL_KEY, ""))
         saveButton.setOnClickListener { saveAndTestAddress() }
