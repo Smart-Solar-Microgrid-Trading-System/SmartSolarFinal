@@ -1,4 +1,4 @@
-/*
+ /*
  * Project: Smart Solar Microgrid Trading System
  * Component: Energy Reservation Management
  * File: ReservationsController.cs
@@ -66,6 +66,12 @@ public class ReservationsController : ControllerBase
     [HttpGet("pending")]
     public async Task<IActionResult> GetPending()
     {
+        var userId = GetUserId();
+        var role = GetUserRole();
+
+        Console.WriteLine(
+            $"PENDING RESERVATIONS REQUEST - UserId={userId}, Role={role}");
+
         // Return reservations that are waiting for approval.
         var reservations = await _reservationService.GetPendingAsync(
             GetUserId(),
@@ -146,4 +152,69 @@ public class ReservationsController : ControllerBase
             _ => StatusCode(StatusCodes.Status500InternalServerError, new { error = "The reservation request could not be completed." })
         };
     }
+
+    [HttpPost("{id}/approve")]
+    [Authorize(Roles = "GridOperator")]
+    public async Task<IActionResult> Approve(string id)
+    {
+        // Approve the selected pending reservation.
+        var result = await _reservationCommands.ApproveAsync(
+            id,
+            GetUserId(),
+            GetUserRole());
+
+        if (result.Failure != ReservationCommandFailure.None)
+        {
+            return ToFailureResult(result);
+        }
+
+        // Return the updated reservation.
+        var reservation = await _reservationService.GetByIdAsync(
+            id,
+            GetUserId(),
+            GetUserRole());
+
+        if (reservation == null)
+        {
+            return NotFound(new
+            {
+                error = "Reservation was approved but could not be loaded."
+            });
+        }
+
+        return Ok(reservation);
+    }
+
+    [HttpPost("{id}/reject")]
+    [Authorize(Roles = "GridOperator")]
+    public async Task<IActionResult> Reject(string id)
+    {
+        // Reject the selected pending reservation.
+        var result = await _reservationCommands.RejectAsync(
+            id,
+            GetUserId(),
+            GetUserRole());
+
+        if (result.Failure != ReservationCommandFailure.None)
+        {
+            return ToFailureResult(result);
+        }
+
+        // Return the updated reservation.
+        var reservation = await _reservationService.GetByIdAsync(
+            id,
+            GetUserId(),
+            GetUserRole());
+
+        if (reservation == null)
+        {
+            return NotFound(new
+            {
+                error = "Reservation was rejected but could not be loaded."
+            });
+        }
+
+        return Ok(reservation);
+    }
+
 }
