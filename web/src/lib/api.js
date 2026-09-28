@@ -69,11 +69,32 @@ export const api = {
       body: user
     }),
 
+  updateWebUserStatus: (token, id, accountStatus) =>
+    request(`/api/users/${encodeURIComponent(id)}/status`, {
+      token,
+      method: "PATCH",
+      body: { accountStatus }
+    }),
+
   getProsumers: (token, status) =>
     request(
       `/api/prosumers${status ? `?status=${encodeURIComponent(status)}` : ""}`,
       { token }
     ),
+
+  createProsumer: (token, prosumer) =>
+    request("/api/prosumers", {
+      token,
+      method: "POST",
+      body: prosumer
+    }),
+
+  updateProsumer: (token, nic, profile) =>
+    request(`/api/prosumers/${encodeURIComponent(nic)}`, {
+      token,
+      method: "PUT",
+      body: profile
+    }),
 
   getPendingProsumers: (token) =>
     request("/api/prosumers?status=Pending", { token }),

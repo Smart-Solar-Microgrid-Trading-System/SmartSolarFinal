@@ -17,9 +17,17 @@ class LaunchActivity : Activity() {
                 .orEmpty()
                 .trim()
 
+            val sessionDatabase = SessionDatabaseHelper(this)
+            val savedSession = sessionDatabase.getSession()
+            val hasMobileSession = savedSession?.role in mobileRoles
+            if (savedSession != null && !hasMobileSession) {
+                sessionDatabase.clearSession()
+                sessionDatabase.clearProfile()
+            }
+
             val nextScreen = when {
                 savedAddress.isBlank() -> ServerSettingsActivity::class.java
-                SessionDatabaseHelper(this).hasSession() -> MainActivity::class.java
+                hasMobileSession -> MainActivity::class.java
                 else -> LoginActivity::class.java
             }
 
@@ -32,5 +40,6 @@ class LaunchActivity : Activity() {
         const val PREFERENCES_NAME = "smart_solar_microgrid_preferences"
         const val API_URL_KEY = "api_url"
         const val LAUNCH_DELAY_MILLISECONDS = 1_200L
+        val mobileRoles = setOf("Prosumer", "GridOperator")
     }
 }
