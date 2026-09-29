@@ -48,7 +48,7 @@ public sealed class ProsumerService
             FullName = request.FullName.Trim(),
             Email = email,
             Phone = string.IsNullOrWhiteSpace(request.Phone) ? null : request.Phone.Trim(),
-            AccountStatus = AccountStatuses.Pending,
+            AccountStatus = AccountStatuses.Active,
             CreatedAt = now,
             UpdatedAt = now
         };
