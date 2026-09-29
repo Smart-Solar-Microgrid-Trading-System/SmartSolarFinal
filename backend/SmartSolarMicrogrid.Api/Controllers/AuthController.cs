@@ -1,3 +1,10 @@
+/*
+ * Student Name: Hirimuthugodage J.
+ * Component: User and Prosumer Management with Role Based Authentication
+ * File Name: AuthController.cs
+ * Description: Handling of login and authenticated password change requests.
+ */
+
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Authorization;
 using System.Security.Claims;
@@ -14,6 +21,7 @@ public class AuthController : ControllerBase
 
     public AuthController(AuthService authService)
     {
+        // Storing the authentication service used by this controller.
         _authService = authService;
     }
 
@@ -21,6 +29,7 @@ public class AuthController : ControllerBase
     [HttpPost("change-password")]
     public async Task<IActionResult> ChangePassword([FromBody] ChangePasswordRequest request)
     {
+        // Changing the password for the authenticated user.
         var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
         if (userId is null) return Unauthorized();
         var error = await _authService.ChangePasswordAsync(userId, request);
@@ -32,6 +41,7 @@ public class AuthController : ControllerBase
     [HttpPost("login")]
     public async Task<IActionResult> Login([FromBody] LoginRequest request)
     {
+        // Authenticating the account and return the login result.
         var response = await _authService.LoginAsync(request);
 
         if (response.IsUnauthorized)

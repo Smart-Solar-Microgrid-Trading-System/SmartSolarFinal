@@ -1,9 +1,8 @@
 /*
  * Student Name: Hirimuthugodage J.
- * Component: User and Prosumer Management with Role Based Authentication
+ * Component: User and Prosumer Management with Role-Based Authentication
  * File Name: Program.cs
- * Description: Configuration of authentication, role based authorization,and account status
- * validation, user management services, MongoDB access, and initial Backoffice setup.
+ * Description: Configuratio of database access, authentication, authorization, and account services.
  */
 
 using System.Text;
@@ -17,13 +16,13 @@ using SmartSolarMicrogrid.Api.Services;
 
 var builder = WebApplication.CreateBuilder(args);
 
-// Apply the account status and validation of sessions filter to every controller request.
+// Validatatio of each authenticated account and session.
 builder.Services.AddControllers(options =>
 {
     options.Filters.Add<AccountStatusFilter>();
 });
 
-// validataion and read the MongoDB settings required by the account services.
+// Validatatio of MongoDB configuration.
 var connectionString = builder.Configuration["MongoDB:ConnectionString"];
 var databaseName = builder.Configuration["MongoDB:DatabaseName"];
 if (string.IsNullOrWhiteSpace(connectionString) || string.IsNullOrWhiteSpace(databaseName))
@@ -33,7 +32,7 @@ if (string.IsNullOrWhiteSpace(connectionString) || string.IsNullOrWhiteSpace(dat
 
 builder.Services.AddSingleton<IMongoClient>(_ =>
 {
-    // Creating one shared MongoDB client with short timeouts for connection
+    // Creation the shared MongoDB client.
     var settings = MongoClientSettings.FromConnectionString(connectionString);
     settings.ServerSelectionTimeout = TimeSpan.FromSeconds(5);
     settings.ConnectTimeout = TimeSpan.FromSeconds(5);
@@ -42,7 +41,7 @@ builder.Services.AddSingleton<IMongoClient>(_ =>
 builder.Services.AddSingleton<IMongoDatabase>(services =>
     services.GetRequiredService<IMongoClient>().GetDatabase(databaseName));
 
-// Registration ofthe authentication and account management services used that are used by the API.
+// Register application services.
 builder.Services.AddSingleton<AuthService>();
 builder.Services.AddSingleton<ProsumerService>();
 builder.Services.AddSingleton<UserManagementService>();
@@ -51,7 +50,7 @@ builder.Services.AddSingleton<BookingSlotService>();    //booking slots
 builder.Services.AddSingleton<ReservationQueryService>();
 builder.Services.AddSingleton<ReservationCommandService>();
 
-// Configuration of JWT validation for authenticated Web and Android requests.
+// Configure JWT authentication.
 var key = Encoding.ASCII.GetBytes(builder.Configuration["Jwt:Secret"]!);
 builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
     .AddJwtBearer(options =>
@@ -71,21 +70,21 @@ builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
         {
             OnChallenge = context =>
             {
-                //  When authentication is missing or invalid Returning a consistent response
+                // Return 401 when authentication fails.
                 context.HandleResponse();
                 context.Response.StatusCode = StatusCodes.Status401Unauthorized;
                 return context.Response.WriteAsJsonAsync(new { error = "Authentication is required." });
             },
             OnForbidden = context =>
             {
-                // When the signed in role lacks permission returning response that has consistent format
+                // Return 403 when the role lacks permission.
                 context.Response.StatusCode = StatusCodes.Status403Forbidden;
                 return context.Response.WriteAsJsonAsync(new { error = "You do not have permission to access this resource." });
             }
         };
     });
 
-// Define the role policies used to protect account and administration endpoints.
+// Configure role based policies.
 builder.Services.AddAuthorization(options =>
 {
     options.AddPolicy(UserRoles.Backoffice, policy =>
@@ -96,7 +95,7 @@ builder.Services.AddAuthorization(options =>
         policy.RequireRole(UserRoles.Prosumer));
 });
 
-// Allowing any LAN origin so the web app and phone browser can call the API.
+// Allow web and mobile clients to call the API.
 builder.Services.AddCors(options =>
     options.AddDefaultPolicy(policy =>
         policy.AllowAnyOrigin()
@@ -105,14 +104,14 @@ builder.Services.AddCors(options =>
 
 var app = builder.Build();
 
-// Automatic database seeding  
+// Initializing user storage and the Backoffice account.
 using (var scope = app.Services.CreateScope())
 {
-    // Preparing user storage and create the configuration of the Backoffice account when required.
+    // Access the users collection.
     var database = scope.ServiceProvider.GetRequiredService<IMongoDatabase>();
     var usersCollection = database.GetCollection<SmartSolarMicrogrid.Api.Models.User>("Users");
 
-    // Enforcing unique non empty email addresses while allowing users without an email.
+    // Enforcing unique non empty email addresses.
     var emailIndex = new CreateIndexModel<SmartSolarMicrogrid.Api.Models.User>(
         Builders<SmartSolarMicrogrid.Api.Models.User>.IndexKeys.Ascending(user => user.Email),
         new CreateIndexOptions<SmartSolarMicrogrid.Api.Models.User>
@@ -156,7 +155,7 @@ using (var scope = app.Services.CreateScope())
 
 }
 
-// Enabling the request pipeline before mapping the REST API controllers.
+// Configuration of the HTTP request pipeline.
 app.UseCors();
 app.UseAuthentication();
 app.UseAuthorization();
