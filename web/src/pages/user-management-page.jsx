@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { RefreshCw, UserPlus, UsersRound } from "lucide-react";
+import { Power, RefreshCw, RotateCcw, UserPlus, UsersRound } from "lucide-react";
 
 import { FeedbackAlert } from "@/components/feedback-alert";
 import { PageHeader } from "@/components/page-header";
@@ -32,7 +32,7 @@ const initialForm = {
 };
 
 export function UserManagementPage() {
-  const { session } = useAuth();
+  const { session, profile } = useAuth();
 
   const [users, setUsers] = useState([]);
   const [form, setForm] = useState(initialForm);
@@ -97,6 +97,39 @@ export function UserManagementPage() {
     }
   }
 
+  async function updateUserStatus(user, accountStatus) {
+    setError("");
+    setMessage("");
+
+    try {
+      const updatedUser = await api.updateWebUserStatus(session.token, user.id, accountStatus);
+      setMessage(`${updatedUser.fullName} is now ${updatedUser.accountStatus}.`);
+      await loadUsers();
+    } catch (err) {
+      setError(err.message);
+    }
+  }
+
+  function renderUserAction(user) {
+    if (profile?.id === user.id) {
+      return <span className="text-xs text-slate-500">Current account</span>;
+    }
+
+    if (user.accountStatus === "Active") {
+      return (
+        <Button size="sm" variant="outline" onClick={() => updateUserStatus(user, "Deactivated")}>
+          <Power size={15} /> Deactivate
+        </Button>
+      );
+    }
+
+    return (
+      <Button size="sm" onClick={() => updateUserStatus(user, "Active")}>
+        <RotateCcw size={15} /> Reactivate
+      </Button>
+    );
+  }
+
   return (
     <section className="space-y-6">
       <PageHeader
@@ -132,7 +165,7 @@ export function UserManagementPage() {
             <p className="text-sm text-slate-500">No web users found.</p>
           ) : (
             <div className="overflow-x-auto">
-              <Table className="min-w-[700px]">
+              <Table className="min-w-[820px]">
                 <TableHeader>
                   <TableRow>
                     <TableHead>Username</TableHead>
@@ -140,6 +173,7 @@ export function UserManagementPage() {
                     <TableHead>Email</TableHead>
                     <TableHead>Role</TableHead>
                     <TableHead>Status</TableHead>
+                    <TableHead className="text-right">Action</TableHead>
                   </TableRow>
                 </TableHeader>
 
@@ -155,6 +189,7 @@ export function UserManagementPage() {
                       <TableCell>
                         <StatusBadge status={user.accountStatus} />
                       </TableCell>
+                      <TableCell className="text-right">{renderUserAction(user)}</TableCell>
                     </TableRow>
                   ))}
                 </TableBody>

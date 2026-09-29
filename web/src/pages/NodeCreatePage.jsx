@@ -1,7 +1,8 @@
 import { useState } from "react";
-import { ArrowLeft } from "lucide-react";
+import { ArrowLeft, RadioTower } from "lucide-react";
 import { Link, useNavigate } from "react-router-dom";
 
+import { PageHeader } from "@/components/page-header";
 import { Button } from "@/components/ui/button";
 import { api } from "@/lib/api";
 import { useAuth } from "@/lib/auth-context";
@@ -10,18 +11,13 @@ import { NodeForm } from "./NodeForm";
 export function NodeCreatePage() {
     const { session } = useAuth();
     const navigate = useNavigate();
-
     const [loading, setLoading] = useState(false);
 
     async function handleSubmit(data) {
         setLoading(true);
 
         try {
-            const node = await api.createNode(
-                session.token,
-                data
-            );
-
+            const node = await api.createNode(session.token, data);
             navigate(`/nodes/${node.id}`);
         } finally {
             setLoading(false);
@@ -30,31 +26,19 @@ export function NodeCreatePage() {
 
     return (
         <section className="space-y-6">
-            <div className="flex items-center gap-3">
-                <Button
-                    variant="outline"
-                    size="icon"
-                    asChild
-                >
-                    <Link to="/nodes">
-                        <ArrowLeft size={18} />
-                    </Link>
-                </Button>
-
-                <div>
-                    <p className="text-sm font-semibold uppercase tracking-wide text-brand-600">
-                        Microgrid nodes
-                    </p>
-
-                    <h1 className="text-2xl font-bold text-slate-900">
-                        Create Node
-                    </h1>
-
-                    <p className="mt-1 text-sm text-slate-500">
-                        Register a new solar microgrid node.
-                    </p>
-                </div>
-            </div>
+            <PageHeader
+                eyebrow="Microgrid nodes"
+                title="Create Node"
+                description="Register a new solar microgrid node."
+                icon={RadioTower}
+                actions={
+                    <Button variant="outline" size="icon" asChild>
+                        <Link to="/nodes">
+                            <ArrowLeft size={18} />
+                        </Link>
+                    </Button>
+                }
+            />
 
             <NodeForm
                 submitLabel="Create Node"

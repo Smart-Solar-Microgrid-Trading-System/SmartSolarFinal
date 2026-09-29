@@ -1,3 +1,11 @@
+/*
+ * Student Name: Ruwanmali K.H
+ * Component: Reservation Monitoring and Dashboard
+ * File Name: ReservationQueryService.cs
+ * Description: Handles current, pending and historical reservation queries,
+ *              filtering, and dashboard statistics.
+ */
+
 using MongoDB.Driver;
 using SmartSolarMicrogrid.Api.Models;
 using SmartSolarMicrogrid.Api.Models.Dtos;

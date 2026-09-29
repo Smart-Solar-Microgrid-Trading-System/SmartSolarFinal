@@ -1,3 +1,11 @@
+/*
+ * Student Name: Ruwanmali K.H
+ * Component: Booking Slot Management
+ * File Name: BookingSlotService.cs
+ * Description: Handles booking slot creation, retrieval, updating,
+ *              deactivation, and booking slot validation rules.
+ */
+
 using MongoDB.Driver;
 using SmartSolarMicrogrid.Api.Models;
 using SmartSolarMicrogrid.Api.Models.Dtos;

@@ -42,12 +42,43 @@ public sealed class UsersController : ControllerBase
     [HttpGet]
     public async Task<IActionResult> GetWebUsers() => Ok(await _userManagementService.GetWebUsersAsync());
 
+    [Authorize(Policy = UserRoles.Backoffice)]
+    [HttpPatch("{id}/status")]
+    public async Task<IActionResult> UpdateWebUserStatus(string id, [FromBody] UpdateAccountStatusRequest request)
+    {
+        if (id == GetCurrentUserId() && request.AccountStatus == AccountStatuses.Deactivated)
+        {
+            return BadRequest(new { error = "You cannot deactivate your own account." });
+        }
+
+        var result = await _userManagementService.UpdateWebUserStatusAsync(id, request);
+        return ToUserResult(result);
+    }
+
     [Authorize]
     [HttpGet("me")]
     public async Task<IActionResult> GetMe()
     {
         var result = await _userManagementService.GetUserAsync(GetCurrentUserId());
         return ToUserResult(result);
+    }
+
+    [Authorize(Roles = UserRoles.Backoffice + "," + UserRoles.GridOperator)]
+    [HttpPatch("me/email")]
+    public async Task<IActionResult> ChangeEmail([FromBody] ChangeEmailRequest request)
+    {
+        try
+        {
+            return ToUserResult(await _userManagementService.ChangeEmailAsync(GetCurrentUserId(), request));
+        }
+        catch (MongoCommandException exception) when (exception.Code == 11000)
+        {
+            return Conflict(new { error = "This email address is already in use." });
+        }
+        catch (MongoWriteException exception) when (exception.WriteError?.Category == ServerErrorCategory.DuplicateKey)
+        {
+            return Conflict(new { error = "This email address is already in use." });
+        }
     }
 
     [Authorize(Policy = UserRoles.Prosumer)]

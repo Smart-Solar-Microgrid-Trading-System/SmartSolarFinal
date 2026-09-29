@@ -5,6 +5,7 @@ import {
   Gauge,
   Grid2X2,
   LogOut,
+  UserRound,
   Menu,
   RadioTower,
   SunMedium,
@@ -25,7 +26,8 @@ const navigation = [
   { label: "Microgrid Nodes", to: "/nodes", icon: RadioTower },
   { label: "Booking Slots", to: "/booking-slots", icon: CalendarClock, roles: ["Backoffice", "GridOperator"] },
   { label: "Reservations", to: "/reservations", icon: Zap, roles: ["Backoffice", "GridOperator"] },
-  { label: "Operations", to: "/operations", icon: Gauge, roles: ["Backoffice", "GridOperator"] }
+  { label: "Operations", to: "/operations", icon: Gauge, roles: ["Backoffice", "GridOperator"] },
+  { label: "My Profile", to: "/profile", icon: UserRound, roles: ["Backoffice", "GridOperator"] }
 ];
 
 const sidebarBackground =
@@ -70,6 +72,7 @@ function Navigation({ items }) {
           end={to === "/"}
           className={({ isActive }) =>
             cn(
+              to === "/profile" && "mt-4 border-t border-white/10",
               "group relative flex items-center gap-3 rounded-lg px-3 py-2.5 text-sm font-medium transition-all duration-200",
               isActive
                 ? "bg-gradient-to-r from-brand-500 to-brand-600 text-white shadow-md shadow-brand-950/40"

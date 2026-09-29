@@ -1,4 +1,6 @@
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.Authorization;
+using System.Security.Claims;
 using SmartSolarMicrogrid.Api.Models.Dtos;
 using SmartSolarMicrogrid.Api.Services;
 
@@ -13,6 +15,18 @@ public class AuthController : ControllerBase
     public AuthController(AuthService authService)
     {
         _authService = authService;
+    }
+
+    [Authorize]
+    [HttpPost("change-password")]
+    public async Task<IActionResult> ChangePassword([FromBody] ChangePasswordRequest request)
+    {
+        var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+        if (userId is null) return Unauthorized();
+        var error = await _authService.ChangePasswordAsync(userId, request);
+        return error is null
+            ? Ok(new { message = "Password changed. Please sign in again." })
+            : BadRequest(new { error });
     }
 
     [HttpPost("login")]

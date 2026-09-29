@@ -87,7 +87,7 @@ public sealed class ProsumersController : ControllerBase
 
     [Authorize(Policy = UserRoles.Backoffice)]
     [HttpPatch("{nic}/status")]
-    public async Task<IActionResult> UpdateStatus(string nic, [FromBody] UpdateProsumerStatusRequest request)
+    public async Task<IActionResult> UpdateStatus(string nic, [FromBody] UpdateAccountStatusRequest request)
     {
         var result = await _userManagementService.UpdateProsumerStatusAsync(nic, request);
         return result.Failure switch

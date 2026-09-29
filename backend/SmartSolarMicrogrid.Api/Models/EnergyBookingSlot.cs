@@ -1,3 +1,10 @@
+/*
+ * Student Name: Ruwanmali K.H
+ * Component: Booking Slot Management
+ * File Name: EnergyBookingSlot.cs
+ * Description: Represents an energy booking slot stored in the MongoDB database.
+ */
+
 using MongoDB.Bson.Serialization.Attributes;
 
 namespace SmartSolarMicrogrid.Api.Models;

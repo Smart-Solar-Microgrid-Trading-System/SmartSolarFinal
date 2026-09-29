@@ -353,7 +353,7 @@ object ReservationApi {
                 .optString("cancelledAt")
                 .takeIf {
                     it.isNotBlank() &&
-                    it != "null"
+                            it != "null"
                 }
         )
     }
@@ -409,6 +409,40 @@ object ReservationApi {
         return java.net.URLEncoder.encode(
             value,
             Charsets.UTF_8.name()
+        )
+    }
+
+    fun approve(
+        context: Context,
+        token: String,
+        id: String
+    ): Result<Reservation> {
+
+        return parseObject(
+            ApiClient.request(
+                context,
+                "POST",
+                "/api/reservations/${encode(id)}/approve",
+                token = token
+            ),
+            ::parseReservation
+        )
+    }
+
+    fun reject(
+        context: Context,
+        token: String,
+        id: String
+    ): Result<Reservation> {
+
+        return parseObject(
+            ApiClient.request(
+                context,
+                "POST",
+                "/api/reservations/${encode(id)}/reject",
+                token = token
+            ),
+            ::parseReservation
         )
     }
 }

@@ -106,6 +106,7 @@ export function LoginPage() {
 
           <CardContent className="p-6">
             <form className="space-y-5" onSubmit={handleSubmit}>
+              {location.state?.message && <p role="status" className="text-sm text-emerald-700">{location.state.message}</p>}
               {error && <FeedbackAlert>{error}</FeedbackAlert>}
 
               <div className="space-y-2">

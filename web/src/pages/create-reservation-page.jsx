@@ -28,6 +28,8 @@ import {
 import { api } from "@/lib/api";
 import { useAuth } from "@/lib/auth-context";
 
+const ONE_DAY_MS = 24 * 60 * 60 * 1000;
+
 export function CreateReservationPage() {
   const { session } = useAuth();
   const navigate = useNavigate();
