@@ -69,11 +69,11 @@ export function MicrogridNodesPage() {
                   View on Map
               </Link>
           </Button>
-          <Button asChild>
+          {session.role === "Backoffice" && <Button asChild>
               <Link to="/nodes/new">
                   Add New Node
               </Link>
-          </Button>
+          </Button>}
 
       <p className="text-sm text-slate-500"></p>
     </section>
