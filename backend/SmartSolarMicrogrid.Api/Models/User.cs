@@ -1,3 +1,10 @@
+/*
+ * Student Name: Hirimuthugodage J.
+ * Component: User and Prosumer Management with Role Based Authentication
+ * File Name: User.cs
+ * Description: Defines the stored account data for all user roles.
+ */
+
 using MongoDB.Bson.Serialization.Attributes;
 
 namespace SmartSolarMicrogrid.Api.Models;

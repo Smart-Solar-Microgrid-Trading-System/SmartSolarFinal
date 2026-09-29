@@ -1,3 +1,10 @@
+/*
+ * Student Name: Hirimuthugodage J.
+ * Component: User and Prosumer Management with Role Based Authentication
+ * File Name: UserProfileResponse.cs
+ * Description: Defines the account details returned for a user profile.
+ */
+
 namespace SmartSolarMicrogrid.Api.Models.Dtos;
 
 public sealed class UserProfileResponse
