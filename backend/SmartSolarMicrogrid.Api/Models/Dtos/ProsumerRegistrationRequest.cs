@@ -1,9 +1,10 @@
 using System.ComponentModel.DataAnnotations;
+using System.Text;
 using SmartSolarMicrogrid.Api.Models;
 
 namespace SmartSolarMicrogrid.Api.Models.Dtos;
 
-public sealed class ProsumerRegistrationRequest
+public sealed class ProsumerRegistrationRequest : IValidatableObject
 {
     [Required]
     [RegularExpression(AccountValidationRules.SriLankanNicPattern, ErrorMessage = "NIC must be a 12-digit NIC or a legacy 9-digit NIC ending in V or X.")]
@@ -24,4 +25,10 @@ public sealed class ProsumerRegistrationRequest
 
     [RegularExpression(AccountValidationRules.PhonePattern, ErrorMessage = "Phone must contain 7-20 valid phone characters.")]
     public string? Phone { get; set; }
+
+    public IEnumerable<ValidationResult> Validate(ValidationContext validationContext)
+    {
+        if (Encoding.UTF8.GetByteCount(Password ?? "") > 72)
+            yield return new ValidationResult("Password must not exceed 72 UTF-8 bytes.", new[] { nameof(Password) });
+    }
 }

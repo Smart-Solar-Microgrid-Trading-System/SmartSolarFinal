@@ -1,9 +1,10 @@
 using System.ComponentModel.DataAnnotations;
+using System.Text;
 using SmartSolarMicrogrid.Api.Models;
 
 namespace SmartSolarMicrogrid.Api.Models.Dtos;
 
-public sealed class CreateWebUserRequest
+public sealed class CreateWebUserRequest : IValidatableObject
 {
     [Required]
     [RegularExpression(AccountValidationRules.UsernamePattern, ErrorMessage = "Username must be 3-50 letters, digits, dots, underscores, or hyphens.")]
@@ -27,4 +28,10 @@ public sealed class CreateWebUserRequest
 
     [RegularExpression(AccountValidationRules.PhonePattern, ErrorMessage = "Phone must contain 7-20 valid phone characters.")]
     public string? Phone { get; set; }
+
+    public IEnumerable<ValidationResult> Validate(ValidationContext validationContext)
+    {
+        if (Encoding.UTF8.GetByteCount(Password ?? "") > 72)
+            yield return new ValidationResult("Password must not exceed 72 UTF-8 bytes.", new[] { nameof(Password) });
+    }
 }
