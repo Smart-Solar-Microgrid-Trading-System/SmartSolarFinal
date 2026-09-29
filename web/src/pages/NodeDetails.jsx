@@ -140,12 +140,12 @@ export function NodeDetailsPage() {
                     </div>
                 </div>
 
-                {session.role === "Backoffice" && <Button asChild>
+                <Button asChild>
                     <Link to={`/nodes/${node.id}/edit`}>
                         <Edit size={16} />
                         Edit Node
                     </Link>
-                </Button>}
+                </Button>
             </div>
 
             <div className="grid gap-6 md:grid-cols-2">
@@ -309,7 +309,7 @@ export function NodeDetailsPage() {
                 </Link>
             </Button>
             {/* Deactivate Button */}
-            {session.role === "Backoffice" && isActive && (
+            {isActive && (
                 <Button
                     variant="destructive"
                     onClick={handleDeactivate}
