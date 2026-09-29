@@ -119,10 +119,12 @@ public sealed class UserManagementService
         }
 
         user.AccountStatus = request.AccountStatus;
+        user.SessionVersion = Guid.NewGuid().ToString("N");
         user.UpdatedAt = DateTime.UtcNow;
         await _usersCollection.UpdateOneAsync(candidate => candidate.Id == nic,
             Builders<User>.Update
                 .Set(candidate => candidate.AccountStatus, user.AccountStatus)
+                .Set(candidate => candidate.SessionVersion, user.SessionVersion)
                 .Set(candidate => candidate.UpdatedAt, user.UpdatedAt));
         return UserManagementResult.Success(ToResponse(user));
     }
@@ -239,10 +241,12 @@ public sealed class UserManagementService
         }
 
         user.AccountStatus = AccountStatuses.Deactivated;
+        user.SessionVersion = Guid.NewGuid().ToString("N");
         user.UpdatedAt = DateTime.UtcNow;
         await _usersCollection.UpdateOneAsync(candidate => candidate.Id == userId,
             Builders<User>.Update
                 .Set(candidate => candidate.AccountStatus, user.AccountStatus)
+                .Set(candidate => candidate.SessionVersion, user.SessionVersion)
                 .Set(candidate => candidate.UpdatedAt, user.UpdatedAt));
         return UserManagementResult.Success(ToResponse(user));
     }
