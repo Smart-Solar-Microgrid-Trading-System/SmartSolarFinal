@@ -1,3 +1,10 @@
+/*
+ * Student Name: Hirimuthugodage J.
+ * Component: User and Prosumer Management with Role Based Authentication
+ * File Name: ProsumerService.cs
+ * Description: Registers Prosumer accounts and returns registration results.
+ */
+
 using MongoDB.Driver;
 using SmartSolarMicrogrid.Api.Models;
 using SmartSolarMicrogrid.Api.Models.Dtos;
@@ -10,11 +17,13 @@ public sealed class ProsumerService
 
     public ProsumerService(IMongoDatabase database)
     {
+        // Access the users collection.
         _usersCollection = database.GetCollection<User>("Users");
     }
 
     public async Task<ProsumerRegistrationResult> RegisterAsync(ProsumerRegistrationRequest request)
     {
+        // Validate and register a new Prosumer.
         var nic = request.Nic.Trim().ToUpperInvariant();
         var email = string.IsNullOrWhiteSpace(request.Email) ? null : request.Email.Trim().ToLowerInvariant();
 
@@ -57,6 +66,7 @@ public sealed class ProsumerService
         return ProsumerRegistrationResult.Created(ToResponse(user));
     }
 
+    // Convert a user into a profile response.
     private static UserProfileResponse ToResponse(User user) => new()
     {
         Id = user.Id,
@@ -74,6 +84,7 @@ public sealed class ProsumerRegistrationResult
 {
     private ProsumerRegistrationResult(UserProfileResponse? user, string? error, bool isConflict)
     {
+        // Store the registration result.
         User = user;
         Error = error;
         IsConflict = isConflict;
@@ -84,7 +95,12 @@ public sealed class ProsumerRegistrationResult
     public bool IsConflict { get; }
     public bool IsInvalid => Error is not null && !IsConflict;
 
+    // Create a successful registration result.
     public static ProsumerRegistrationResult Created(UserProfileResponse user) => new(user, null, false);
+
+    // Create a duplicate account result.
     public static ProsumerRegistrationResult Conflict(string error) => new(null, error, true);
+
+    // Create an invalid registration result.
     public static ProsumerRegistrationResult Invalid(string error) => new(null, error, false);
 }

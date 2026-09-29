@@ -1,3 +1,10 @@
+/*
+ * Student Name: Hirimuthugodage J.
+ * Component: User and Prosumer Management with Role Based Authentication
+ * File Name: UsersController.cs
+ * Description: Handles web user administration and account operations.
+ */
+
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using MongoDB.Driver;
@@ -14,12 +21,14 @@ public sealed class UsersController : ControllerBase
 {
     private readonly UserManagementService _userManagementService;
 
+    // Store the user management service.
     public UsersController(UserManagementService userManagementService) => _userManagementService = userManagementService;
 
     [Authorize(Policy = UserRoles.Backoffice)]
     [HttpPost]
     public async Task<IActionResult> Create([FromBody] CreateWebUserRequest request)
     {
+        // Create a Backoffice or Grid Operator account.
         UserManagementResult result;
         try
         {
@@ -38,6 +47,7 @@ public sealed class UsersController : ControllerBase
         };
     }
 
+    // Return all web users.
     [Authorize(Policy = UserRoles.Backoffice)]
     [HttpGet]
     public async Task<IActionResult> GetWebUsers() => Ok(await _userManagementService.GetWebUsersAsync());
@@ -46,6 +56,7 @@ public sealed class UsersController : ControllerBase
     [HttpPatch("{id}/status")]
     public async Task<IActionResult> UpdateWebUserStatus(string id, [FromBody] UpdateAccountStatusRequest request)
     {
+        // Update the user's account status.
         if (id == GetCurrentUserId() && request.AccountStatus == AccountStatuses.Deactivated)
         {
             return BadRequest(new { error = "You cannot deactivate your own account." });
@@ -59,6 +70,7 @@ public sealed class UsersController : ControllerBase
     [HttpGet("me")]
     public async Task<IActionResult> GetMe()
     {
+        // Return the current user's account details.
         var result = await _userManagementService.GetUserAsync(GetCurrentUserId());
         return ToUserResult(result);
     }
@@ -67,6 +79,7 @@ public sealed class UsersController : ControllerBase
     [HttpPatch("me/email")]
     public async Task<IActionResult> ChangeEmail([FromBody] ChangeEmailRequest request)
     {
+        // Change the authenticated web user's email address.
         try
         {
             return ToUserResult(await _userManagementService.ChangeEmailAsync(GetCurrentUserId(), request));
@@ -85,6 +98,7 @@ public sealed class UsersController : ControllerBase
     [HttpPut("me")]
     public async Task<IActionResult> UpdateMe([FromBody] UpdateUserProfileRequest request)
     {
+        // Update the authenticated Prosumer's profile.
         var result = await _userManagementService.UpdateProfileAsync(GetCurrentUserId(), request);
         return ToUserResult(result);
     }
@@ -93,12 +107,15 @@ public sealed class UsersController : ControllerBase
     [HttpPost("me/deactivation-request")]
     public async Task<IActionResult> RequestDeactivation()
     {
+        // Deactivate the authenticated Prosumer's account.
         var result = await _userManagementService.DeactivateProsumerAsync(GetCurrentUserId());
         return ToUserResult(result);
     }
 
+    // Read the authenticated user's identifier.
     private string GetCurrentUserId() => User.FindFirstValue(ClaimTypes.NameIdentifier)!;
 
+    // Convert a service result into an HTTP response.
     private IActionResult ToUserResult(UserManagementResult result) => result.Failure switch
     {
         UserManagementFailure.Invalid => BadRequest(new { error = result.Error }),
