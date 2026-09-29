@@ -6,6 +6,14 @@
  *              filtering, and dashboard statistics.
  */
 
+/*
+ * Student Name: Rathnayake R.M.S.B
+ * Component: Energy Reservation Management
+ * File Name: ReservationQueryService.cs
+ * Description: Supplies reservation detail lookups used by create, update,
+ *              cancellation, and reservation-detail responses.
+ */
+
 using MongoDB.Driver;
 using SmartSolarMicrogrid.Api.Models;
 using SmartSolarMicrogrid.Api.Models.Dtos;
