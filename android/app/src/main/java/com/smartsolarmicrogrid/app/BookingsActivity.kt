@@ -116,6 +116,7 @@ class BookingsActivity : Activity() {
     // ---------------------------------------------------------
 
     private fun showCreate() {
+        // Build the reservation form with a clear order for station, slot and energy.
         markTab(createTab)
         clearContent()
 
@@ -127,6 +128,13 @@ class BookingsActivity : Activity() {
         step("1", "Select")
 
         val card = card()
+
+        card.addView(
+            label("Reservation details").apply {
+                textSize = 18f
+                setPadding(0, 0, 0, dp(12))
+            }
+        )
 
         card.addView(
             label("Select Station")
@@ -1128,8 +1136,8 @@ class BookingsActivity : Activity() {
         )
 
         content.addView(
-            statusText(reservation.status),
-            wrapContent(bottom = 12)
+            statusBanner(reservation.status),
+            matchWrap(bottom = 14)
         )
 
         val card =
@@ -1219,7 +1227,7 @@ class BookingsActivity : Activity() {
 
         content.addView(
             primaryButton(
-                "Modify"
+                "Modify Reservation"
             ).apply {
 
                 isEnabled = !locked
@@ -1254,6 +1262,13 @@ class BookingsActivity : Activity() {
         )
 
         content.addView(
+            info(
+                "Modifications and cancellations require at least 12 hours' notice."
+            ),
+            matchWrap(top = 10)
+        )
+
+        content.addView(
             secondaryButton(
                 "Back to My Reservations"
             ) {
@@ -1271,7 +1286,7 @@ class BookingsActivity : Activity() {
         reservation:
         ReservationApi.Reservation
     ) {
-
+        // Display the current booking separately from the fields that can be changed.
         clearContent()
 
         title(
@@ -1288,19 +1303,45 @@ class BookingsActivity : Activity() {
         val card =
             card()
 
-        detail(
+        card.addView(
+            label("Current reservation").apply {
+                textSize = 17f
+                setPadding(0, 0, 0, dp(8))
+            }
+        )
+
+        detailRow(
             card,
             "Reservation ID",
             reservation.id
         )
 
-        detail(
+        detailRow(
             card,
             "Station",
             reservation.nodeName
                 .ifBlank {
                     reservation.nodeId
                 }
+        )
+
+        detailRow(
+            card,
+            "Current slot",
+            "${utc(reservation.startTime)} – ${utcTime(reservation.endTime)}"
+        )
+
+        detailRow(
+            card,
+            "Current energy",
+            "${number(reservation.energyAmountKw)} kWh"
+        )
+
+        card.addView(
+            label("Update details").apply {
+                textSize = 17f
+                setPadding(0, dp(18), 0, dp(8))
+            }
         )
 
         card.addView(
@@ -1360,6 +1401,8 @@ class BookingsActivity : Activity() {
                         reservation.energyAmountKw
                     )
                 )
+
+                hint = "Enter the updated energy amount"
             }
 
         card.addView(energy)
@@ -1421,7 +1464,7 @@ class BookingsActivity : Activity() {
 
         content.addView(
             secondaryButton(
-                "Discard"
+                "Discard Changes"
             ) {
                 renderDetails(
                     reservation
@@ -1488,18 +1531,17 @@ class BookingsActivity : Activity() {
         reservation:
         ReservationApi.Reservation
     ) {
-
-        AlertDialog.Builder(this)
+        // Confirm the soft cancellation and clearly explain that no record is deleted.
+        val dialog = AlertDialog.Builder(this)
             .setTitle(
                 "Cancel reservation?"
             )
             .setMessage(
-                "This reservation will be marked as Cancelled. " +
-                        "It will not be permanently deleted.\n\n" +
-                        "${reservation.nodeName}\n" +
-                        utc(
-                            reservation.startTime
-                        )
+                "Station\n${reservation.nodeName.ifBlank { reservation.nodeId }}\n\n" +
+                        "Scheduled time (UTC)\n${utc(reservation.startTime)} – " +
+                        "${utcTime(reservation.endTime)}\n\n" +
+                        "The reservation will be marked as Cancelled. " +
+                        "It will not be permanently deleted."
             )
             .setNegativeButton(
                 "Keep reservation",
@@ -1515,7 +1557,14 @@ class BookingsActivity : Activity() {
                     reservation.id
                 )
             }
-            .show()
+            .create()
+
+        dialog.setOnShowListener {
+            dialog.getButton(AlertDialog.BUTTON_POSITIVE)
+                .setTextColor(getColor(R.color.status_error))
+        }
+
+        dialog.show()
     }
 
     private fun cancelReservation(
@@ -1979,6 +2028,55 @@ class BookingsActivity : Activity() {
                 statusColor
             )
         }
+
+    private fun statusBanner(
+        status: String
+    ): LinearLayout {
+        // Build a clear status summary for the reservation details screen.
+        val statusColor =
+            when (status) {
+                "Approved",
+                "Completed" -> getColor(R.color.status_success)
+                "Rejected",
+                "Cancelled" -> getColor(R.color.status_error)
+                "Pending" -> Color.rgb(161, 92, 0)
+                else -> getColor(R.color.brand_blue)
+            }
+
+        val message =
+            when (status) {
+                "Pending" -> "Your reservation is awaiting confirmation."
+                "Approved" -> "Your reservation has been approved."
+                "Completed" -> "This reservation has been completed."
+                "Cancelled" -> "This reservation has been cancelled."
+                "Rejected" -> "This reservation was not approved."
+                else -> "Current reservation status."
+            }
+
+        return LinearLayout(this).apply {
+            orientation = LinearLayout.VERTICAL
+            setPadding(dp(16), dp(14), dp(16), dp(14))
+            background = roundedBackground(
+                colorWithAlpha(statusColor, 24),
+                colorWithAlpha(statusColor, 80)
+            )
+
+            addView(
+                label(status).apply {
+                    textSize = 19f
+                    setTextColor(statusColor)
+                    setPadding(0, 0, 0, dp(3))
+                }
+            )
+
+            addView(
+                value(message).apply {
+                    setTextColor(Color.rgb(73, 89, 108))
+                    setPadding(0, 0, 0, 0)
+                }
+            )
+        }
+    }
 
     private fun empty(
         text: String
