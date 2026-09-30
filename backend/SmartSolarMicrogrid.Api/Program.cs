@@ -14,6 +14,9 @@ builder.Services.AddControllers(options =>
     options.Filters.Add<AccountStatusFilter>();
 });
 
+builder.Services.AddDataProtection();
+
+// Validatatio of MongoDB configuration.
 var connectionString = builder.Configuration["MongoDB:ConnectionString"];
 var databaseName = builder.Configuration["MongoDB:DatabaseName"];
 if (string.IsNullOrWhiteSpace(connectionString) || string.IsNullOrWhiteSpace(databaseName))
@@ -35,6 +38,10 @@ builder.Services.AddSingleton<AuthService>();
 builder.Services.AddSingleton<ProsumerService>();
 builder.Services.AddSingleton<UserManagementService>();
 builder.Services.AddSingleton<MicrogridNodeService>();
+builder.Services.AddSingleton<BookingSlotService>();    //booking slots
+builder.Services.AddSingleton<ReservationQueryService>();
+builder.Services.AddSingleton<ReservationCommandService>();
+builder.Services.AddSingleton<TransactionService>();
 
 var key = Encoding.ASCII.GetBytes(builder.Configuration["Jwt:Secret"]!);
 builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
