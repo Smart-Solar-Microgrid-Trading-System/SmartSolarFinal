@@ -114,6 +114,7 @@ export function NodeDetailsPage() {
 
     const isActive =
         node.isActive !== undefined ? node.isActive : true;
+    const isBackoffice = session.role === "Backoffice";
 
     return (
         <section className="space-y-6">
@@ -135,17 +136,21 @@ export function NodeDetailsPage() {
                         </h1>
 
                         <p className="mt-1 text-sm text-slate-500">
-                            Node details and configuration.
+                            {isBackoffice
+                                ? "Node details and configuration."
+                                : "Node details and current availability."}
                         </p>
                     </div>
                 </div>
 
-                <Button asChild>
-                    <Link to={`/nodes/${node.id}/edit`}>
-                        <Edit size={16} />
-                        Edit Node
-                    </Link>
-                </Button>
+                {isBackoffice && (
+                    <Button asChild>
+                        <Link to={`/nodes/${node.id}/edit`}>
+                            <Edit size={16} />
+                            Edit Node
+                        </Link>
+                    </Button>
+                )}
             </div>
 
             <div className="grid gap-6 md:grid-cols-2">
@@ -309,7 +314,7 @@ export function NodeDetailsPage() {
                 </Link>
             </Button>
             {/* Deactivate Button */}
-            {isActive && (
+            {isBackoffice && isActive && (
                 <Button
                     variant="destructive"
                     onClick={handleDeactivate}

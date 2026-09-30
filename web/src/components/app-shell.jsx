@@ -26,7 +26,7 @@ const navigation = [
   { label: "Microgrid Nodes", to: "/nodes", icon: RadioTower },
   { label: "Booking Slots", to: "/booking-slots", icon: CalendarClock, roles: ["Backoffice", "GridOperator"] },
   { label: "Reservations", to: "/reservations", icon: Zap, roles: ["Backoffice", "GridOperator"] },
-  { label: "Operations", to: "/operations", icon: Gauge, roles: ["Backoffice", "GridOperator"] },
+  { label: "Operations", to: "/operations", icon: Gauge, roles: ["GridOperator"] },
   { label: "My Profile", to: "/profile", icon: UserRound, roles: ["Backoffice", "GridOperator"] }
 ];
 

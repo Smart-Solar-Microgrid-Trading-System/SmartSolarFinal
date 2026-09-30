@@ -12,6 +12,7 @@ import { Link } from "react-router-dom";
 
 export function MicrogridNodesPage() {
   const { session } = useAuth();
+  const isBackoffice = session.role === "Backoffice";
   const [nodes, setNodes] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
@@ -69,11 +70,13 @@ export function MicrogridNodesPage() {
                   View on Map
               </Link>
           </Button>
-          <Button asChild>
-              <Link to="/nodes/new">
-                  Add New Node
-              </Link>
-          </Button>
+          {isBackoffice && (
+            <Button asChild>
+                <Link to="/nodes/new">
+                    Add New Node
+                </Link>
+            </Button>
+          )}
 
       <p className="text-sm text-slate-500"></p>
     </section>
