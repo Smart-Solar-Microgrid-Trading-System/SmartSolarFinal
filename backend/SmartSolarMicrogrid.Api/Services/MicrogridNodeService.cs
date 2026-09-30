@@ -80,6 +80,12 @@ public sealed class MicrogridNodeService
     {
         ValidateRequest( request.Name, request.Address,request.Latitude,request.Longitude,request.CapacityKw);
 
+        if (request.AvailableBatterySlots < 0)
+        {
+            throw new ArgumentException(
+                "Available battery slots cannot be negative.");
+        }
+
         var existingNode = await _nodes .Find(x => x.Id == id && x.IsActive) .FirstOrDefaultAsync();
         //check if the node exists 
         if (existingNode == null) { return null; }
@@ -89,6 +95,7 @@ public sealed class MicrogridNodeService
         existingNode.Latitude = request.Latitude;
         existingNode.Longitude = request.Longitude;
         existingNode.CapacityKw = request.CapacityKw;
+        existingNode.AvailableBatterySlots = request.AvailableBatterySlots;
         existingNode.UpdatedAt = DateTime.UtcNow;
 
         await _nodes.ReplaceOneAsync( x => x.Id == id,  existingNode);
