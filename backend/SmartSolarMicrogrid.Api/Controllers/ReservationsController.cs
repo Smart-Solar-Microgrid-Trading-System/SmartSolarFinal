@@ -1,18 +1,17 @@
 /*
- * Student Name: Ruwanmali K.H
- * Component: Reservation Monitoring and Dashboard
+ * Student Name: Rathnayake R.M.S.B
+ * Component: Energy Reservation Management
  * File Name: ReservationsController.cs
- * Description: Provides REST API endpoints for retrieving reservations,
- *              including current, pending, history, search, and filter views.
+ * Description: Provides authorized endpoints for creating, viewing, updating,
+ *              and soft-cancelling energy reservations.
  */
 
 /*
- /*
- * Project: Smart Solar Microgrid Trading System
- * Component: Energy Reservation Management
- * File: ReservationsController.cs
- * Purpose: Exposes authorized reservation query, create, update, and soft-cancellation endpoints.
- * Contributor: Rathnayake R.M.S.B
+ * Student Name: Ruwanmali K.H
+ * Component: Reservation Monitoring and Dashboard
+ * File Name: ReservationsController.cs
+ * Description: Provides monitoring endpoints and reservation approval and
+ *              rejection operations.
  */
 
 using System.Security.Claims;
@@ -76,13 +75,13 @@ public class ReservationsController : ControllerBase
     [HttpGet("pending")]
     public async Task<IActionResult> GetPending()
     {
+        // Return reservations that are waiting for approval.
         var userId = GetUserId();
         var role = GetUserRole();
 
         Console.WriteLine(
             $"PENDING RESERVATIONS REQUEST - UserId={userId}, Role={role}");
 
-        // Return reservations that are waiting for approval.
         var reservations = await _reservationService.GetPendingAsync(
             GetUserId(),
             GetUserRole());

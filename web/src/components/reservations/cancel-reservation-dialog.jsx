@@ -10,7 +10,7 @@ import {
   DialogHeader,
   DialogTitle
 } from "@/components/ui/dialog";
-import { formatUtc } from "@/components/reservations/reservation-summary";
+import { formatUtcRange } from "@/components/reservations/reservation-summary";
 
 export function CancelReservationDialog({ open, onOpenChange, reservation, busy, onConfirm }) {
   if (!reservation) return null;
@@ -28,16 +28,16 @@ export function CancelReservationDialog({ open, onOpenChange, reservation, busy,
           </DialogDescription>
         </DialogHeader>
 
-        <div className="rounded-lg border border-slate-200 bg-slate-50 p-4 text-sm">
-          <p>
-            <b>Prosumer:</b> {reservation.prosumerName || reservation.prosumerNic} ({reservation.prosumerNic})
-          </p>
-          <p>
-            <b>Station:</b> {reservation.nodeName || reservation.nodeId}
-          </p>
-          <p>
-            <b>Scheduled:</b> {formatUtc(reservation.startTime)}
-          </p>
+        <div className="divide-y divide-slate-200 rounded-lg border border-slate-200 bg-slate-50 px-4 text-sm">
+          <DialogRow
+            label="Prosumer"
+            value={`${reservation.prosumerName || "Prosumer"} (${reservation.prosumerNic})`}
+          />
+          <DialogRow label="Station" value={reservation.nodeName || reservation.nodeId} />
+          <DialogRow
+            label="Scheduled time"
+            value={formatUtcRange(reservation.startTime, reservation.endTime)}
+          />
         </div>
 
         <DialogFooter>
@@ -52,5 +52,15 @@ export function CancelReservationDialog({ open, onOpenChange, reservation, busy,
         </DialogFooter>
       </DialogContent>
     </Dialog>
+  );
+}
+
+function DialogRow({ label, value }) {
+  // Keep confirmation details aligned and readable on smaller screens.
+  return (
+    <div className="grid gap-1 py-3 sm:grid-cols-[120px_minmax(0,1fr)] sm:gap-3">
+      <span className="text-slate-500">{label}</span>
+      <span className="break-words font-medium text-slate-800 sm:text-right">{value}</span>
+    </div>
   );
 }

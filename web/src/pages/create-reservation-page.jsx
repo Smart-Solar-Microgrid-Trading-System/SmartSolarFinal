@@ -13,7 +13,7 @@ import { useNavigate } from "react-router-dom";
 
 import { FeedbackAlert } from "@/components/feedback-alert";
 import { ReservationRulesNotice } from "@/components/reservations/reservation-rules-notice";
-import { ReservationSummary, formatUtc } from "@/components/reservations/reservation-summary";
+import { ReservationSummary, formatUtcRange } from "@/components/reservations/reservation-summary";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
@@ -303,7 +303,7 @@ export function CreateReservationPage() {
 
                 <Field label="Microgrid node" required>
                   <Select value={nodeId} onValueChange={updateNode} disabled={reviewing}>
-                    <SelectTrigger className="h-12 bg-white">
+                    <SelectTrigger className="h-12 w-full min-w-0 bg-white">
                       <Network className="mr-2 shrink-0 text-slate-500" size={18} />
                       <SelectValue placeholder="Select a station" />
                     </SelectTrigger>
@@ -323,7 +323,7 @@ export function CreateReservationPage() {
                     onValueChange={updateSlot}
                     disabled={!nodeId || loadingSlots || reviewing}
                   >
-                    <SelectTrigger className="h-12 bg-white">
+                    <SelectTrigger className="h-12 w-full min-w-0 bg-white">
                       <CalendarDays className="mr-2 shrink-0 text-slate-500" size={18} />
                       <SelectValue
                         placeholder={loadingSlots
@@ -336,7 +336,7 @@ export function CreateReservationPage() {
                     <SelectContent>
                       {slots.map((item) => (
                         <SelectItem key={item.id} value={item.id}>
-                          {formatUtc(item.startTime)} - {formatUtc(item.endTime)} ({item.capacityKw} kW)
+                          {formatUtcRange(item.startTime, item.endTime)} · {item.capacityKw} kW
                         </SelectItem>
                       ))}
                     </SelectContent>
