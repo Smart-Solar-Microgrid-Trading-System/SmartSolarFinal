@@ -8,5 +8,5 @@ public sealed class UpdateMicrogridNodeRequest
 
     public decimal CapacityKw { get; set; }
 
-    public int availableBatterySlots { get; set; }
+    public int AvailableBatterySlots { get; set; }
 }

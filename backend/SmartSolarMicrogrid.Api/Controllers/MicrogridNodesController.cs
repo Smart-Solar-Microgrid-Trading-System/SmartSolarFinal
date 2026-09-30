@@ -1,5 +1,6 @@
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using SmartSolarMicrogrid.Api.Models;
 using SmartSolarMicrogrid.Api.Models.Dtos;
 using SmartSolarMicrogrid.Api.Services;
 
@@ -35,6 +36,7 @@ public sealed class MicrogridNodesController : ControllerBase
     }
 
     [HttpPost]
+    [Authorize(Policy = UserRoles.Backoffice)]
     public async Task<ActionResult<MicrogridNodeResponse>> CreateNode([FromBody] CreateMicrogridNodeRequest request)
     {
         try
@@ -50,6 +52,7 @@ public sealed class MicrogridNodesController : ControllerBase
     }
 
     [HttpPut("{id}")]
+    [Authorize(Policy = UserRoles.Backoffice)]
     public async Task<ActionResult<MicrogridNodeResponse>> UpdateNode(string id,[FromBody] UpdateMicrogridNodeRequest request)
     {
         try
@@ -70,6 +73,7 @@ public sealed class MicrogridNodesController : ControllerBase
     }
 
     [HttpPatch("{id}/deactivate")]
+    [Authorize(Policy = UserRoles.Backoffice)]
     public async Task<IActionResult> DeactivateNode(string id)
     {
         try
