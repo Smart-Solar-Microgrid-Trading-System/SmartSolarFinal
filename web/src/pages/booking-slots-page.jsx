@@ -249,18 +249,18 @@ export function BookingSlotsPage() {
                     {loading ? (
                         <p className="px-6 pb-6 text-sm text-slate-500">Loading booking slots...</p>
                     ) : slots.length === 0 ? (
-                            <p className="px-6 pb-6 text-sm text-slate-500">No booking slots are available.</p>
+                        <p className="px-6 pb-6 text-sm text-slate-500">No booking slots are available.</p>
                     ) : (
                         <div className="overflow-x-auto">
                             <Table className="min-w-[850px]">
                                 <TableHeader>
-                                            <TableRow className="hover:bg-transparent">
-                                                <TableHead className="pl-6">Station</TableHead>
-                                                <TableHead>Date</TableHead>
-                                                <TableHead>Time</TableHead>
-                                                <TableHead className="pr-10 text-right">Capacity</TableHead>
+                                    <TableRow className="hover:bg-transparent">
+                                        <TableHead className="pl-6">Station</TableHead>
+                                        <TableHead>Date</TableHead>
+                                        <TableHead>Time</TableHead>
+                                        <TableHead className="pr-10 text-right">Capacity</TableHead>
                                         <TableHead>Status</TableHead>
-                                                <TableHead className="pr-6 text-right">Actions</TableHead>
+                                        <TableHead className="pr-6 text-right">Actions</TableHead>
                                     </TableRow>
                                 </TableHeader>
 
@@ -343,18 +343,18 @@ export function BookingSlotsPage() {
                                         <span className="text-xs text-slate-400">Cannot be changed</span>
                                     </div>
                                 ) : (
-                                        <Select value={form.nodeId} onValueChange={(value) => setForm({ ...form, nodeId: value })}>
-                                            <SelectTrigger className="w-full">
-                                                <SelectValue placeholder="Select a node" />
-                                            </SelectTrigger>
-                                            <SelectContent>
-                                                {nodes.map((node) => (
-                                                    <SelectItem key={node.id} value={node.id}>
-                                                        {node.name}
-                                                    </SelectItem>
-                                                ))}
-                                            </SelectContent>
-                                        </Select>
+                                    <Select value={form.nodeId} onValueChange={(value) => setForm({ ...form, nodeId: value })}>
+                                        <SelectTrigger className="w-full">
+                                            <SelectValue placeholder="Select a node" />
+                                        </SelectTrigger>
+                                        <SelectContent>
+                                            {nodes.map((node) => (
+                                                <SelectItem key={node.id} value={node.id}>
+                                                    {node.name}
+                                                </SelectItem>
+                                            ))}
+                                        </SelectContent>
+                                    </Select>
                                 )}
                             </div>
 

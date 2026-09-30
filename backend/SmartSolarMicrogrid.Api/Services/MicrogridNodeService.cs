@@ -53,7 +53,8 @@ public sealed class MicrogridNodeService
             request.Address,
             request.Latitude,
             request.Longitude,
-            request.CapacityKw);
+            request.CapacityKw,
+            request.availableBatterySlots);
 
         var now = DateTime.UtcNow;
 
@@ -65,7 +66,7 @@ public sealed class MicrogridNodeService
             Latitude = request.Latitude,
             Longitude = request.Longitude,
             CapacityKw = request.CapacityKw,
-            AvailableBatterySlots = 0,
+            AvailableBatterySlots = request.availableBatterySlots,
             IsActive = true,
             CreatedAt = now,
             UpdatedAt = now
@@ -78,17 +79,11 @@ public sealed class MicrogridNodeService
 
     public async Task<MicrogridNodeResponse?> UpdateNodeAsync(string id, UpdateMicrogridNodeRequest request)
     {
-        ValidateRequest( request.Name, request.Address,request.Latitude,request.Longitude,request.CapacityKw);
+        ValidateRequest( request.Name, request.Address,request.Latitude,request.Longitude,request.CapacityKw,request.AvailableBatterySlots);
 
-        if (request.AvailableBatterySlots < 0)
-        {
-            throw new ArgumentException(
-                "Available battery slots cannot be negative.");
-        }
-
-        var existingNode = await _nodes .Find(x => x.Id == id && x.IsActive) .FirstOrDefaultAsync();
+        var existingNode = await _nodes .Find(x => x.Id == id ) .FirstOrDefaultAsync();
         //check if the node exists 
-        if (existingNode == null) { return null; }
+        if (existingNode == null) { Console.WriteLine("Node not found."); return null; }
 
         existingNode.Name = request.Name.Trim();
         existingNode.Address = request.Address.Trim();
@@ -98,7 +93,9 @@ public sealed class MicrogridNodeService
         existingNode.AvailableBatterySlots = request.AvailableBatterySlots;
         existingNode.UpdatedAt = DateTime.UtcNow;
 
-        await _nodes.ReplaceOneAsync( x => x.Id == id,  existingNode);
+        var result=await _nodes.ReplaceOneAsync( x => x.Id == id, existingNode);
+        Console.WriteLine($"Matched: {result.MatchedCount}");
+        Console.WriteLine($"Modified: {result.ModifiedCount}");
 
         return MapToResponse(existingNode);
     }
@@ -159,7 +156,7 @@ public sealed class MicrogridNodeService
         };
     }
 
-    private static void ValidateRequest( string name, string address, double latitude, double longitude, decimal capacityKw)
+    private static void ValidateRequest( string name, string address, double latitude, double longitude, decimal capacityKw, int availableBatterySlots)
     {
         if (string.IsNullOrWhiteSpace(name))
         {
@@ -184,6 +181,12 @@ public sealed class MicrogridNodeService
         if (capacityKw <= 0)
         {
             throw new ArgumentException( "Capacity must be greater than zero.");
+        }
+
+        if (availableBatterySlots < 0)
+        {
+            throw new ArgumentException(
+                "Available battery slots cannot be negative.");
         }
     }
 }

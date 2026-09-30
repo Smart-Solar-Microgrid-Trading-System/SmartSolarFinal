@@ -32,7 +32,16 @@ export function ReservationSummary({ prosumer, node, slot, energyAmount }) {
         <SummaryRow
           icon={CalendarDays}
           label="Scheduled time"
-          value={slot ? `${formatUtc(slot.startTime)} - ${formatUtc(slot.endTime)}` : "Not selected"}
+          value={slot ? (
+            <span className="block min-w-0">
+              <span className="block font-medium text-slate-800">
+                {formatUtcDateRange(slot.startTime, slot.endTime)}
+              </span>
+              <span className="mt-1 block text-xs font-medium text-slate-600">
+                {formatUtcTime(slot.startTime)} – {formatUtcTime(slot.endTime)} UTC
+              </span>
+            </span>
+          ) : "Not selected"}
         />
         <SummaryRow icon={Clock3} label="Slot availability" value={slot?.status ?? "-"} />
         <SummaryRow
@@ -48,10 +57,10 @@ export function ReservationSummary({ prosumer, node, slot, energyAmount }) {
 
 function SummaryRow({ icon: Icon, label, value, badge, status = false }) {
   return (
-    <div className="grid grid-cols-[24px_110px_1fr] items-center gap-3 border-b border-slate-100 pb-3 last:border-0">
+    <div className="grid grid-cols-[20px_100px_minmax(0,1fr)] items-start gap-3 border-b border-slate-100 pb-3 last:border-0">
       <Icon className="text-slate-600" size={18} />
       <span className="text-slate-500">{label}</span>
-      <div className="flex items-center justify-end gap-2 text-right">
+      <div className="flex min-w-0 flex-wrap items-center justify-end gap-2 break-words text-right">
         <span className={status
           ? "rounded-full bg-amber-50 px-3 py-1 font-medium text-amber-700"
           : "font-medium text-slate-800"}
@@ -73,7 +82,70 @@ export function formatUtc(value) {
     return "-";
   }
 
-  return `${new Date(value).toLocaleString(undefined, {
-    timeZone: "UTC"
-  })} UTC`;
+  return `${formatUtcDate(value)} ${formatUtcTime(value)} UTC`;
+}
+
+export function formatUtcRange(startValue, endValue) {
+  // Keep slot labels short enough for select fields while showing UTC once.
+  if (!startValue || !endValue) {
+    return "-";
+  }
+
+  const startDate = new Date(startValue);
+  const endDate = new Date(endValue);
+  const startDay = formatUtcShortDate(startDate);
+  const endDay = formatUtcShortDate(endDate);
+
+  if (sameUtcDay(startDate, endDate)) {
+    return `${startDay}, ${formatUtcTime(startDate)} – ${formatUtcTime(endDate)} UTC`;
+  }
+
+  return `${startDay}, ${formatUtcTime(startDate)} – ${endDay}, ${formatUtcTime(endDate)} UTC`;
+}
+
+export function formatUtcTime(value) {
+  if (!value) {
+    return "-";
+  }
+
+  return new Date(value).toLocaleTimeString(undefined, {
+    timeZone: "UTC",
+    hour: "numeric",
+    minute: "2-digit"
+  });
+}
+
+function formatUtcDateRange(startValue, endValue) {
+  // Show one date for same-day bookings and both dates for overnight bookings.
+  const startDate = new Date(startValue);
+  const endDate = new Date(endValue);
+
+  if (sameUtcDay(startDate, endDate)) {
+    return formatUtcDate(startDate);
+  }
+
+  return `${formatUtcDate(startDate)} – ${formatUtcDate(endDate)}`;
+}
+
+function formatUtcDate(value) {
+  return new Date(value).toLocaleDateString(undefined, {
+    timeZone: "UTC",
+    year: "numeric",
+    month: "short",
+    day: "numeric"
+  });
+}
+
+function formatUtcShortDate(value) {
+  return new Date(value).toLocaleDateString(undefined, {
+    timeZone: "UTC",
+    month: "short",
+    day: "numeric"
+  });
+}
+
+function sameUtcDay(firstDate, secondDate) {
+  return firstDate.getUTCFullYear() === secondDate.getUTCFullYear() &&
+    firstDate.getUTCMonth() === secondDate.getUTCMonth() &&
+    firstDate.getUTCDate() === secondDate.getUTCDate();
 }

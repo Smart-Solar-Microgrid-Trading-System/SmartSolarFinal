@@ -126,10 +126,10 @@ export function OperationsDashboardPage() {
                                                         <TableCell>{reservation.nodeName || reservation.nodeId}</TableCell>
                                                         <TableCell>{new Date(reservation.startTime).toLocaleString()}</TableCell>
                                                         <TableCell>
-                                                        <StatusBadge status={reservation.status} />
-                                                    </TableCell>
-                                                </TableRow>
-                                            ))}
+                                                            <StatusBadge status={reservation.status} />
+                                                        </TableCell>
+                                                    </TableRow>
+                                                ))}
                                         </TableBody>
                                     </Table>
                                 </div>

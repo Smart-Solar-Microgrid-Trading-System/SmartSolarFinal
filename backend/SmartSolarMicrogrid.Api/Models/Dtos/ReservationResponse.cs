@@ -1,10 +1,19 @@
 /*
- * Project: Smart Solar Microgrid Trading System
+ * Student Name: Rathnayake R.M.S.B
  * Component: Energy Reservation Management
- * File: ReservationResponse.cs
- * Purpose: Provides the shared reservation details used by operational lists and CRUD screens.
- * Contributor: Rathnayake R.M.S.B
+ * File Name: ReservationResponse.cs
+ * Description: Provides reservation details used by the create, view, update,
+ *              cancellation, and operation-summary screens.
  */
+
+/*
+ * Student Name: Ruwanmali K.H
+ * Component: Reservation Monitoring and Dashboard
+ * File Name: ReservationResponse.cs
+ * Description: Defines reservation information returned to operational lists,
+ *              monitoring views, and dashboard clients.
+ */
+
 namespace SmartSolarMicrogrid.Api.Models.Dtos;
 
 public class ReservationResponse

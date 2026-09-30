@@ -1,3 +1,19 @@
+/*
+ * Student Name: Ruwanmali K.H
+ * Component: Reservation Monitoring and Dashboard
+ * File Name: ReservationQueryService.cs
+ * Description: Handles current, pending and historical reservation queries,
+ *              filtering, and dashboard statistics.
+ */
+
+/*
+ * Student Name: Rathnayake R.M.S.B
+ * Component: Energy Reservation Management
+ * File Name: ReservationQueryService.cs
+ * Description: Supplies reservation detail lookups used by create, update,
+ *              cancellation, and reservation-detail responses.
+ */
+
 using MongoDB.Driver;
 using SmartSolarMicrogrid.Api.Models;
 using SmartSolarMicrogrid.Api.Models.Dtos;
@@ -12,6 +28,7 @@ public class ReservationQueryService
 
     public ReservationQueryService(IMongoDatabase database)
     {
+        // Gets the MongoDB collections used for reservation queries.
         _reservations = database.GetCollection<EnergyReservation>("EnergyReservations");
         _nodes = database.GetCollection<MicrogridNode>("MicrogridNodes");
         _users = database.GetCollection<User>("Users");
@@ -22,7 +39,7 @@ public class ReservationQueryService
         string userId,
         string role)
     {
-        // Start with all reservations
+        // Retrieves reservations based on the logged-in user's role and selected filters.
         var filter = Builders<EnergyReservation>.Filter.Empty;
 
         if (role == UserRoles.Prosumer)
@@ -65,17 +82,24 @@ public class ReservationQueryService
             .SortByDescending(reservation => reservation.StartTime)
             .ToListAsync();
 
-        // Search by basic booking information
         if (!string.IsNullOrWhiteSpace(request.Search))
         {
             var search = request.Search.Trim();
 
             reservations = reservations
                 .Where(reservation =>
-                    reservation.Id.Contains(search, StringComparison.OrdinalIgnoreCase) ||
-                    reservation.ProsumerNic.Contains(search, StringComparison.OrdinalIgnoreCase) ||
-                    reservation.NodeId.Contains(search, StringComparison.OrdinalIgnoreCase) ||
-                    reservation.SlotId.Contains(search, StringComparison.OrdinalIgnoreCase))
+                    reservation.Id.Contains(
+                        search,
+                        StringComparison.OrdinalIgnoreCase) ||
+                    reservation.ProsumerNic.Contains(
+                        search,
+                        StringComparison.OrdinalIgnoreCase) ||
+                    reservation.NodeId.Contains(
+                        search,
+                        StringComparison.OrdinalIgnoreCase) ||
+                    reservation.SlotId.Contains(
+                        search,
+                        StringComparison.OrdinalIgnoreCase))
                 .ToList();
         }
 
@@ -87,7 +111,7 @@ public class ReservationQueryService
         string userId,
         string role)
     {
-        // Find one reservation
+        // Retrieves one reservation while applying role-based access restrictions.
         var reservation = await _reservations
             .Find(reservation => reservation.Id == id)
             .FirstOrDefaultAsync();
@@ -108,7 +132,9 @@ public class ReservationQueryService
             .FirstOrDefaultAsync();
 
         var prosumer = await _users
-            .Find(user => user.Id == reservation.ProsumerNic && user.Role == UserRoles.Prosumer)
+            .Find(user =>
+                user.Id == reservation.ProsumerNic &&
+                user.Role == UserRoles.Prosumer)
             .FirstOrDefaultAsync();
 
         return new ReservationResponse
@@ -135,7 +161,7 @@ public class ReservationQueryService
         string userId,
         string role)
     {
-        // Current bookings are pending or approved bookings that have not ended yet
+        // Retrieves pending or approved reservations that have not ended yet.
         var statuses = new[]
         {
             ReservationStatuses.Pending,
@@ -169,7 +195,7 @@ public class ReservationQueryService
         string userId,
         string role)
     {
-        // Get reservations waiting for approval
+        // Retrieves reservations that are currently waiting for approval.
         var filter = Builders<EnergyReservation>.Filter.Eq(
             reservation => reservation.Status,
             ReservationStatuses.Pending);
@@ -193,7 +219,7 @@ public class ReservationQueryService
         string userId,
         string role)
     {
-        // These statuses are considered booking history
+        // Retrieves completed, cancelled, and rejected reservations as booking history.
         var statuses = new[]
         {
             ReservationStatuses.Completed,
@@ -222,7 +248,7 @@ public class ReservationQueryService
 
     public async Task<OperationalDashboardResponse> GetDashboardAsync()
     {
-        // Dashboard values are read directly from the reservation collection
+        // Calculates system-wide reservation values for the operational dashboard.
         var now = DateTime.UtcNow;
         var today = now.Date;
         var tomorrow = today.AddDays(1);
@@ -258,39 +284,135 @@ public class ReservationQueryService
         };
     }
 
-    private async Task<IReadOnlyList<ReservationResponse>> ConvertToResponseAsync(
-        List<EnergyReservation> reservations)
+    public async Task<OperationalDashboardResponse> GetProsumerDashboardAsync(
+        string prosumerNic)
     {
-        var result = new List<ReservationResponse>();
+        // Calculates dashboard values only for the currently logged-in Prosumer.
+        var now = DateTime.UtcNow;
+        var today = now.Date;
+        var tomorrow = today.AddDays(1);
+
+        var pendingFilter =
+            Builders<EnergyReservation>.Filter.And(
+                Builders<EnergyReservation>.Filter.Eq(
+                    reservation => reservation.ProsumerNic,
+                    prosumerNic),
+                Builders<EnergyReservation>.Filter.Eq(
+                    reservation => reservation.Status,
+                    ReservationStatuses.Pending)
+            );
+
+        var approvedFutureFilter =
+            Builders<EnergyReservation>.Filter.And(
+                Builders<EnergyReservation>.Filter.Eq(
+                    reservation => reservation.ProsumerNic,
+                    prosumerNic),
+                Builders<EnergyReservation>.Filter.Eq(
+                    reservation => reservation.Status,
+                    ReservationStatuses.Approved),
+                Builders<EnergyReservation>.Filter.Gt(
+                    reservation => reservation.StartTime,
+                    now)
+            );
+
+        var currentFilter =
+            Builders<EnergyReservation>.Filter.And(
+                Builders<EnergyReservation>.Filter.Eq(
+                    reservation => reservation.ProsumerNic,
+                    prosumerNic),
+                Builders<EnergyReservation>.Filter.In(
+                    reservation => reservation.Status,
+                    new[]
+                    {
+                        ReservationStatuses.Pending,
+                        ReservationStatuses.Approved
+                    }),
+                Builders<EnergyReservation>.Filter.Gte(
+                    reservation => reservation.EndTime,
+                    now)
+            );
+
+        var completedTodayFilter =
+            Builders<EnergyReservation>.Filter.And(
+                Builders<EnergyReservation>.Filter.Eq(
+                    reservation => reservation.ProsumerNic,
+                    prosumerNic),
+                Builders<EnergyReservation>.Filter.Eq(
+                    reservation => reservation.Status,
+                    ReservationStatuses.Completed),
+                Builders<EnergyReservation>.Filter.Gte(
+                    reservation => reservation.CompletedAt,
+                    today),
+                Builders<EnergyReservation>.Filter.Lt(
+                    reservation => reservation.CompletedAt,
+                    tomorrow)
+            );
+
+        var pendingCount =
+            await _reservations.CountDocumentsAsync(
+                pendingFilter);
+
+        var approvedFutureCount =
+            await _reservations.CountDocumentsAsync(
+                approvedFutureFilter);
+
+        var currentCount =
+            await _reservations.CountDocumentsAsync(
+                currentFilter);
+
+        var completedTodayCount =
+            await _reservations.CountDocumentsAsync(
+                completedTodayFilter);
+
+        return new OperationalDashboardResponse
+        {
+            PendingReservations = pendingCount,
+            ApprovedFutureReservations = approvedFutureCount,
+            CurrentBookings = currentCount,
+            CompletedToday = completedTodayCount
+        };
+    }
+
+    private async Task<IReadOnlyList<ReservationResponse>>
+        ConvertToResponseAsync(
+            List<EnergyReservation> reservations)
+    {
+        // Converts reservation database records into API response objects.
+        var result =
+            new List<ReservationResponse>();
 
         foreach (var reservation in reservations)
         {
             var node = await _nodes
-                .Find(node => node.Id == reservation.NodeId)
+                .Find(node =>
+                    node.Id == reservation.NodeId)
                 .FirstOrDefaultAsync();
 
             var prosumer = await _users
-                .Find(user => user.Id == reservation.ProsumerNic && user.Role == UserRoles.Prosumer)
+                .Find(user =>
+                    user.Id == reservation.ProsumerNic &&
+                    user.Role == UserRoles.Prosumer)
                 .FirstOrDefaultAsync();
 
-            result.Add(new ReservationResponse
-            {
-                Id = reservation.Id,
-                ProsumerNic = reservation.ProsumerNic,
-                ProsumerName = prosumer?.FullName,
-                ProsumerStatus = prosumer?.AccountStatus,
-                NodeId = reservation.NodeId,
-                NodeName = node?.Name,
-                SlotId = reservation.SlotId,
-                EnergyAmountKw = reservation.EnergyAmountKw,
-                StartTime = reservation.StartTime,
-                EndTime = reservation.EndTime,
-                Status = reservation.Status,
-                CreatedAt = reservation.CreatedAt,
-                UpdatedAt = reservation.UpdatedAt,
-                CancelledAt = reservation.CancelledAt,
-                CompletedAt = reservation.CompletedAt
-            });
+            result.Add(
+                new ReservationResponse
+                {
+                    Id = reservation.Id,
+                    ProsumerNic = reservation.ProsumerNic,
+                    ProsumerName = prosumer?.FullName,
+                    ProsumerStatus = prosumer?.AccountStatus,
+                    NodeId = reservation.NodeId,
+                    NodeName = node?.Name,
+                    SlotId = reservation.SlotId,
+                    EnergyAmountKw = reservation.EnergyAmountKw,
+                    StartTime = reservation.StartTime,
+                    EndTime = reservation.EndTime,
+                    Status = reservation.Status,
+                    CreatedAt = reservation.CreatedAt,
+                    UpdatedAt = reservation.UpdatedAt,
+                    CancelledAt = reservation.CancelledAt,
+                    CompletedAt = reservation.CompletedAt
+                });
         }
 
         return result;
