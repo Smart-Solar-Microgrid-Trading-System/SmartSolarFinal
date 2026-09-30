@@ -1,5 +1,6 @@
 using System.Security.Cryptography;
 using System.Text;
+using Microsoft.AspNetCore.DataProtection;
 using MongoDB.Driver;
 using SmartSolarMicrogrid.Api.Models;
 using SmartSolarMicrogrid.Api.Models.Dtos;
@@ -9,17 +10,26 @@ namespace SmartSolarMicrogrid.Api.Services;
 public sealed class TransactionService
 {
     private readonly IMongoCollection<EnergyTransaction> _transactions;
+    private readonly IMongoCollection<EnergyReservation> _reservations;
     private readonly ReservationQueryService _reservationService;
+    private readonly IDataProtector _qrPayloadProtector;
 
     public TransactionService(
         IMongoDatabase database,
-        ReservationQueryService reservationService)
+        ReservationQueryService reservationService,
+        IDataProtectionProvider dataProtectionProvider)
     {
         _transactions =
             database.GetCollection<EnergyTransaction>(
                 "EnergyTransactions");
 
+        _reservations =
+            database.GetCollection<EnergyReservation>(
+                "EnergyReservations");
+
         _reservationService = reservationService;
+        _qrPayloadProtector = dataProtectionProvider.CreateProtector(
+            "SmartSolarMicrogrid.TransactionQrPayload.v1");
     }
 
     public async Task<TransactionQrResponse?> GenerateQrAsync(
@@ -65,14 +75,30 @@ public sealed class TransactionService
             await _transactions
                 .Find(x =>
                     x.ReservationId == reservationId &&
-                    x.Status != "COMPLETED" &&
-                    x.ExpiresAt > DateTime.UtcNow)
+                    (x.Status == "ISSUED" ||
+                     x.Status == "VERIFIED"))
                 .FirstOrDefaultAsync();
 
         if (existing != null)
         {
-            throw new InvalidOperationException(
-                "An active transaction QR already exists for this reservation.");
+            if (!string.IsNullOrWhiteSpace(existing.ProtectedQrPayload))
+            {
+                return new TransactionQrResponse
+                {
+                    ReservationId = reservation.Id,
+                    QrPayload = _qrPayloadProtector.Unprotect(
+                        existing.ProtectedQrPayload),
+                    Status = existing.Status
+                };
+            }
+
+            // QR records created before protected payload storage cannot be
+            // redrawn because only their one-way token hash is available.
+            // Retire that legacy QR and create a replacement below.
+            existing.Status = "REPLACED";
+            await _transactions.ReplaceOneAsync(
+                x => x.Id == existing.Id,
+                existing);
         }
 
 
@@ -94,21 +120,22 @@ public sealed class TransactionService
         var tokenHash =
             HashToken(transactionToken);
 
+        var qrPayload =
+            $"SMARTSOLAR|TX|{transactionToken}";
 
-        // ---------------------------------------------------------
-        // 6. QR expires after 15 minutes
-        // ---------------------------------------------------------
-
-        var expiresAt =
-            DateTime.UtcNow.AddMinutes(15);
+        var protectedQrPayload =
+            _qrPayloadProtector.Protect(qrPayload);
 
 
         // ---------------------------------------------------------
-        // 7. Create EnergyTransaction
+        // 6. Create EnergyTransaction. The QR remains valid until
+        // the reservation is cancelled or the transfer is completed.
         // ---------------------------------------------------------
 
         var transaction = new EnergyTransaction
         {
+            Id = Guid.NewGuid().ToString(),
+
             ReservationId = reservation.Id,
 
             ProsumerId = userId,
@@ -119,31 +146,23 @@ public sealed class TransactionService
 
             TransactionTokenHash = tokenHash,
 
+            ProtectedQrPayload = protectedQrPayload,
+
             Status = "ISSUED",
 
-            CreatedAt = DateTime.UtcNow,
-
-            ExpiresAt = expiresAt
+            CreatedAt = DateTime.UtcNow
         };
 
 
         // ---------------------------------------------------------
-        // 8. Save EnergyTransaction to MongoDB
+        // 7. Save EnergyTransaction to MongoDB
         // ---------------------------------------------------------
 
         await _transactions.InsertOneAsync(transaction);
 
 
         // ---------------------------------------------------------
-        // 9. Create the QR payload
-        // ---------------------------------------------------------
-
-        var qrPayload =
-            $"SMARTSOLAR|TX|{transactionToken}";
-
-
-        // ---------------------------------------------------------
-        // 10. Return QR information to Android
+        // 8. Return QR information to Android
         // ---------------------------------------------------------
 
         return new TransactionQrResponse
@@ -153,8 +172,6 @@ public sealed class TransactionService
             TransactionToken = transactionToken,
 
             QrPayload = qrPayload,
-
-            ExpiresAt = expiresAt,
 
             Status = transaction.Status
         };
@@ -192,17 +209,7 @@ public sealed class TransactionService
         }
 
         // ---------------------------------------------------------
-        // 3. Check expiration
-        // ---------------------------------------------------------
-
-        if (transaction.ExpiresAt < DateTime.UtcNow)
-        {
-            throw new InvalidOperationException(
-                "This transaction QR has expired.");
-        }
-
-        // ---------------------------------------------------------
-        // 4. Check transaction status
+        // 3. Check transaction status
         // ---------------------------------------------------------
 
         if (transaction.Status == "COMPLETED")
@@ -211,26 +218,15 @@ public sealed class TransactionService
                 "This transaction has already been completed.");
         }
 
-        if (transaction.Status == "VERIFIED")
-        {
-            return new TransactionVerificationResponse
-            {
-                Valid = true,
-                TransactionToken = transactionToken,
-                ReservationId = transaction.ReservationId,
-                Status = "VERIFIED",
-                Message = "Transaction QR is already verified."
-            };
-        }
-
-        if (transaction.Status != "ISSUED")
+        if (transaction.Status != "ISSUED" &&
+            transaction.Status != "VERIFIED")
         {
             throw new InvalidOperationException(
                 $"Transaction cannot be verified because its current status is '{transaction.Status}'.");
         }
 
         // ---------------------------------------------------------
-        // 5. Get reservation
+        // 4. Get reservation
         // ---------------------------------------------------------
 
         var reservation = await _reservationService.GetByIdAsync(
@@ -245,7 +241,7 @@ public sealed class TransactionService
         }
 
         // ---------------------------------------------------------
-        // 6. Reservation must still be approved
+        // 5. Reservation must still be approved
         // ---------------------------------------------------------
 
         if (!string.Equals(
@@ -257,8 +253,16 @@ public sealed class TransactionService
                 "The reservation is no longer approved.");
         }
 
+        if (transaction.Status == "VERIFIED")
+        {
+            return CreateVerificationResponse(
+                reservation,
+                transactionToken,
+                "Transaction QR is already verified.");
+        }
+
         // ---------------------------------------------------------
-        // 7. Mark transaction as verified
+        // 6. Mark transaction as verified
         // ---------------------------------------------------------
 
         transaction.Status = "VERIFIED";
@@ -268,21 +272,13 @@ public sealed class TransactionService
             transaction);
 
         // ---------------------------------------------------------
-        // 8. Return verification result
+        // 7. Return verification result
         // ---------------------------------------------------------
 
-        return new TransactionVerificationResponse
-        {
-            Valid = true,
-
-            TransactionToken = transactionToken,
-
-            ReservationId = transaction.ReservationId,
-
-            Status = "VERIFIED",
-
-            Message = "Transaction QR verified successfully."
-        };
+        return CreateVerificationResponse(
+            reservation,
+            transactionToken,
+            "Transaction QR verified successfully.");
     }
 
     public async Task<FinalizeTransactionResponse>
@@ -318,12 +314,6 @@ public sealed class TransactionService
          * Verify everything again.
          * Do not trust the previous /verify request.
          */
-        if (transaction.ExpiresAt < DateTime.UtcNow)
-        {
-            throw new InvalidOperationException(
-                "This transaction QR has expired.");
-        }
-
         if (transaction.Status == "COMPLETED")
         {
             throw new InvalidOperationException(
@@ -377,10 +367,10 @@ public sealed class TransactionService
          * a dedicated transfer service.
          */
 
-        transaction.Status = "COMPLETED";
+        var completedAt = DateTime.UtcNow;
 
-        transaction.CompletedAt =
-            DateTime.UtcNow;
+        transaction.Status = "COMPLETED";
+        transaction.CompletedAt = completedAt;
 
         transaction.CompletedByOperatorId =
             operatorId;
@@ -388,6 +378,21 @@ public sealed class TransactionService
         await _transactions.ReplaceOneAsync(
             x => x.Id == transaction.Id,
             transaction);
+
+        var reservationUpdate = await _reservations.UpdateOneAsync(
+            item =>
+                item.Id == transaction.ReservationId &&
+                item.Status == ReservationStatuses.Approved,
+            Builders<EnergyReservation>.Update
+                .Set(item => item.Status, ReservationStatuses.Completed)
+                .Set(item => item.CompletedAt, completedAt)
+                .Set(item => item.UpdatedAt, completedAt));
+
+        if (reservationUpdate.ModifiedCount != 1)
+        {
+            throw new InvalidOperationException(
+                "The reservation is no longer approved and cannot be completed.");
+        }
 
         return new FinalizeTransactionResponse
         {
@@ -419,5 +424,28 @@ public sealed class TransactionService
             sha256.ComputeHash(bytes);
 
         return Convert.ToHexString(hash);
+    }
+
+    private static TransactionVerificationResponse CreateVerificationResponse(
+        ReservationResponse reservation,
+        string transactionToken,
+        string message)
+    {
+        return new TransactionVerificationResponse
+        {
+            Valid = true,
+            TransactionToken = transactionToken,
+            ReservationId = reservation.Id,
+            ProsumerNic = reservation.ProsumerNic,
+            ProsumerName = reservation.ProsumerName ?? string.Empty,
+            NodeId = reservation.NodeId,
+            NodeName = reservation.NodeName ?? reservation.NodeId,
+            SlotId = reservation.SlotId,
+            EnergyAmountKw = reservation.EnergyAmountKw,
+            StartTime = reservation.StartTime,
+            EndTime = reservation.EndTime,
+            Status = reservation.Status,
+            Message = message
+        };
     }
 }

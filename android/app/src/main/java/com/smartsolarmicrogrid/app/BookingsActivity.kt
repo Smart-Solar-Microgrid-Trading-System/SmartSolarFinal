@@ -2,6 +2,7 @@ package com.smartsolarmicrogrid.app
 
 import android.app.Activity
 import android.app.AlertDialog
+import android.content.Intent
 import android.content.res.ColorStateList
 import android.graphics.Color
 import android.graphics.drawable.GradientDrawable
@@ -1212,6 +1213,31 @@ class BookingsActivity : Activity() {
 
         content.addView(card)
 
+        if (reservation.status.equals("Approved", ignoreCase = true)) {
+
+            val transactionQrButton =
+                primaryButton(
+                    "View Transaction QR"
+                )
+
+            transactionQrButton.setOnClickListener {
+                startActivity(
+                    Intent(
+                        this,
+                        TransactionQrActivity::class.java
+                    ).putExtra(
+                        "reservationId",
+                        reservation.id
+                    )
+                )
+            }
+
+            content.addView(
+                transactionQrButton,
+                matchWrap(top = 14)
+            )
+        }
+
         val locked =
             reservation.status == "Cancelled" ||
                     reservation.status == "Completed" ||
@@ -1230,7 +1256,7 @@ class BookingsActivity : Activity() {
                     )
                 }
             },
-            matchWrap(top = 14)
+            matchWrap(top = if (reservation.status.equals("Approved", ignoreCase = true)) 8 else 14)
         )
 
         content.addView(

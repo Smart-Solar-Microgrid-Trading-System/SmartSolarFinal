@@ -8,7 +8,5 @@ public sealed class TransactionQrResponse
 
     public string QrPayload { get; set; } = string.Empty;
 
-    public DateTime ExpiresAt { get; set; }
-
     public string Status { get; set; } = string.Empty;
 }

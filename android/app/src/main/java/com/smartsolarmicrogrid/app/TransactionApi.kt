@@ -9,7 +9,6 @@ object TransactionApi {
         val reservationId: String,
         val transactionToken: String,
         val qrPayload: String,
-        val expiresAt: String,
         val status: String
     )
 
@@ -58,7 +57,6 @@ object TransactionApi {
                 reservationId = json.optString("reservationId"),
                 transactionToken = json.optString("transactionToken"),
                 qrPayload = json.optString("qrPayload"),
-                expiresAt = json.optString("expiresAt"),
                 status = json.optString("status")
             )
         }
