@@ -78,6 +78,8 @@ builder.Services.AddAuthorization(options =>
 {
     options.AddPolicy(UserRoles.Backoffice, policy =>
         policy.RequireRole(UserRoles.Backoffice));
+    options.AddPolicy(UserRoles.GridOperator, policy =>
+        policy.RequireRole(UserRoles.GridOperator));
     options.AddPolicy(UserRoles.Prosumer, policy =>
         policy.RequireRole(UserRoles.Prosumer));
 });

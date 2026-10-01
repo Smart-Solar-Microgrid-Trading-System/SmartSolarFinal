@@ -7,9 +7,26 @@ import android.content.res.ColorStateList
 import android.graphics.Color
 import android.graphics.drawable.GradientDrawable
 import android.os.Bundle
-import android.widget.Button
+import android.view.View
+import android.widget.*
+import java.time.Instant
+import java.time.OffsetDateTime
+import java.time.ZoneOffset
+import java.time.format.DateTimeFormatter
 
 class BookingsActivity : Activity() {
+
+    private lateinit var content: LinearLayout
+    private lateinit var feedback: TextView
+    private lateinit var createTab: Button
+    private lateinit var listTab: Button
+    private lateinit var session: SessionDatabaseHelper.MobileSession
+
+    private var nodes = emptyList<ReservationApi.Node>()
+    private var selectedNode: ReservationApi.Node? = null
+    private var selectedSlot: ReservationApi.Slot? = null
+    private var energyAmount = ""
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_bookings)

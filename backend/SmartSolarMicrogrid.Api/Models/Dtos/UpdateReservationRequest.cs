@@ -1,0 +1,19 @@
+/*
+ * Project: Smart Solar Microgrid Trading System
+ * Component: Energy Reservation Management
+ * File: UpdateReservationRequest.cs
+ * Purpose: Defines the slot and energy values that staff may change on a reservation.
+ * Contributor: Rathnayake R.M.S.B
+ */
+using System.ComponentModel.DataAnnotations;
+
+namespace SmartSolarMicrogrid.Api.Models.Dtos;
+
+public sealed class UpdateReservationRequest
+{
+    [Required]
+    public string SlotId { get; set; } = null!;
+
+    [Range(typeof(decimal), "0.01", "79228162514264337593543950335")]
+    public decimal EnergyAmountKw { get; set; }
+}

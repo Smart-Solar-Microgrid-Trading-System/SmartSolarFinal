@@ -30,6 +30,8 @@ public sealed class EnergyTransaction
 
     public DateTime UpdatedAt { get; set; }
 
+    public DateTime ExpiresAt { get; set; }
+
     public DateTime? VerifiedAt { get; set; }
 
     public DateTime? CompletedAt { get; set; }

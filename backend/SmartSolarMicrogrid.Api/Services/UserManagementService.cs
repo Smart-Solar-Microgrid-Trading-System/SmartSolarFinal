@@ -83,7 +83,7 @@ public sealed class UserManagementService
         return users.Select(ToResponse).ToList();
     }
 
-    public async Task<UserManagementResult> UpdateProsumerStatusAsync(string nic, UpdateProsumerStatusRequest request)
+    public async Task<UserManagementResult> UpdateProsumerStatusAsync(string nic, UpdateAccountStatusRequest request)
     {
         if (request.AccountStatus is not AccountStatuses.Active and not AccountStatuses.Deactivated)
         {
@@ -101,6 +101,28 @@ public sealed class UserManagementService
         user.AccountStatus = request.AccountStatus;
         user.UpdatedAt = DateTime.UtcNow;
         await _usersCollection.ReplaceOneAsync(candidate => candidate.Id == nic, user);
+        return UserManagementResult.Success(ToResponse(user));
+    }
+
+    public async Task<UserManagementResult> UpdateWebUserStatusAsync(string id, UpdateAccountStatusRequest request)
+    {
+        if (request.AccountStatus is not AccountStatuses.Active and not AccountStatuses.Deactivated)
+        {
+            return UserManagementResult.Invalid("AccountStatus must be Active or Deactivated.");
+        }
+
+        var user = await _usersCollection.Find(candidate =>
+                candidate.Id == id &&
+                (candidate.Role == UserRoles.Backoffice || candidate.Role == UserRoles.GridOperator))
+            .FirstOrDefaultAsync();
+        if (user is null)
+        {
+            return UserManagementResult.NotFound("Web user not found.");
+        }
+
+        user.AccountStatus = request.AccountStatus;
+        user.UpdatedAt = DateTime.UtcNow;
+        await _usersCollection.ReplaceOneAsync(candidate => candidate.Id == id, user);
         return UserManagementResult.Success(ToResponse(user));
     }
 
@@ -137,6 +159,36 @@ public sealed class UserManagementService
         user.Phone = string.IsNullOrWhiteSpace(request.Phone) ? null : request.Phone.Trim();
         user.UpdatedAt = DateTime.UtcNow;
         await _usersCollection.ReplaceOneAsync(candidate => candidate.Id == userId, user);
+        return UserManagementResult.Success(ToResponse(user));
+    }
+
+    public async Task<UserManagementResult> UpdateProsumerProfileAsync(string nic, UpdateUserProfileRequest request)
+    {
+        var user = await _usersCollection.Find(candidate =>
+                candidate.Id == nic && candidate.Role == UserRoles.Prosumer)
+            .FirstOrDefaultAsync();
+        if (user is null)
+        {
+            return UserManagementResult.NotFound("Prosumer not found.");
+        }
+
+        if (string.IsNullOrWhiteSpace(request.FullName))
+        {
+            return UserManagementResult.Invalid("Full name is required.");
+        }
+
+        var email = string.IsNullOrWhiteSpace(request.Email) ? null : request.Email.Trim().ToLowerInvariant();
+        if (email is not null && await _usersCollection.Find(candidate =>
+                candidate.Email == email && candidate.Id != nic).AnyAsync())
+        {
+            return UserManagementResult.Conflict("A user with this email address already exists.");
+        }
+
+        user.FullName = request.FullName.Trim();
+        user.Email = email;
+        user.Phone = string.IsNullOrWhiteSpace(request.Phone) ? null : request.Phone.Trim();
+        user.UpdatedAt = DateTime.UtcNow;
+        await _usersCollection.ReplaceOneAsync(candidate => candidate.Id == nic, user);
         return UserManagementResult.Success(ToResponse(user));
     }
 
