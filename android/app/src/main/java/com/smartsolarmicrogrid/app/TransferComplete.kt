@@ -18,6 +18,8 @@ class TransferCompleteActivity :
             R.layout.activity_transfer_complete
         )
 
+        TopAppBar.configure(this, "Transfer Complete")
+
         val messageText =
             findViewById<TextView>(
                 R.id.messageText

@@ -4,7 +4,6 @@ import android.Manifest
 import android.content.Intent
 import android.content.pm.PackageManager
 import android.os.Bundle
-import android.widget.ImageButton
 import android.widget.TextView
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.annotation.OptIn
@@ -25,7 +24,6 @@ class QrScannerActivity : AppCompatActivity() {
 
     private lateinit var cameraPreview: PreviewView
     private lateinit var scannerStatus: TextView
-    private lateinit var pageBackButton: ImageButton
 
     private val cameraExecutor =
         Executors.newSingleThreadExecutor()
@@ -61,12 +59,7 @@ class QrScannerActivity : AppCompatActivity() {
         scannerStatus =
             findViewById(R.id.scannerStatus)
 
-        pageBackButton =
-            findViewById(R.id.pageBackButton)
-
-        pageBackButton.setOnClickListener {
-            finish()
-        }
+        TopAppBar.configure(this, "Scan Transaction QR")
 
         checkCameraPermission()
     }

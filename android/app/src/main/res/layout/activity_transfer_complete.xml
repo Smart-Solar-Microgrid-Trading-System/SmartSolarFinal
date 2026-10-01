@@ -5,15 +5,12 @@
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     android:gravity="center"
+    android:background="@color/app_background"
     android:orientation="vertical"
-    android:padding="32dp">
+    android:paddingStart="@dimen/screen_padding"
+    android:paddingEnd="@dimen/screen_padding">
 
-    <TextView
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:text="Transfer Completed"
-        android:textSize="28sp"
-        android:textStyle="bold" />
+    <include layout="@layout/view_top_app_bar" />
 
     <TextView
         android:id="@+id/messageText"

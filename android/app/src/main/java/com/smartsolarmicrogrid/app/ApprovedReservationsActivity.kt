@@ -4,7 +4,6 @@ import android.app.Activity
 import android.graphics.Typeface
 import android.os.Bundle
 import android.widget.Button
-import android.widget.ImageButton
 import android.widget.LinearLayout
 import android.widget.TextView
 import android.content.Intent
@@ -21,17 +20,11 @@ class ApprovedReservationsActivity : Activity() {
 
         setContentView(R.layout.activity_approved_reservations)
 
-        val pageBackButton = findViewById<ImageButton>(
-            R.id.pageBackButton
-        )
-
         statusText = findViewById(R.id.statusText)
         reservationsContainer =
             findViewById(R.id.reservationsContainer)
 
-        pageBackButton.setOnClickListener {
-            finish()
-        }
+        TopAppBar.configure(this, "Approved Reservations")
 
         loadSession()
 

@@ -31,6 +31,8 @@ class BookingVerificationActivity :
             R.layout.activity_booking_verification
         )
 
+        TopAppBar.configure(this, "Booking Verification")
+
         initializeViews()
 
         transactionToken =

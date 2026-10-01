@@ -24,7 +24,7 @@ class ProfileActivity : Activity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_profile)
-        findViewById<android.widget.ImageButton>(R.id.pageBackButton).setOnClickListener { finish() }
+        TopAppBar.configure(this, "My Profile")
         nameInput = findViewById(R.id.nameInput)
         emailInput = findViewById(R.id.emailInput)
         phoneInput = findViewById(R.id.phoneInput)

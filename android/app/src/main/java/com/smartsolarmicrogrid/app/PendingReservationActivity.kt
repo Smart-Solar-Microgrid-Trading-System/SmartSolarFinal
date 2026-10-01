@@ -22,6 +22,8 @@ class PendingReservationsActivity : Activity() {
             R.layout.activity_pending_reservations
         )
 
+        TopAppBar.configure(this, "Pending Reservations")
+
         statusText =
             findViewById(R.id.statusText)
 

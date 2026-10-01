@@ -1,7 +1,18 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <color name="brand_blue">#1266B5</color>
+    <color name="brand_blue">#146CBD</color>
+    <color name="brand_blue_dark">#0E4F8A</color>
+    <color name="brand_blue_soft">#EAF3FD</color>
+    <color name="app_background">#F6F8FB</color>
+    <color name="surface">#FFFFFF</color>
+    <color name="surface_muted">#EEF3F8</color>
+    <color name="text_primary">#172B4D</color>
     <color name="text_secondary">#526173</color>
+    <color name="border_subtle">#D7E1EC</color>
     <color name="status_success">#087B4A</color>
+    <color name="status_success_soft">#E7F8EF</color>
+    <color name="status_warning">#B45309</color>
+    <color name="status_warning_soft">#FFF7E6</color>
     <color name="status_error">#B42318</color>
+    <color name="status_error_soft">#FDEDEC</color>
 </resources>

@@ -22,6 +22,8 @@ class VerifiedReservationsActivity : Activity() {
             R.layout.activity_verified_reservations
         )
 
+        TopAppBar.configure(this, "Approved Reservations")
+
         statusText = findViewById(R.id.statusText)
 
         reservationsContainer =

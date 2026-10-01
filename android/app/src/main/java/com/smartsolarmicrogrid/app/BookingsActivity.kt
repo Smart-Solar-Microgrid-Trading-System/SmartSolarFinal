@@ -45,10 +45,7 @@ class BookingsActivity : Activity() {
         createTab = findViewById(R.id.createReservationTab)
         listTab = findViewById(R.id.myReservationsTab)
 
-        findViewById<ImageButton>(R.id.pageBackButton)
-            .setOnClickListener {
-                finish()
-            }
+        TopAppBar.configure(this, "Bookings")
 
         AppNavigation.configure(
             this,

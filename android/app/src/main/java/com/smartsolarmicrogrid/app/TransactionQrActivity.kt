@@ -4,7 +4,6 @@ import android.app.Activity
 import android.graphics.Bitmap
 import android.graphics.Color
 import android.os.Bundle
-import android.widget.ImageButton
 import android.widget.ImageView
 import android.widget.TextView
 import com.google.zxing.BarcodeFormat
@@ -27,11 +26,6 @@ class TransactionQrActivity : Activity() {
             R.layout.activity_transaction_qr
         )
 
-        val pageBackButton =
-            findViewById<ImageButton>(
-                R.id.pageBackButton
-            )
-
         transactionQrImage =
             findViewById(
                 R.id.transactionQrImage
@@ -47,9 +41,7 @@ class TransactionQrActivity : Activity() {
                 R.id.reservationIdText
             )
 
-        pageBackButton.setOnClickListener {
-            finish()
-        }
+        TopAppBar.configure(this, "Transaction QR")
 
         val reservationId =
             intent.getStringExtra(

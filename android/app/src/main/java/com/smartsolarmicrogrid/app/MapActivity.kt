@@ -2,7 +2,6 @@ package com.smartsolarmicrogrid.app
 
 import android.os.Bundle
 import android.view.View
-import android.widget.ImageButton
 import android.widget.ProgressBar
 import android.widget.TextView
 import androidx.fragment.app.FragmentActivity
@@ -32,9 +31,7 @@ class MapActivity : FragmentActivity() {
 
         setContentView(R.layout.activity_map)
 
-        findViewById<ImageButton>(R.id.pageBackButton).setOnClickListener {
-            finish()
-        }
+        TopAppBar.configure(this, "Grid Nodes Map")
 
         mapView = findViewById(R.id.map)
         progressBar = findViewById(R.id.progressBar)

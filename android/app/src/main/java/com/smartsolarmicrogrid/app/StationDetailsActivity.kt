@@ -3,7 +3,6 @@ package com.smartsolarmicrogrid.app
 import android.app.Activity
 import android.os.Bundle
 import android.view.View
-import android.widget.ImageButton
 import android.widget.ProgressBar
 import android.widget.TextView
 import org.json.JSONObject
@@ -37,10 +36,7 @@ class StationDetailsActivity : Activity() {
         longitudeText = findViewById(R.id.longitudeText)
         stationIdText = findViewById(R.id.stationIdText)
 
-        // Back button
-        findViewById<ImageButton>(R.id.pageBackButton).setOnClickListener {
-            finish()
-        }
+        TopAppBar.configure(this, "Station Details")
 
         // Get station ID sent from NearbyStationsActivity
         val stationId = intent.getStringExtra("station_id")

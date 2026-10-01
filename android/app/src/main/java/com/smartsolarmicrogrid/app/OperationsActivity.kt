@@ -4,7 +4,6 @@ import android.app.Activity
 import android.content.Intent
 import android.os.Bundle
 import android.widget.Button
-import android.widget.ImageButton
 
 class OperationsActivity : Activity() {
 
@@ -13,18 +12,13 @@ class OperationsActivity : Activity() {
 
         setContentView(R.layout.activity_operations)
 
-        val pageBackButton =
-            findViewById<ImageButton>(R.id.pageBackButton)
-
         val pendingReservationsButton =
             findViewById<Button>(R.id.pendingReservationsButton)
 
         val approvedReservationsButton =
             findViewById<Button>(R.id.approvedReservationsButton)
 
-        pageBackButton.setOnClickListener {
-            finish()
-        }
+        TopAppBar.configure(this, "Grid Operator Operations")
 
         pendingReservationsButton.setOnClickListener {
             startActivity(
