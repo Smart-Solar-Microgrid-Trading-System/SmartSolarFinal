@@ -26,10 +26,9 @@ export function LoginPage() {
     setSubmitting(true);
 
     try {
-      const session = await signIn(identifier, password);
+      await signIn(identifier, password);
 
-      const defaultPage = session.role === "Backoffice" ? "/users" : "/";
-      const nextPage = location.state?.from || defaultPage;
+      const nextPage = location.state?.from || "/";
 
       navigate(nextPage, { replace: true });
     } catch (err) {
