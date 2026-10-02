@@ -22,7 +22,7 @@ builder.Services.AddControllers(options =>
     options.Filters.Add<AccountStatusFilter>();
 });
 
-// Validatatio of MongoDB configuration.
+// Validation of MongoDB configuration.
 var connectionString = builder.Configuration["MongoDB:ConnectionString"];
 var databaseName = builder.Configuration["MongoDB:DatabaseName"];
 if (string.IsNullOrWhiteSpace(connectionString) || string.IsNullOrWhiteSpace(databaseName))
