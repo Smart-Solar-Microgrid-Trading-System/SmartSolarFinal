@@ -1,5 +1,6 @@
 const configuredBaseUrl = import.meta.env.VITE_API_BASE_URL?.trim();
-const sameHostApiBaseUrl = `${window.location.protocol}//${window.location.hostname}:5000`;
+const sameHostApiPort = import.meta.env.DEV ? 5080 : 5000;
+const sameHostApiBaseUrl = `${window.location.protocol}//${window.location.hostname}:${sameHostApiPort}`;
 const baseUrl = (configuredBaseUrl || sameHostApiBaseUrl).replace(/\/$/, "");
 
 async function request(path, { token, body, method = "GET" } = {}) {
