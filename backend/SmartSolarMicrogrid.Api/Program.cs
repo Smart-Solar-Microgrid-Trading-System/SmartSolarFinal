@@ -62,6 +62,7 @@ builder.Services.AddSingleton<MicrogridNodeService>();
 builder.Services.AddSingleton<BookingSlotService>();    //booking slots
 builder.Services.AddSingleton<ReservationQueryService>();
 builder.Services.AddSingleton<ReservationCommandService>();
+builder.Services.AddSingleton<TransactionService>();
 
 // Configure JWT authentication.
 var key = Encoding.UTF8.GetBytes(jwtSecret);
