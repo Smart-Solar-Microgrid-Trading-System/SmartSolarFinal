@@ -35,7 +35,7 @@ public class AuthService
         var user = await _usersCollection.Find(u => u.Id == identifier).FirstOrDefaultAsync();
 
         // Preserve exact username matches; only retry a legacy NIC for a Prosumer.
-        if (user is null && identifier.Length == 10 &&
+        if (user == null && identifier.Length == 10 &&
             Regex.IsMatch(identifier, AccountValidationRules.SriLankanNicPattern))
         {
             var nic = identifier.ToUpperInvariant();
@@ -88,12 +88,20 @@ public class AuthService
     {
         // Validating and update the user's password.
         var user = await _usersCollection.Find(u => u.Id == userId).FirstOrDefaultAsync();
-        if (user is null || user.AccountStatus != AccountStatuses.Active)
+        if (user == null || user.AccountStatus != AccountStatuses.Active)
+        {
             return "Account is unavailable.";
+        }
+
         if (!BCrypt.Net.BCrypt.Verify(request.CurrentPassword, user.PasswordHash))
+        {
             return "Current password is incorrect.";
+        }
+
         if (BCrypt.Net.BCrypt.Verify(request.NewPassword, user.PasswordHash))
+        {
             return "New password must differ from your current password.";
+        }
 
         // Verify the old hash before updating the password.
         var result = await _usersCollection.UpdateOneAsync(
@@ -102,7 +110,13 @@ public class AuthService
                 .Set(u => u.PasswordHash, BCrypt.Net.BCrypt.HashPassword(request.NewPassword))
                 .Set(u => u.SessionVersion, Guid.NewGuid().ToString("N"))
                 .Set(u => u.UpdatedAt, DateTime.UtcNow));
-        return result.ModifiedCount == 1 ? null : "Account changed. Please sign in again and retry.";
+
+        if (result.ModifiedCount == 1)
+        {
+            return null;
+        }
+
+        return "Account changed. Please sign in again and retry.";
     }
 }
 
@@ -121,14 +135,29 @@ public sealed class LoginResult
     public LoginResponse? Response { get; }
     public string? Error { get; }
     public bool IsForbidden { get; }
-    public bool IsUnauthorized => Error is not null && !IsForbidden;
+    public bool IsUnauthorized
+    {
+        get
+        {
+            return Error != null && !IsForbidden;
+        }
+    }
 
     // Create a successful login result.
-    public static LoginResult Success(LoginResponse response) => new(response, null, false);
+    public static LoginResult Success(LoginResponse response)
+    {
+        return new LoginResult(response, null, false);
+    }
 
     // Create an invalid credentials result.
-    public static LoginResult Unauthorized() => new(null, "Invalid credentials.", false);
+    public static LoginResult Unauthorized()
+    {
+        return new LoginResult(null, "Invalid credentials.", false);
+    }
 
     // Create an account access rejection result.
-    public static LoginResult Forbidden(string error) => new(null, error, true);
+    public static LoginResult Forbidden(string error)
+    {
+        return new LoginResult(null, error, true);
+    }
 }

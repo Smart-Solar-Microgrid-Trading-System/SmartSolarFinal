@@ -44,18 +44,27 @@ public sealed class UsersController : ControllerBase
             return Conflict(new { error = "A user with this username or email address already exists." });
         }
 
-        return result.Failure switch
+        switch (result.Failure)
         {
-            UserManagementFailure.Invalid => BadRequest(new { error = result.Error }),
-            UserManagementFailure.Conflict => Conflict(new { error = result.Error }),
-            _ => CreatedAtAction(nameof(Create), result.User)
-        };
+            case UserManagementFailure.Invalid:
+                return BadRequest(new { error = result.Error });
+
+            case UserManagementFailure.Conflict:
+                return Conflict(new { error = result.Error });
+
+            default:
+                return CreatedAtAction(nameof(Create), result.User);
+        }
     }
 
     // Return all web users.
     [Authorize(Policy = UserRoles.Backoffice)]
     [HttpGet]
-    public async Task<IActionResult> GetWebUsers() => Ok(await _userManagementService.GetWebUsersAsync());
+    public async Task<IActionResult> GetWebUsers()
+    {
+        var users = await _userManagementService.GetWebUsersAsync();
+        return Ok(users);
+    }
 
     [Authorize(Policy = UserRoles.Backoffice)]
     [HttpPatch("{id}/status")]
@@ -129,14 +138,27 @@ public sealed class UsersController : ControllerBase
     }
 
     // Read the authenticated user's identifier.
-    private string GetCurrentUserId() => User.FindFirstValue(ClaimTypes.NameIdentifier)!;
+    private string GetCurrentUserId()
+    {
+        return User.FindFirstValue(ClaimTypes.NameIdentifier)!;
+    }
 
     // Convert a service result into an HTTP response.
-    private IActionResult ToUserResult(UserManagementResult result) => result.Failure switch
+    private IActionResult ToUserResult(UserManagementResult result)
     {
-        UserManagementFailure.Invalid => BadRequest(new { error = result.Error }),
-        UserManagementFailure.Conflict => Conflict(new { error = result.Error }),
-        UserManagementFailure.NotFound => NotFound(new { error = result.Error }),
-        _ => Ok(result.User)
-    };
+        switch (result.Failure)
+        {
+            case UserManagementFailure.Invalid:
+                return BadRequest(new { error = result.Error });
+
+            case UserManagementFailure.Conflict:
+                return Conflict(new { error = result.Error });
+
+            case UserManagementFailure.NotFound:
+                return NotFound(new { error = result.Error });
+
+            default:
+                return Ok(result.User);
+        }
+    }
 }

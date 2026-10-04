@@ -86,7 +86,10 @@ public sealed class ProsumersController : ControllerBase
     public async Task<IActionResult> GetByStatus([FromQuery] string? status)
     {
         // Return Prosumers with the requested account status.
-        if (status is not null && status is not AccountStatuses.Pending and not AccountStatuses.Active and not AccountStatuses.Deactivated)
+        if (status != null &&
+            status != AccountStatuses.Pending &&
+            status != AccountStatuses.Active &&
+            status != AccountStatuses.Deactivated)
         {
             return BadRequest(new { error = "Status must be Pending, Active, or Deactivated." });
         }
@@ -100,12 +103,17 @@ public sealed class ProsumersController : ControllerBase
     {
         // Update a Prosumer's account status.
         var result = await _prosumerService.UpdateProsumerStatusAsync(nic, request);
-        return result.Failure switch
+        switch (result.Failure)
         {
-            UserManagementFailure.Invalid => BadRequest(new { error = result.Error }),
-            UserManagementFailure.NotFound => NotFound(new { error = result.Error }),
-            _ => Ok(result.User)
-        };
+            case UserManagementFailure.Invalid:
+                return BadRequest(new { error = result.Error });
+
+            case UserManagementFailure.NotFound:
+                return NotFound(new { error = result.Error });
+
+            default:
+                return Ok(result.User);
+        }
     }
 
     [Authorize(Policy = UserRoles.Backoffice)]
@@ -116,13 +124,20 @@ public sealed class ProsumersController : ControllerBase
         try
         {
             var result = await _prosumerService.UpdateProsumerProfileAsync(nic, request);
-            return result.Failure switch
+            switch (result.Failure)
             {
-                UserManagementFailure.Invalid => BadRequest(new { error = result.Error }),
-                UserManagementFailure.Conflict => Conflict(new { error = result.Error }),
-                UserManagementFailure.NotFound => NotFound(new { error = result.Error }),
-                _ => Ok(result.User)
-            };
+                case UserManagementFailure.Invalid:
+                    return BadRequest(new { error = result.Error });
+
+                case UserManagementFailure.Conflict:
+                    return Conflict(new { error = result.Error });
+
+                case UserManagementFailure.NotFound:
+                    return NotFound(new { error = result.Error });
+
+                default:
+                    return Ok(result.User);
+            }
         }
         catch (MongoCommandException exception) when (exception.Code == 11000)
         {
