@@ -31,14 +31,15 @@ public class AuthService
     public async Task<LoginResult> LoginAsync(LoginRequest request)
     {
         // Validating the credentials and create an access token.
-        var user = await _usersCollection.Find(u => u.Id == request.Identifier).FirstOrDefaultAsync();
+        var identifier = request.Identifier.Trim();
+        var user = await _usersCollection.Find(u => u.Id == identifier).FirstOrDefaultAsync();
 
         // Preserve exact username matches; only retry a legacy NIC for a Prosumer.
-        if (user is null && request.Identifier is { Length: 10 } &&
-            Regex.IsMatch(request.Identifier, AccountValidationRules.SriLankanNicPattern))
+        if (user is null && identifier.Length == 10 &&
+            Regex.IsMatch(identifier, AccountValidationRules.SriLankanNicPattern))
         {
-            var nic = request.Identifier.ToUpperInvariant();
-            if (nic != request.Identifier)
+            var nic = identifier.ToUpperInvariant();
+            if (nic != identifier)
             {
                 user = await _usersCollection.Find(u => u.Id == nic && u.Role == UserRoles.Prosumer)
                     .FirstOrDefaultAsync();
