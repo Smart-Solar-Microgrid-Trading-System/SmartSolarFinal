@@ -8,20 +8,20 @@ This guide covers cloning the project, local development, IIS/LAN deployment, an
 
 ## Individual contributions
 
-The following contributions are based on the component ownership recorded in the source-code headers and the corresponding Git commit history. Shared integration files were maintained collaboratively where components interact.
+The project was completed collaboratively by four members. Each member's primary responsibilities are listed below.
 
 | Student ID | Student name | Individual contribution |
 | --- | --- | --- |
-| IT23205956 | Thilakaratne A.A.S.M. | Implemented Microgrid Node Management, including node creation, updates, details, deactivation, GPS and map presentation, capacity information, and battery-slot availability. Also contributed Android grid-node maps and details, together with QR transaction scanning and verification workflows. |
-| IT23151642 | K.H. Ruwanmali | Implemented Booking Slot Management, reservation monitoring, and operational dashboards. Work includes booking-slot API models, services and controllers; reservation filtering, approval and rejection; dashboard summaries; and related web and Android booking interfaces. |
-| IT23297968 | Hirimuthugodage J. | Implemented User Management, Prosumer Management, and role-based authentication across the API, web, and Android clients. Work includes account registration, profile and status management, Backoffice reactivation, NIC and username login, authorization, session invalidation, password and profile updates, and account search. |
-| IT23289420 | Rathnayake R.M.S.B. | Implemented Energy Reservation Management across the API, web, and Android clients. Work includes reservation creation, modification and cancellation; booking history and search; operator-assisted workflows; seven-day scheduling and twelve-hour notice validation; reservation DTOs; and reservation tests. |
+| IT23205956 | Thilakaratne A.A.S.M. | Developed microgrid node management, including node registration, editing, deactivation, capacity and battery-slot information, map-based node views, and QR verification features. |
+| IT23151642 | K.H. Ruwanmali | Developed booking-slot management, reservation monitoring, approval and rejection operations, dashboard summaries, and the related web and mobile interfaces. |
+| IT23297968 | Hirimuthugodage J. | Developed user and Prosumer management with role-based authentication, including registration, profile updates, account status management, reactivation, login, session security, password changes, and account search. |
+| IT23289420 | Rathnayake R.M.S.B. | Developed energy reservation management, including creating, modifying, cancelling, searching, and viewing reservations, together with scheduling rules and reservation tests. |
 
-## Application demonstration video
+## Application demonstration
 
-The final demonstration video must be no longer than five minutes and must explain how the application works.
+A video of no more than five minutes demonstrating the application will be available through YouTube or OneDrive.
 
-**Video link:** To be added before submission (YouTube or OneDrive).
+**Video link:** Pending
 
 ## System workflow
 
