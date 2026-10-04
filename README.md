@@ -2,6 +2,27 @@
 
 This guide covers cloning the project, local development, IIS/LAN deployment, and Android configuration. It is the single source of truth for project setup.
 
+## Git repository
+
+[Smart Solar Microgrid Trading System](https://github.com/Smart-Solar-Microgrid-Trading-System/SmartSolarFinal)
+
+## Individual contributions
+
+The project was completed collaboratively by four members. Each member's primary responsibilities are listed below.
+
+| Student ID | Student name | Individual contribution |
+| --- | --- | --- |
+| IT23205956 | Thilakaratne A.A.S.M. | Developed microgrid node management, including node registration, editing, deactivation, capacity and battery-slot information, map-based node views, and QR verification features. |
+| IT23151642 | K.H. Ruwanmali | Developed booking-slot management, reservation monitoring, approval and rejection operations, dashboard summaries, and the related web and mobile interfaces. |
+| IT23297968 | Hirimuthugodage J. | Developed user and Prosumer management with role-based authentication, including registration, profile updates, account status management, reactivation, login, session security, password changes, and account search. |
+| IT23289420 | Rathnayake R.M.S.B. | Developed energy reservation management, including creating, modifying, cancelling, searching, and viewing reservations, together with scheduling rules and reservation tests. |
+
+## Application demonstration
+
+A video of no more than five minutes demonstrating the application will be available through YouTube or OneDrive.
+
+**Video link:** Pending
+
 ## System workflow
 
 ```mermaid
