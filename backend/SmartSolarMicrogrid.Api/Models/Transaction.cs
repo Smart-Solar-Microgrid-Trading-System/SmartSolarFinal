@@ -1,3 +1,9 @@
+/*
+ * Student Name: Thilakaratne A.A.S.M.
+ * Component: Energy Transaction Management
+ * File Name: Transaction.cs
+ * Description: Defines the structure for an energy transaction.
+ */
 using MongoDB.Bson.Serialization.Attributes;
 
 namespace SmartSolarMicrogrid.Api.Models;
@@ -17,9 +23,12 @@ public sealed class EnergyTransaction
 
     public string GridOperatorId { get; set; } = null!;
 
-    // SHA-256 hash of the QR transaction token.
-    // The actual token is NOT stored in MongoDB.
+    // SHA-256 hash used to verify the QR transaction token.
     public string TransactionTokenHash { get; set; } = null!;
+
+    // Protected QR payload retained so the Prosumer can display
+    // the same active QR again without storing a readable token.
+    public string? ProtectedQrPayload { get; set; }
 
     public string Status { get; set; } = null!;
 

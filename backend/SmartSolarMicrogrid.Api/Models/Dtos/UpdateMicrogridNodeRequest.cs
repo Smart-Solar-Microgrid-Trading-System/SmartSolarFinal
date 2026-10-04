@@ -1,3 +1,9 @@
+/*
+ * Student Name: Thilakaratne A.A.S.M.
+ * Component: Microgrid node Management
+ * File Name: UpdateMicrogridNodeRequest.cs
+ * Description: Defines the request model for updating an existing microgrid node.
+ */
 public sealed class UpdateMicrogridNodeRequest
 {
     public string Name { get; set; } = null!;

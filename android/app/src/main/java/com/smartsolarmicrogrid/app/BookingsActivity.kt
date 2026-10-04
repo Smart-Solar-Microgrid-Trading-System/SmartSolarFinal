@@ -1,10 +1,6 @@
 package com.smartsolarmicrogrid.app
 
 import android.app.Activity
-import android.app.AlertDialog
-import android.content.res.ColorStateList
-import android.graphics.Color
-import android.graphics.drawable.GradientDrawable
 import android.os.Bundle
 import android.view.View
 import android.widget.*
@@ -15,74 +11,11 @@ import java.time.ZoneOffset
 import java.time.format.DateTimeFormatter
 
 class BookingsActivity : Activity() {
-
-    private lateinit var content: LinearLayout
-    private lateinit var feedback: TextView
-    private lateinit var createTab: Button
-    private lateinit var listTab: Button
-    private lateinit var session: SessionDatabaseHelper.MobileSession
-
-    private var nodes = emptyList<ReservationApi.Node>()
-    private var selectedNode: ReservationApi.Node? = null
-    private var selectedSlot: ReservationApi.Slot? = null
-    private var energyAmount = ""
-
     override fun onCreate(savedInstanceState: Bundle?) {
-        // Prepare the reservation screen and connect its local navigation controls.
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_bookings)
-
-        val savedSession = SessionDatabaseHelper(this).getSession()
-
-        if (savedSession == null) {
-            finish()
-            return
-        }
-
-        session = savedSession
-
-        content = findViewById(R.id.reservationContent)
-        feedback = findViewById(R.id.reservationFeedbackText)
-        createTab = findViewById(R.id.createReservationTab)
-        listTab = findViewById(R.id.myReservationsTab)
-
-        findViewById<ImageButton>(R.id.pageBackButton)
-            .setOnClickListener {
-                finish()
-            }
-
-        AppNavigation.configure(
-            this,
-            AppNavigation.Destination.Bookings
-        )
-
-        createTab.setOnClickListener {
-            showCreate()
-        }
-
-        listTab.setOnClickListener {
-            showReservations()
-        }
-
-        if (session.role != "Prosumer") {
-            createTab.visibility = View.GONE
-            listTab.visibility = View.GONE
-
-            clearContent()
-
-            title(
-                "Reservations",
-                "Prosumer mobile feature"
-            )
-
-            content.addView(
-                empty(
-                    "Mobile reservation booking is available only to Prosumer accounts."
-                )
-            )
-        } else {
-            loadNodes()
-        }
+        findViewById<android.widget.ImageButton>(R.id.pageBackButton).setOnClickListener { finish() }
+        AppNavigation.configure(this, AppNavigation.Destination.Bookings)
     }
 
     private fun loadNodes() {
