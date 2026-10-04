@@ -25,8 +25,10 @@ class NearbyStationsActivity : Activity() {
         progressBar = findViewById(R.id.progressBar)
         feedbackText = findViewById(R.id.feedbackText)
 
-        findViewById<ImageButton>(R.id.pageBackButton).setOnClickListener {
-            finish()
+        findViewById<ImageButton>(
+            R.id.pageBackButton
+        ).setOnClickListener {
+            AppNavigation.openMap(this)
         }
 
         loadStations()

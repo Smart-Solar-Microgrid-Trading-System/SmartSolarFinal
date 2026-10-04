@@ -1,24 +1,111 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <style name="BottomNavigationItem">
-        <item name="android:layout_width">0dp</item>
-        <item name="android:layout_height">56dp</item>
-        <item name="android:layout_weight">1</item>
-        <item name="android:background">@drawable/bottom_navigation_item_background</item>
-        <item name="android:drawableTint">@color/bottom_navigation_item_tint</item>
-        <item name="android:gravity">center</item>
-        <item name="android:minHeight">48dp</item>
-        <item name="android:paddingTop">4dp</item>
-        <item name="android:paddingBottom">4dp</item>
-        <item name="android:textAllCaps">false</item>
-        <item name="android:textColor">@color/bottom_navigation_item_tint</item>
-        <item name="android:textSize">11sp</item>
-    </style>
+
     <style name="AppTheme" parent="android:style/Theme.Material.Light.NoActionBar">
         <item name="android:fontFamily">sans</item>
-        <item name="android:colorAccent">@color/brand_blue</item>
-        <item name="android:navigationBarColor">#FFFFFF</item>
+        <item name="android:windowActionModeOverlay">true</item>
+
+        <item name="android:colorAccent">@color/brand_green</item>
+        <item name="android:windowBackground">@color/app_background</item>
+
+        <item name="android:statusBarColor">@color/surface</item>
         <item name="android:windowLightStatusBar">true</item>
-        <item name="android:statusBarColor">#FFFFFF</item>
+
+        <item name="android:navigationBarColor">@color/surface</item>
+        <item name="android:windowLightNavigationBar">true</item>
     </style>
+
+    <style name="PageTitle">
+        <item name="android:textColor">@color/text_primary</item>
+        <item name="android:textSize">22sp</item>
+        <item name="android:textStyle">bold</item>
+    </style>
+
+    <style name="LargePageTitle">
+        <item name="android:textColor">@color/text_primary</item>
+        <item name="android:textSize">28sp</item>
+        <item name="android:textStyle">bold</item>
+    </style>
+
+    <style name="SectionTitle">
+        <item name="android:textColor">@color/text_primary</item>
+        <item name="android:textSize">17sp</item>
+        <item name="android:textStyle">bold</item>
+    </style>
+
+    <style name="BodyText">
+        <item name="android:textColor">@color/text_secondary</item>
+        <item name="android:textSize">14sp</item>
+    </style>
+
+    <style name="InputLabel">
+        <item name="android:textColor">@color/text_primary</item>
+        <item name="android:textSize">14sp</item>
+        <item name="android:textStyle">bold</item>
+    </style>
+
+    <style name="PrimaryButton">
+        <item name="android:layout_width">match_parent</item>
+        <item name="android:layout_height">52dp</item>
+        <item name="android:minHeight">52dp</item>
+        <item name="android:textAllCaps">false</item>
+        <item name="android:textStyle">bold</item>
+        <item name="android:textSize">15sp</item>
+        <item name="android:textColor">@color/text_on_primary</item>
+        <item name="android:backgroundTint">@color/brand_green</item>
+    </style>
+
+    <style name="SecondaryButton">
+        <item name="android:layout_width">match_parent</item>
+        <item name="android:layout_height">52dp</item>
+        <item name="android:minHeight">52dp</item>
+        <item name="android:textAllCaps">false</item>
+        <item name="android:textStyle">bold</item>
+        <item name="android:textSize">15sp</item>
+        <item name="android:textColor">@color/brand_blue</item>
+        <item name="android:backgroundTint">@color/brand_blue_light</item>
+    </style>
+
+    <style name="DangerButton">
+        <item name="android:layout_width">match_parent</item>
+        <item name="android:layout_height">52dp</item>
+        <item name="android:minHeight">52dp</item>
+        <item name="android:textAllCaps">false</item>
+        <item name="android:textStyle">bold</item>
+        <item name="android:textSize">15sp</item>
+        <item name="android:textColor">@color/status_error</item>
+        <item name="android:backgroundTint">@color/status_error_background</item>
+    </style>
+
+    <style name="TabButton">
+        <item name="android:layout_width">0dp</item>
+        <item name="android:layout_height">48dp</item>
+        <item name="android:layout_weight">1</item>
+        <item name="android:textAllCaps">false</item>
+        <item name="android:textStyle">bold</item>
+        <item name="android:textSize">14sp</item>
+        <item name="android:textColor">@color/text_primary</item>
+        <item name="android:backgroundTint">@color/surface</item>
+    </style>
+
+    <style name="BottomNavigationItem">
+        <item name="android:layout_width">0dp</item>
+        <item name="android:layout_height">64dp</item>
+        <item name="android:layout_weight">1</item>
+
+        <item name="android:background">@drawable/bottom_navigation_item_background</item>
+
+        <item name="android:drawableTint">@color/bottom_navigation_item_tint</item>
+        <item name="android:textColor">@color/bottom_navigation_item_tint</item>
+
+        <item name="android:gravity">center</item>
+        <item name="android:minHeight">56dp</item>
+
+        <item name="android:paddingTop">5dp</item>
+        <item name="android:paddingBottom">4dp</item>
+
+        <item name="android:textAllCaps">false</item>
+        <item name="android:textSize">11sp</item>
+    </style>
+
 </resources>

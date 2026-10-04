@@ -1,15 +1,36 @@
 <?xml version="1.0" encoding="utf-8"?>
-<selector xmlns:android="http://schemas.android.com/apk/res/android">
+
+<selector
+    xmlns:android="http://schemas.android.com/apk/res/android">
+
+    <!-- Current page -->
     <item android:state_enabled="false">
+
         <shape android:shape="rectangle">
-            <solid android:color="#E8F2FC" />
-            <corners android:radius="12dp" />
+
+            <solid
+                android:color="@color/navigation_active_background" />
+
+            <corners
+                android:radius="16dp" />
+
         </shape>
+
     </item>
+
+    <!-- Normal -->
     <item>
+
         <shape android:shape="rectangle">
-            <solid android:color="#FFFFFF" />
-            <corners android:radius="12dp" />
+
+            <solid
+                android:color="@color/surface" />
+
+            <corners
+                android:radius="16dp" />
+
         </shape>
+
     </item>
+
 </selector>

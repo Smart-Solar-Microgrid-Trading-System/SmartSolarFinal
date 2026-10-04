@@ -65,7 +65,7 @@ class QrScannerActivity : AppCompatActivity() {
             findViewById(R.id.pageBackButton)
 
         pageBackButton.setOnClickListener {
-            finish()
+            AppNavigation.openOperations(this)
         }
 
         checkCameraPermission()
