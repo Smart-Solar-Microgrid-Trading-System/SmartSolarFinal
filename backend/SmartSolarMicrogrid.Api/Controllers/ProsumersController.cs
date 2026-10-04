@@ -19,13 +19,11 @@ namespace SmartSolarMicrogrid.Api.Controllers;
 public sealed class ProsumersController : ControllerBase
 {
     private readonly ProsumerService _prosumerService;
-    private readonly UserManagementService _userManagementService;
 
-    public ProsumersController(ProsumerService prosumerService, UserManagementService userManagementService)
+    public ProsumersController(ProsumerService prosumerService)
     {
-        // Store the Prosumer and user management services.
+        // Store the service responsible for Prosumer accounts.
         _prosumerService = prosumerService;
-        _userManagementService = userManagementService;
     }
 
     [HttpPost("register")]
@@ -88,12 +86,15 @@ public sealed class ProsumersController : ControllerBase
     public async Task<IActionResult> GetByStatus([FromQuery] string? status)
     {
         // Return Prosumers with the requested account status.
-        if (status is not null && status is not AccountStatuses.Pending and not AccountStatuses.Active and not AccountStatuses.Deactivated)
+        if (status != null &&
+            status != AccountStatuses.Pending &&
+            status != AccountStatuses.Active &&
+            status != AccountStatuses.Deactivated)
         {
             return BadRequest(new { error = "Status must be Pending, Active, or Deactivated." });
         }
 
-        return Ok(await _userManagementService.GetProsumersAsync(status));
+        return Ok(await _prosumerService.GetProsumersAsync(status));
     }
 
     [Authorize(Policy = UserRoles.Backoffice)]
@@ -101,13 +102,18 @@ public sealed class ProsumersController : ControllerBase
     public async Task<IActionResult> UpdateStatus(string nic, [FromBody] UpdateAccountStatusRequest request)
     {
         // Update a Prosumer's account status.
-        var result = await _userManagementService.UpdateProsumerStatusAsync(nic, request);
-        return result.Failure switch
+        var result = await _prosumerService.UpdateProsumerStatusAsync(nic, request);
+        switch (result.Failure)
         {
-            UserManagementFailure.Invalid => BadRequest(new { error = result.Error }),
-            UserManagementFailure.NotFound => NotFound(new { error = result.Error }),
-            _ => Ok(result.User)
-        };
+            case UserManagementFailure.Invalid:
+                return BadRequest(new { error = result.Error });
+
+            case UserManagementFailure.NotFound:
+                return NotFound(new { error = result.Error });
+
+            default:
+                return Ok(result.User);
+        }
     }
 
     [Authorize(Policy = UserRoles.Backoffice)]
@@ -115,13 +121,31 @@ public sealed class ProsumersController : ControllerBase
     public async Task<IActionResult> Update(string nic, [FromBody] UpdateUserProfileRequest request)
     {
         // Update a Prosumer's profile.
-        var result = await _userManagementService.UpdateProsumerProfileAsync(nic, request);
-        return result.Failure switch
+        try
         {
-            UserManagementFailure.Invalid => BadRequest(new { error = result.Error }),
-            UserManagementFailure.Conflict => Conflict(new { error = result.Error }),
-            UserManagementFailure.NotFound => NotFound(new { error = result.Error }),
-            _ => Ok(result.User)
-        };
+            var result = await _prosumerService.UpdateProsumerProfileAsync(nic, request);
+            switch (result.Failure)
+            {
+                case UserManagementFailure.Invalid:
+                    return BadRequest(new { error = result.Error });
+
+                case UserManagementFailure.Conflict:
+                    return Conflict(new { error = result.Error });
+
+                case UserManagementFailure.NotFound:
+                    return NotFound(new { error = result.Error });
+
+                default:
+                    return Ok(result.User);
+            }
+        }
+        catch (MongoCommandException exception) when (exception.Code == 11000)
+        {
+            return Conflict(new { error = "This email address is already in use." });
+        }
+        catch (MongoWriteException exception) when (exception.WriteError?.Category == ServerErrorCategory.DuplicateKey)
+        {
+            return Conflict(new { error = "This email address is already in use." });
+        }
     }
 }

@@ -2,7 +2,7 @@
  * Student Name: Hirimuthugodage J.
  * Component: User and Prosumer Management with Role-Based Authentication
  * File Name: Program.cs
- * Description: Configuratio of database access, authentication, authorization, and account services.
+ * Description: Configuration of database access, authentication, authorization, and account services.
  */
 
 using System.Text;
@@ -42,6 +42,19 @@ builder.Services.AddSingleton<IMongoDatabase>(services =>
     services.GetRequiredService<IMongoClient>().GetDatabase(databaseName));
 
 // Register application services.
+var jwtSecret = builder.Configuration["Jwt:Secret"];
+var jwtIssuer = builder.Configuration["Jwt:Issuer"];
+var jwtAudience = builder.Configuration["Jwt:Audience"];
+if (string.IsNullOrWhiteSpace(jwtSecret) || jwtSecret.Length < 32)
+{
+    throw new InvalidOperationException("JWT secret must contain at least 32 characters.");
+}
+if (string.IsNullOrWhiteSpace(jwtIssuer) || string.IsNullOrWhiteSpace(jwtAudience))
+{
+    throw new InvalidOperationException("JWT issuer and audience are required.");
+}
+
+builder.Services.AddSingleton(new JwtSettings(jwtSecret, jwtIssuer, jwtAudience));
 builder.Services.AddSingleton<AuthService>();
 builder.Services.AddSingleton<ProsumerService>();
 builder.Services.AddSingleton<UserManagementService>();
@@ -51,7 +64,7 @@ builder.Services.AddSingleton<ReservationQueryService>();
 builder.Services.AddSingleton<ReservationCommandService>();
 
 // Configure JWT authentication.
-var key = Encoding.ASCII.GetBytes(builder.Configuration["Jwt:Secret"]!);
+var key = Encoding.UTF8.GetBytes(jwtSecret);
 builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
     .AddJwtBearer(options =>
     {
@@ -60,9 +73,9 @@ builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
             ValidateIssuerSigningKey = true,
             IssuerSigningKey = new SymmetricSecurityKey(key),
             ValidateIssuer = true,
-            ValidIssuer = builder.Configuration["Jwt:Issuer"],
+            ValidIssuer = jwtIssuer,
             ValidateAudience = true,
-            ValidAudience = builder.Configuration["Jwt:Audience"],
+            ValidAudience = jwtAudience,
             ValidateLifetime = true,
             ClockSkew = TimeSpan.Zero
         };

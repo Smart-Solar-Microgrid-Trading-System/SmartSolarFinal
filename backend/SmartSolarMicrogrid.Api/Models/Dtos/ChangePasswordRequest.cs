@@ -2,7 +2,7 @@
  * Student Name: Hirimuthugodage J.
  * Component: User and Prosumer Management with Role Based Authentication
  * File Name: ChangePasswordRequest.cs
- * Description: Definition and validatation the data required to change a password.
+ * Description: Definition and validation the data required to change a password.
  */
 
 using System.ComponentModel.DataAnnotations;

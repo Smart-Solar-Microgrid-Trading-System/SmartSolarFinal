@@ -17,6 +17,7 @@ class ProfileActivity : Activity() {
     private lateinit var emailInput: EditText
     private lateinit var phoneInput: EditText
     private lateinit var feedbackText: TextView
+    private lateinit var passwordFeedbackText: TextView
     private lateinit var saveButton: Button
     private lateinit var deactivateButton: Button
     private var session: SessionDatabaseHelper.MobileSession? = null
@@ -33,6 +34,7 @@ class ProfileActivity : Activity() {
         emailInput = findViewById(R.id.emailInput)
         phoneInput = findViewById(R.id.phoneInput)
         feedbackText = findViewById(R.id.feedbackText)
+        passwordFeedbackText = findViewById(R.id.passwordFeedbackText)
         saveButton = findViewById(R.id.saveButton)
         deactivateButton = findViewById(R.id.deactivateButton)
         session = SessionDatabaseHelper(this).getSession()
@@ -45,7 +47,7 @@ class ProfileActivity : Activity() {
         if (session?.role != "Prosumer") {
             saveButton.visibility = View.GONE
             deactivateButton.visibility = View.GONE
-            showFeedback("Grid Operator profile details are read-only. You can change your password below.", null)
+            showProfileFeedback("Grid Operator profile details are read-only. You can change your password below.", null)
         }
         SessionDatabaseHelper(this).getProfile()?.let { cached ->
             nameInput.setText(cached.fullName)
@@ -56,7 +58,11 @@ class ProfileActivity : Activity() {
     }
 
     private fun changePassword() {
-        val token = session?.token ?: return
+        val token = session?.token
+        if (token == null) {
+            returnToLogin()
+            return
+        }
         val currentInput = findViewById<EditText>(R.id.currentPasswordInput)
         val newInput = findViewById<EditText>(R.id.newPasswordInput)
         val confirmInput = findViewById<EditText>(R.id.confirmNewPasswordInput)
@@ -71,9 +77,13 @@ class ProfileActivity : Activity() {
             newPassword == current -> "Choose a different new password."
             else -> null
         }
-        if (error != null) { showFeedback(error, false); return }
+        if (error != null) {
+            showPasswordFeedback(error, false)
+            return
+        }
         val button = findViewById<Button>(R.id.changePasswordButton)
         button.isEnabled = false
+        showPasswordFeedback("Changing password ...", null)
         Thread {
             val result = ApiClient.request(this, "POST", "/api/auth/change-password", JSONObject().apply {
                 put("currentPassword", current)
@@ -93,14 +103,16 @@ class ProfileActivity : Activity() {
                     startActivity(Intent(this, LoginActivity::class.java).addFlags(
                         Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TASK))
                     finish()
-                } else showFeedback(ApiClient.errorMessage(result, "Password change failed."), false)
+                } else {
+                    showPasswordFeedback(ApiClient.errorMessage(result, "Password change failed."), false)
+                }
             }
         }.start()
     }
 
     private fun loadProfile() {
         val token = session?.token ?: return
-        showFeedback("Loading profile ...", null)
+        showProfileFeedback("Loading profile ...", null)
         Thread {
             val result = ApiClient.request(this, "GET", "/api/users/me", token = token)
             if (result.statusCode == 200) {
@@ -119,20 +131,30 @@ class ProfileActivity : Activity() {
                     emailInput.setText(cachedProfile.email)
                     phoneInput.setText(cachedProfile.phone)
                 }
-                showFeedback("Profile loaded.", true)
-            } else showFeedback(ApiClient.errorMessage(result, "Profile could not be loaded."), false)
+                showProfileFeedback("Profile loaded.", true)
+            } else if (result.statusCode == 401) {
+                returnToLogin()
+            } else {
+                showProfileFeedback(ApiClient.errorMessage(result, "Profile could not be loaded."), false)
+            }
         }.start()
     }
 
     private fun updateProfile() {
-        val token = session?.token ?: return
+        val token = session?.token
+        if (token == null) {
+            returnToLogin()
+            return
+        }
         val name = nameInput.text.toString().trim()
         val email = emailInput.text.toString().trim()
         val phone = phoneInput.text.toString().trim()
         if (name.isBlank() || email.isBlank()) {
-            showFeedback("Full name and email are required.", false)
+            showProfileFeedback("Full name and email are required.", false)
             return
         }
+        saveButton.isEnabled = false
+        showProfileFeedback("Saving profile ...", null)
         Thread {
             val result = ApiClient.request(this, "PUT", "/api/users/me", JSONObject().apply {
                 put("fullName", name); put("email", email); put("phone", phone)
@@ -145,8 +167,21 @@ class ProfileActivity : Activity() {
                         updated.optionalText("phone"), updated.optString("role"), updated.optString("updatedAt")
                     )
                 )
-                showFeedback("Profile updated.", true)
-            } else showFeedback(ApiClient.errorMessage(result, "Profile update failed."), false)
+                runOnUiThread {
+                    saveButton.isEnabled = true
+                    showProfileFeedback("Profile updated.", true)
+                }
+            } else if (result.statusCode == 401) {
+                runOnUiThread {
+                    saveButton.isEnabled = true
+                    returnToLogin()
+                }
+            } else {
+                runOnUiThread {
+                    saveButton.isEnabled = true
+                    showProfileFeedback(ApiClient.errorMessage(result, "Profile update failed."), false)
+                }
+            }
         }.start()
     }
 
@@ -175,7 +210,11 @@ class ProfileActivity : Activity() {
                     )
                     finish()
                 }
-            } else showFeedback(ApiClient.errorMessage(result, "Account deactivation failed."), false)
+            } else if (result.statusCode == 401) {
+                returnToLogin()
+            } else {
+                showProfileFeedback(ApiClient.errorMessage(result, "Account deactivation failed."), false)
+            }
         }.start()
     }
 
@@ -184,9 +223,27 @@ class ProfileActivity : Activity() {
         return if (value == null || value == JSONObject.NULL) "" else value.toString()
     }
 
-    private fun showFeedback(message: String, successful: Boolean?) = runOnUiThread {
+    private fun showProfileFeedback(message: String, successful: Boolean?) = runOnUiThread {
         feedbackText.visibility = View.VISIBLE
         feedbackText.text = message
         feedbackText.setTextColor(when (successful) { true -> getColor(R.color.status_success); false -> getColor(R.color.status_error); null -> Color.DKGRAY })
+    }
+
+    private fun showPasswordFeedback(message: String, successful: Boolean?) = runOnUiThread {
+        passwordFeedbackText.visibility = View.VISIBLE
+        passwordFeedbackText.text = message
+        passwordFeedbackText.setTextColor(when (successful) { true -> getColor(R.color.status_success); false -> getColor(R.color.status_error); null -> Color.DKGRAY })
+    }
+
+    private fun returnToLogin() = runOnUiThread {
+        SessionDatabaseHelper(this).clearSession()
+        SessionDatabaseHelper(this).clearProfile()
+        Toast.makeText(this, "Session expired. Please sign in again.", Toast.LENGTH_LONG).show()
+        startActivity(
+            Intent(this, LoginActivity::class.java).addFlags(
+                Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TASK
+            )
+        )
+        finish()
     }
 }

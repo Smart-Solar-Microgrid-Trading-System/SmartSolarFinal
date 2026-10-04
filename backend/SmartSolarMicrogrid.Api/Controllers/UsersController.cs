@@ -20,9 +20,14 @@ namespace SmartSolarMicrogrid.Api.Controllers;
 public sealed class UsersController : ControllerBase
 {
     private readonly UserManagementService _userManagementService;
+    private readonly ProsumerService _prosumerService;
 
-    // Store the user management service.
-    public UsersController(UserManagementService userManagementService) => _userManagementService = userManagementService;
+    public UsersController(UserManagementService userManagementService, ProsumerService prosumerService)
+    {
+        // Store the services used for web accounts and Prosumer self-service operations.
+        _userManagementService = userManagementService;
+        _prosumerService = prosumerService;
+    }
 
     [Authorize(Policy = UserRoles.Backoffice)]
     [HttpPost]
@@ -39,18 +44,27 @@ public sealed class UsersController : ControllerBase
             return Conflict(new { error = "A user with this username or email address already exists." });
         }
 
-        return result.Failure switch
+        switch (result.Failure)
         {
-            UserManagementFailure.Invalid => BadRequest(new { error = result.Error }),
-            UserManagementFailure.Conflict => Conflict(new { error = result.Error }),
-            _ => CreatedAtAction(nameof(Create), result.User)
-        };
+            case UserManagementFailure.Invalid:
+                return BadRequest(new { error = result.Error });
+
+            case UserManagementFailure.Conflict:
+                return Conflict(new { error = result.Error });
+
+            default:
+                return CreatedAtAction(nameof(Create), result.User);
+        }
     }
 
-    // Return all web users.
     [Authorize(Policy = UserRoles.Backoffice)]
     [HttpGet]
-    public async Task<IActionResult> GetWebUsers() => Ok(await _userManagementService.GetWebUsersAsync());
+    public async Task<IActionResult> GetWebUsers()
+    {
+        // Return all web users.
+        var users = await _userManagementService.GetWebUsersAsync();
+        return Ok(users);
+    }
 
     [Authorize(Policy = UserRoles.Backoffice)]
     [HttpPatch("{id}/status")]
@@ -99,8 +113,19 @@ public sealed class UsersController : ControllerBase
     public async Task<IActionResult> UpdateMe([FromBody] UpdateUserProfileRequest request)
     {
         // Update the authenticated Prosumer's profile.
-        var result = await _userManagementService.UpdateProfileAsync(GetCurrentUserId(), request);
-        return ToUserResult(result);
+        try
+        {
+            var result = await _prosumerService.UpdateOwnProfileAsync(GetCurrentUserId(), request);
+            return ToUserResult(result);
+        }
+        catch (MongoCommandException exception) when (exception.Code == 11000)
+        {
+            return Conflict(new { error = "This email address is already in use." });
+        }
+        catch (MongoWriteException exception) when (exception.WriteError?.Category == ServerErrorCategory.DuplicateKey)
+        {
+            return Conflict(new { error = "This email address is already in use." });
+        }
     }
 
     [Authorize(Policy = UserRoles.Prosumer)]
@@ -108,19 +133,32 @@ public sealed class UsersController : ControllerBase
     public async Task<IActionResult> RequestDeactivation()
     {
         // Deactivate the authenticated Prosumer's account.
-        var result = await _userManagementService.DeactivateProsumerAsync(GetCurrentUserId());
+        var result = await _prosumerService.DeactivateProsumerAsync(GetCurrentUserId());
         return ToUserResult(result);
     }
 
-    // Read the authenticated user's identifier.
-    private string GetCurrentUserId() => User.FindFirstValue(ClaimTypes.NameIdentifier)!;
-
-    // Convert a service result into an HTTP response.
-    private IActionResult ToUserResult(UserManagementResult result) => result.Failure switch
+    private string GetCurrentUserId()
     {
-        UserManagementFailure.Invalid => BadRequest(new { error = result.Error }),
-        UserManagementFailure.Conflict => Conflict(new { error = result.Error }),
-        UserManagementFailure.NotFound => NotFound(new { error = result.Error }),
-        _ => Ok(result.User)
-    };
+        // Read the authenticated user's identifier.
+        return User.FindFirstValue(ClaimTypes.NameIdentifier)!;
+    }
+
+    private IActionResult ToUserResult(UserManagementResult result)
+    {
+        // Convert a service result into an HTTP response.
+        switch (result.Failure)
+        {
+            case UserManagementFailure.Invalid:
+                return BadRequest(new { error = result.Error });
+
+            case UserManagementFailure.Conflict:
+                return Conflict(new { error = result.Error });
+
+            case UserManagementFailure.NotFound:
+                return NotFound(new { error = result.Error });
+
+            default:
+                return Ok(result.User);
+        }
+    }
 }

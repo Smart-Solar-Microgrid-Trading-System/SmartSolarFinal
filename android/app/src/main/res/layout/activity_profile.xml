@@ -47,7 +47,6 @@
                     android:text="My Profile" />
 
             </LinearLayout>
-
             <LinearLayout
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
@@ -112,6 +111,17 @@
                         style="@style/PrimaryButton"
                         android:layout_marginTop="24dp"
                         android:text="Save profile" />
+
+                    <TextView
+                        android:id="@+id/feedbackText"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:layout_marginTop="8dp"
+                        android:background="@drawable/status_panel"
+                        android:gravity="center"
+                        android:padding="16dp"
+                        android:textSize="14sp"
+                        android:visibility="gone" />
 
                     <Button
                         android:id="@+id/deactivateButton"
@@ -200,20 +210,20 @@
                         android:layout_marginTop="18dp"
                         android:text="Change password" />
 
+                    <TextView
+                        android:id="@+id/passwordFeedbackText"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:layout_marginTop="8dp"
+                        android:background="@drawable/status_panel"
+                        android:gravity="center"
+                        android:padding="16dp"
+                        android:textSize="14sp"
+                        android:visibility="gone" />
+
                 </LinearLayout>
 
-                <TextView
-                    android:id="@+id/feedbackText"
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:layout_marginTop="18dp"
-                    android:background="@drawable/status_panel"
-                    android:padding="16dp"
-                    android:textSize="14sp"
-                    android:visibility="gone" />
-
             </LinearLayout>
-
         </LinearLayout>
 
     </ScrollView>

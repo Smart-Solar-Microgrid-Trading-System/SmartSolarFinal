@@ -31,11 +31,18 @@ public class AuthController : ControllerBase
     {
         // Changing the password for the authenticated user.
         var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
-        if (userId is null) return Unauthorized();
+        if (userId == null)
+        {
+            return Unauthorized();
+        }
+
         var error = await _authService.ChangePasswordAsync(userId, request);
-        return error is null
-            ? Ok(new { message = "Password changed. Please sign in again." })
-            : BadRequest(new { error });
+        if (error == null)
+        {
+            return Ok(new { message = "Password changed. Please sign in again." });
+        }
+
+        return BadRequest(new { error });
     }
 
     [HttpPost("login")]

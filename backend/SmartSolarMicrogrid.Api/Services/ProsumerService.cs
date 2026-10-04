@@ -2,7 +2,7 @@
  * Student Name: Hirimuthugodage J.
  * Component: User and Prosumer Management with Role Based Authentication
  * File Name: ProsumerService.cs
- * Description: Registers Prosumer accounts and returns registration results.
+ * Description: Manages Prosumer registration, profiles, account statuses, and deactivation.
  */
 
 using MongoDB.Driver;
@@ -39,7 +39,7 @@ public sealed class ProsumerService
             return ProsumerRegistrationResult.Conflict("A user with this NIC already exists.");
         }
 
-        if (email is not null)
+        if (email != null)
         {
             var existingEmail = await _usersCollection.Find(user => user.Email == email).AnyAsync();
             if (existingEmail)
@@ -66,18 +66,184 @@ public sealed class ProsumerService
         return ProsumerRegistrationResult.Created(ToResponse(user));
     }
 
-    // Convert a user into a profile response.
-    private static UserProfileResponse ToResponse(User user) => new()
+    public async Task<IReadOnlyList<UserProfileResponse>> GetPendingProsumersAsync()
     {
-        Id = user.Id,
-        Role = user.Role,
-        FullName = user.FullName,
-        Email = user.Email,
-        Phone = user.Phone,
-        AccountStatus = user.AccountStatus,
-        CreatedAt = user.CreatedAt,
-        UpdatedAt = user.UpdatedAt
-    };
+        // Return all pending Prosumers.
+        return await GetProsumersAsync(AccountStatuses.Pending);
+    }
+
+    public async Task<IReadOnlyList<UserProfileResponse>> GetProsumersAsync(string? accountStatus = null)
+    {
+        // Return Prosumers with an optional status filter.
+        var filter = Builders<User>.Filter.Eq(user => user.Role, UserRoles.Prosumer);
+        if (!string.IsNullOrWhiteSpace(accountStatus))
+        {
+            filter &= Builders<User>.Filter.Eq(user => user.AccountStatus, accountStatus);
+        }
+
+        var users = await _usersCollection.Find(filter).SortBy(user => user.FullName)
+            .ToListAsync();
+
+        return users.Select(ToResponse).ToList();
+    }
+
+    public async Task<UserManagementResult> UpdateProsumerStatusAsync(string nic, UpdateAccountStatusRequest request)
+    {
+        // Update a Prosumer's account status.
+        if (request.AccountStatus != AccountStatuses.Active &&
+            request.AccountStatus != AccountStatuses.Deactivated)
+        {
+            return UserManagementResult.Invalid("AccountStatus must be Active or Deactivated.");
+        }
+
+        var user = await _usersCollection.Find(candidate =>
+                candidate.Id == nic && candidate.Role == UserRoles.Prosumer)
+            .FirstOrDefaultAsync();
+        if (user == null)
+        {
+            return UserManagementResult.NotFound("Prosumer not found.");
+        }
+
+        user.AccountStatus = request.AccountStatus;
+        user.SessionVersion = Guid.NewGuid().ToString("N");
+        user.UpdatedAt = DateTime.UtcNow;
+        var result = await _usersCollection.UpdateOneAsync(candidate =>
+                candidate.Id == nic && candidate.Role == UserRoles.Prosumer,
+            Builders<User>.Update
+                .Set(candidate => candidate.AccountStatus, user.AccountStatus)
+                .Set(candidate => candidate.SessionVersion, user.SessionVersion)
+                .Set(candidate => candidate.UpdatedAt, user.UpdatedAt));
+        if (result.MatchedCount == 0)
+        {
+            return UserManagementResult.NotFound("Prosumer not found.");
+        }
+        return UserManagementResult.Success(ToResponse(user));
+    }
+
+    public async Task<UserManagementResult> UpdateOwnProfileAsync(string userId, UpdateUserProfileRequest request)
+    {
+        // Update the authenticated Prosumer's profile.
+        var user = await _usersCollection.Find(candidate =>
+                candidate.Id == userId && candidate.Role == UserRoles.Prosumer)
+            .FirstOrDefaultAsync();
+        if (user == null)
+        {
+            return UserManagementResult.NotFound("User not found.");
+        }
+
+        if (string.IsNullOrWhiteSpace(request.FullName))
+        {
+            return UserManagementResult.Invalid("Full name is required.");
+        }
+
+        var email = string.IsNullOrWhiteSpace(request.Email) ? null : request.Email.Trim().ToLowerInvariant();
+        if (email != null && await _usersCollection.Find(candidate =>
+                candidate.Email == email && candidate.Id != userId).AnyAsync())
+        {
+            return UserManagementResult.Conflict("A user with this email address already exists.");
+        }
+
+        user.FullName = request.FullName.Trim();
+        user.Email = email;
+        user.Phone = string.IsNullOrWhiteSpace(request.Phone) ? null : request.Phone.Trim();
+        user.UpdatedAt = DateTime.UtcNow;
+        var result = await _usersCollection.UpdateOneAsync(candidate =>
+                candidate.Id == userId && candidate.Role == UserRoles.Prosumer,
+            Builders<User>.Update
+                .Set(candidate => candidate.FullName, user.FullName)
+                .Set(candidate => candidate.Email, user.Email)
+                .Set(candidate => candidate.Phone, user.Phone)
+                .Set(candidate => candidate.UpdatedAt, user.UpdatedAt));
+        if (result.MatchedCount == 0)
+        {
+            return UserManagementResult.NotFound("User not found.");
+        }
+        return UserManagementResult.Success(ToResponse(user));
+    }
+
+    public async Task<UserManagementResult> UpdateProsumerProfileAsync(string nic, UpdateUserProfileRequest request)
+    {
+        // Update a Prosumer's profile as Backoffice.
+        var user = await _usersCollection.Find(candidate =>
+                candidate.Id == nic && candidate.Role == UserRoles.Prosumer)
+            .FirstOrDefaultAsync();
+        if (user == null)
+        {
+            return UserManagementResult.NotFound("Prosumer not found.");
+        }
+
+        if (string.IsNullOrWhiteSpace(request.FullName))
+        {
+            return UserManagementResult.Invalid("Full name is required.");
+        }
+
+        var email = string.IsNullOrWhiteSpace(request.Email) ? null : request.Email.Trim().ToLowerInvariant();
+        if (email != null && await _usersCollection.Find(candidate =>
+                candidate.Email == email && candidate.Id != nic).AnyAsync())
+        {
+            return UserManagementResult.Conflict("A user with this email address already exists.");
+        }
+
+        user.FullName = request.FullName.Trim();
+        user.Email = email;
+        user.Phone = string.IsNullOrWhiteSpace(request.Phone) ? null : request.Phone.Trim();
+        user.UpdatedAt = DateTime.UtcNow;
+        var result = await _usersCollection.UpdateOneAsync(candidate =>
+                candidate.Id == nic && candidate.Role == UserRoles.Prosumer,
+            Builders<User>.Update
+                .Set(candidate => candidate.FullName, user.FullName)
+                .Set(candidate => candidate.Email, user.Email)
+                .Set(candidate => candidate.Phone, user.Phone)
+                .Set(candidate => candidate.UpdatedAt, user.UpdatedAt));
+        if (result.MatchedCount == 0)
+        {
+            return UserManagementResult.NotFound("Prosumer not found.");
+        }
+        return UserManagementResult.Success(ToResponse(user));
+    }
+
+    public async Task<UserManagementResult> DeactivateProsumerAsync(string userId)
+    {
+        // Deactivate a Prosumer account.
+        var user = await _usersCollection.Find(candidate =>
+                candidate.Id == userId && candidate.Role == UserRoles.Prosumer)
+            .FirstOrDefaultAsync();
+        if (user == null)
+        {
+            return UserManagementResult.NotFound("Prosumer not found.");
+        }
+
+        user.AccountStatus = AccountStatuses.Deactivated;
+        user.SessionVersion = Guid.NewGuid().ToString("N");
+        user.UpdatedAt = DateTime.UtcNow;
+        var result = await _usersCollection.UpdateOneAsync(candidate =>
+                candidate.Id == userId && candidate.Role == UserRoles.Prosumer,
+            Builders<User>.Update
+                .Set(candidate => candidate.AccountStatus, user.AccountStatus)
+                .Set(candidate => candidate.SessionVersion, user.SessionVersion)
+                .Set(candidate => candidate.UpdatedAt, user.UpdatedAt));
+        if (result.MatchedCount == 0)
+        {
+            return UserManagementResult.NotFound("Prosumer not found.");
+        }
+        return UserManagementResult.Success(ToResponse(user));
+    }
+
+    private static UserProfileResponse ToResponse(User user)
+    {
+        // Convert a user into a profile response.
+        return new UserProfileResponse
+        {
+            Id = user.Id,
+            Role = user.Role,
+            FullName = user.FullName,
+            Email = user.Email,
+            Phone = user.Phone,
+            AccountStatus = user.AccountStatus,
+            CreatedAt = user.CreatedAt,
+            UpdatedAt = user.UpdatedAt
+        };
+    }
 }
 
 public sealed class ProsumerRegistrationResult
@@ -93,14 +259,29 @@ public sealed class ProsumerRegistrationResult
     public UserProfileResponse? User { get; }
     public string? Error { get; }
     public bool IsConflict { get; }
-    public bool IsInvalid => Error is not null && !IsConflict;
+    public bool IsInvalid
+    {
+        get
+        {
+            return Error != null && !IsConflict;
+        }
+    }
 
-    // Create a successful registration result.
-    public static ProsumerRegistrationResult Created(UserProfileResponse user) => new(user, null, false);
+    public static ProsumerRegistrationResult Created(UserProfileResponse user)
+    {
+        // Create a successful registration result.
+        return new ProsumerRegistrationResult(user, null, false);
+    }
 
-    // Create a duplicate account result.
-    public static ProsumerRegistrationResult Conflict(string error) => new(null, error, true);
+    public static ProsumerRegistrationResult Conflict(string error)
+    {
+        // Create a duplicate account result.
+        return new ProsumerRegistrationResult(null, error, true);
+    }
 
-    // Create an invalid registration result.
-    public static ProsumerRegistrationResult Invalid(string error) => new(null, error, false);
+    public static ProsumerRegistrationResult Invalid(string error)
+    {
+        // Create an invalid registration result.
+        return new ProsumerRegistrationResult(null, error, false);
+    }
 }

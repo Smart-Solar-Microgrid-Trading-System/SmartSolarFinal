@@ -8,6 +8,7 @@
 using System.IdentityModel.Tokens.Jwt;
 using System.Security.Claims;
 using System.Text;
+using System.Text.RegularExpressions;
 using Microsoft.IdentityModel.Tokens;
 using MongoDB.Driver;
 using SmartSolarMicrogrid.Api.Models;
@@ -18,19 +19,32 @@ namespace SmartSolarMicrogrid.Api.Services;
 public class AuthService
 {
     private readonly IMongoCollection<User> _usersCollection;
-    private readonly IConfiguration _config;
+    private readonly JwtSettings _jwtSettings;
 
-    public AuthService(IMongoDatabase database, IConfiguration config)
+    public AuthService(IMongoDatabase database, JwtSettings jwtSettings)
     {
         // Initializing user storage and authentication settings.
         _usersCollection = database.GetCollection<User>("Users");
-        _config = config;
+        _jwtSettings = jwtSettings;
     }
 
     public async Task<LoginResult> LoginAsync(LoginRequest request)
     {
         // Validating the credentials and create an access token.
-        var user = await _usersCollection.Find(u => u.Id == request.Identifier).FirstOrDefaultAsync();
+        var identifier = request.Identifier.Trim();
+        var user = await _usersCollection.Find(u => u.Id == identifier).FirstOrDefaultAsync();
+
+        // Preserve exact username matches; only retry a legacy NIC for a Prosumer.
+        if (user == null && identifier.Length == 10 &&
+            Regex.IsMatch(identifier, AccountValidationRules.SriLankanNicPattern))
+        {
+            var nic = identifier.ToUpperInvariant();
+            if (nic != identifier)
+            {
+                user = await _usersCollection.Find(u => u.Id == nic && u.Role == UserRoles.Prosumer)
+                    .FirstOrDefaultAsync();
+            }
+        }
 
         if (user == null || !BCrypt.Net.BCrypt.Verify(request.Password, user.PasswordHash))
         {
@@ -43,7 +57,7 @@ public class AuthService
         }
 
         var tokenHandler = new JwtSecurityTokenHandler();
-        var key = Encoding.ASCII.GetBytes(_config["Jwt:Secret"]!);
+        var key = Encoding.UTF8.GetBytes(_jwtSettings.Secret);
 
         var tokenDescriptor = new SecurityTokenDescriptor
         {
@@ -55,8 +69,8 @@ public class AuthService
                 new Claim(ClaimTypes.Name, user.FullName)
             }),
             Expires = DateTime.UtcNow.AddHours(24),
-            Issuer = _config["Jwt:Issuer"],
-            Audience = _config["Jwt:Audience"],
+            Issuer = _jwtSettings.Issuer,
+            Audience = _jwtSettings.Audience,
             SigningCredentials = new SigningCredentials(new SymmetricSecurityKey(key), SecurityAlgorithms.HmacSha256Signature)
         };
 
@@ -74,12 +88,20 @@ public class AuthService
     {
         // Validating and update the user's password.
         var user = await _usersCollection.Find(u => u.Id == userId).FirstOrDefaultAsync();
-        if (user is null || user.AccountStatus != AccountStatuses.Active)
+        if (user == null || user.AccountStatus != AccountStatuses.Active)
+        {
             return "Account is unavailable.";
+        }
+
         if (!BCrypt.Net.BCrypt.Verify(request.CurrentPassword, user.PasswordHash))
+        {
             return "Current password is incorrect.";
+        }
+
         if (BCrypt.Net.BCrypt.Verify(request.NewPassword, user.PasswordHash))
+        {
             return "New password must differ from your current password.";
+        }
 
         // Verify the old hash before updating the password.
         var result = await _usersCollection.UpdateOneAsync(
@@ -88,9 +110,17 @@ public class AuthService
                 .Set(u => u.PasswordHash, BCrypt.Net.BCrypt.HashPassword(request.NewPassword))
                 .Set(u => u.SessionVersion, Guid.NewGuid().ToString("N"))
                 .Set(u => u.UpdatedAt, DateTime.UtcNow));
-        return result.ModifiedCount == 1 ? null : "Account changed. Please sign in again and retry.";
+
+        if (result.ModifiedCount == 1)
+        {
+            return null;
+        }
+
+        return "Account changed. Please sign in again and retry.";
     }
 }
+
+public sealed record JwtSettings(string Secret, string Issuer, string Audience);
 
 public sealed class LoginResult
 {
@@ -105,14 +135,29 @@ public sealed class LoginResult
     public LoginResponse? Response { get; }
     public string? Error { get; }
     public bool IsForbidden { get; }
-    public bool IsUnauthorized => Error is not null && !IsForbidden;
+    public bool IsUnauthorized
+    {
+        get
+        {
+            return Error != null && !IsForbidden;
+        }
+    }
 
-    // Create a successful login result.
-    public static LoginResult Success(LoginResponse response) => new(response, null, false);
+    public static LoginResult Success(LoginResponse response)
+    {
+        // Create a successful login result.
+        return new LoginResult(response, null, false);
+    }
 
-    // Create an invalid credentials result.
-    public static LoginResult Unauthorized() => new(null, "Invalid credentials.", false);
+    public static LoginResult Unauthorized()
+    {
+        // Create an invalid credentials result.
+        return new LoginResult(null, "Invalid credentials.", false);
+    }
 
-    // Create an account access rejection result.
-    public static LoginResult Forbidden(string error) => new(null, error, true);
+    public static LoginResult Forbidden(string error)
+    {
+        // Create an account access rejection result.
+        return new LoginResult(null, error, true);
+    }
 }

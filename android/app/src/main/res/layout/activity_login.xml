@@ -3,8 +3,8 @@
     <LinearLayout android:layout_width="match_parent" android:layout_height="match_parent" android:orientation="vertical" android:padding="24dp">
         <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="Welcome" android:textColor="@color/brand_blue" android:textSize="28sp" android:textStyle="bold" />
         <TextView android:layout_width="match_parent" android:layout_height="wrap_content" android:layout_marginTop="8dp" android:text="Sign in as a Prosumer or Grid Operator." android:textColor="@color/text_secondary" />
-        <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:layout_marginTop="32dp" android:text="NIC or username" android:textStyle="bold" />
-        <EditText android:id="@+id/identifierInput" android:layout_width="match_parent" android:layout_height="wrap_content" android:layout_marginTop="8dp" android:inputType="text" android:singleLine="true" />
+        <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:layout_marginTop="32dp" android:text="Prosumer NIC or Grid Operator username" android:textStyle="bold" />
+        <EditText android:id="@+id/identifierInput" android:layout_width="match_parent" android:layout_height="wrap_content" android:layout_marginTop="8dp" android:hint="Enter NIC or username" android:inputType="text" android:singleLine="true" />
         <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:layout_marginTop="18dp" android:text="Password" android:textStyle="bold" />
         <EditText android:id="@+id/passwordInput" android:layout_width="match_parent" android:layout_height="wrap_content" android:layout_marginTop="8dp" android:inputType="textPassword" android:singleLine="true" />
         <Button android:id="@+id/loginButton" android:layout_width="match_parent" android:layout_height="wrap_content" android:layout_marginTop="24dp" android:text="Sign in" />
