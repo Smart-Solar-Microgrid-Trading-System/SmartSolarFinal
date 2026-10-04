@@ -1,4 +1,4 @@
-# Smart Solar Microgrid - Developer Setup Guide
+# Smart Solar Microgrid Trading System
 
 This guide covers cloning the project, local development, IIS/LAN deployment, and Android configuration. It is the single source of truth for project setup.
 
