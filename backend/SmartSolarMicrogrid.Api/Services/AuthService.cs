@@ -8,6 +8,7 @@
 using System.IdentityModel.Tokens.Jwt;
 using System.Security.Claims;
 using System.Text;
+using System.Text.RegularExpressions;
 using Microsoft.IdentityModel.Tokens;
 using MongoDB.Driver;
 using SmartSolarMicrogrid.Api.Models;
@@ -31,6 +32,18 @@ public class AuthService
     {
         // Validating the credentials and create an access token.
         var user = await _usersCollection.Find(u => u.Id == request.Identifier).FirstOrDefaultAsync();
+
+        // Preserve exact username matches; only retry a legacy NIC for a Prosumer.
+        if (user is null && request.Identifier is { Length: 10 } &&
+            Regex.IsMatch(request.Identifier, AccountValidationRules.SriLankanNicPattern))
+        {
+            var nic = request.Identifier.ToUpperInvariant();
+            if (nic != request.Identifier)
+            {
+                user = await _usersCollection.Find(u => u.Id == nic && u.Role == UserRoles.Prosumer)
+                    .FirstOrDefaultAsync();
+            }
+        }
 
         if (user == null || !BCrypt.Net.BCrypt.Verify(request.Password, user.PasswordHash))
         {
