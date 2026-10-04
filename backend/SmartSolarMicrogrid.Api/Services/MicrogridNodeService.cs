@@ -1,9 +1,3 @@
-/*
- * Student Name: Thilakaratne A.A.S.M.
- * Component: Microgrid node Management
- * File Name: MicrogridNodeService.cs
- * Description: Defines the service layer for managing microgrid nodes, including CRUD operations and validation.
- */
 using MongoDB.Driver;
 using SmartSolarMicrogrid.Api.Models;
 using SmartSolarMicrogrid.Api.Models.Dtos;
