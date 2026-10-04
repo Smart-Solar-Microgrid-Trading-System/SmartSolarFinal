@@ -13,6 +13,7 @@
             <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:layout_marginTop="16dp" android:text="Phone" android:textStyle="bold" />
             <EditText android:id="@+id/phoneInput" android:layout_width="match_parent" android:layout_height="wrap_content" android:layout_marginTop="8dp" android:inputType="phone" />
             <Button android:id="@+id/saveButton" android:layout_width="match_parent" android:layout_height="wrap_content" android:layout_marginTop="24dp" android:text="Save profile" />
+            <TextView android:id="@+id/feedbackText" android:layout_width="match_parent" android:layout_height="wrap_content" android:layout_marginTop="8dp" android:background="@drawable/status_panel" android:gravity="center" android:padding="16dp" android:textSize="15sp" android:visibility="gone" />
             <Button android:id="@+id/deactivateButton" android:layout_width="match_parent" android:layout_height="wrap_content" android:layout_marginTop="8dp" android:text="Request account deactivation" />
             <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:layout_marginTop="24dp" android:text="Change my password" android:textSize="20sp" android:textStyle="bold" />
             <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:layout_marginTop="16dp" android:labelFor="@+id/currentPasswordInput" android:text="Current password" />
@@ -23,7 +24,7 @@
             <EditText android:id="@id/confirmNewPasswordInput" android:layout_width="match_parent" android:layout_height="wrap_content" android:inputType="textPassword" android:singleLine="true" android:saveEnabled="false" />
             <TextView android:layout_width="match_parent" android:layout_height="wrap_content" android:text="Use 8-72 characters. You will need to sign in again on all devices." />
             <Button android:id="@+id/changePasswordButton" android:layout_width="match_parent" android:layout_height="wrap_content" android:text="Change password" />
-            <TextView android:id="@+id/feedbackText" android:layout_width="match_parent" android:layout_height="wrap_content" android:layout_marginTop="18dp" android:background="@drawable/status_panel" android:padding="16dp" android:textSize="15sp" android:visibility="gone" />
+            <TextView android:id="@+id/passwordFeedbackText" android:layout_width="match_parent" android:layout_height="wrap_content" android:layout_marginTop="8dp" android:background="@drawable/status_panel" android:gravity="center" android:padding="16dp" android:textSize="15sp" android:visibility="gone" />
         </LinearLayout>
     </ScrollView>
     <include layout="@layout/view_bottom_navigation" />
