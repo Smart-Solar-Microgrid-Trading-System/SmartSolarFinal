@@ -19,13 +19,13 @@ namespace SmartSolarMicrogrid.Api.Services;
 public class AuthService
 {
     private readonly IMongoCollection<User> _usersCollection;
-    private readonly IConfiguration _config;
+    private readonly JwtSettings _jwtSettings;
 
-    public AuthService(IMongoDatabase database, IConfiguration config)
+    public AuthService(IMongoDatabase database, JwtSettings jwtSettings)
     {
         // Initializing user storage and authentication settings.
         _usersCollection = database.GetCollection<User>("Users");
-        _config = config;
+        _jwtSettings = jwtSettings;
     }
 
     public async Task<LoginResult> LoginAsync(LoginRequest request)
@@ -57,7 +57,7 @@ public class AuthService
         }
 
         var tokenHandler = new JwtSecurityTokenHandler();
-        var key = Encoding.ASCII.GetBytes(_config["Jwt:Secret"]!);
+        var key = Encoding.UTF8.GetBytes(_jwtSettings.Secret);
 
         var tokenDescriptor = new SecurityTokenDescriptor
         {
@@ -69,8 +69,8 @@ public class AuthService
                 new Claim(ClaimTypes.Name, user.FullName)
             }),
             Expires = DateTime.UtcNow.AddHours(24),
-            Issuer = _config["Jwt:Issuer"],
-            Audience = _config["Jwt:Audience"],
+            Issuer = _jwtSettings.Issuer,
+            Audience = _jwtSettings.Audience,
             SigningCredentials = new SigningCredentials(new SymmetricSecurityKey(key), SecurityAlgorithms.HmacSha256Signature)
         };
 
@@ -105,6 +105,8 @@ public class AuthService
         return result.ModifiedCount == 1 ? null : "Account changed. Please sign in again and retry.";
     }
 }
+
+public sealed record JwtSettings(string Secret, string Issuer, string Audience);
 
 public sealed class LoginResult
 {
