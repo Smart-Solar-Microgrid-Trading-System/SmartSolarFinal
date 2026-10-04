@@ -25,6 +25,7 @@ class BookingsActivity : Activity() {
     private var energyAmount = ""
 
     override fun onCreate(savedInstanceState: Bundle?) {
+        // Prepare the reservation screen and connect its local navigation controls.
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_bookings)
 
@@ -133,11 +134,6 @@ class BookingsActivity : Activity() {
 
         }.start()
     }
-
-    // --------------------------------------------------
-    // CREATE RESERVATION
-    // --------------------------------------------------
-
     private fun showCreate() {
 
         markTab(createTab)
@@ -709,9 +705,6 @@ class BookingsActivity : Activity() {
         }.start()
     }
 
-    // --------------------------------------------------
-    // MY RESERVATIONS
-    // --------------------------------------------------
 
     private fun showReservations() {
 
