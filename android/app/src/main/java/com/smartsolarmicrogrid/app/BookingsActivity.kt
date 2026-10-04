@@ -1,5 +1,6 @@
 package com.smartsolarmicrogrid.app
 
+import android.content.Intent
 import android.app.Activity
 import android.app.AlertDialog
 import android.content.res.ColorStateList
@@ -1404,6 +1405,39 @@ class BookingsActivity : Activity() {
         content.addView(
             detailsCard
         )
+
+         if (
+            reservation.status.equals(
+                "Approved",
+                ignoreCase = true
+            )
+        ) {
+
+            val transactionQrButton =
+                primaryButton(
+                    "View Transaction QR"
+                )
+
+            transactionQrButton.setOnClickListener {
+
+                startActivity(
+                    Intent(
+                        this,
+                        TransactionQrActivity::class.java
+                    ).putExtra(
+                        "reservationId",
+                        reservation.id
+                    )
+                )
+            }
+
+            content.addView(
+                transactionQrButton,
+                matchWrap(
+                    top = 14
+                )
+            )
+        }
 
         val locked =
             reservation.status ==
