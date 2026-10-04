@@ -1,3 +1,9 @@
+/*
+ * Student Name: Thilakaratne A.A.S.M.
+ * Component: Microgrid node Management
+ * File Name: MicrogridNode.cs
+ * Description: Defines the structure for a microgrid node.
+ */
 using MongoDB.Bson.Serialization.Attributes;
 
 namespace SmartSolarMicrogrid.Api.Models;
