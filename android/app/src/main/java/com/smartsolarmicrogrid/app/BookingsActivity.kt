@@ -1,6 +1,11 @@
 package com.smartsolarmicrogrid.app
 
 import android.app.Activity
+import android.app.AlertDialog
+import android.content.Intent
+import android.content.res.ColorStateList
+import android.graphics.Color
+import android.graphics.drawable.GradientDrawable
 import android.os.Bundle
 import android.view.View
 import android.widget.*
@@ -11,11 +16,74 @@ import java.time.ZoneOffset
 import java.time.format.DateTimeFormatter
 
 class BookingsActivity : Activity() {
+
+    private lateinit var content: LinearLayout
+    private lateinit var feedback: TextView
+    private lateinit var createTab: Button
+    private lateinit var listTab: Button
+    private lateinit var session: SessionDatabaseHelper.MobileSession
+
+    private var nodes = emptyList<ReservationApi.Node>()
+    private var selectedNode: ReservationApi.Node? = null
+    private var selectedSlot: ReservationApi.Slot? = null
+    private var energyAmount = ""
+
     override fun onCreate(savedInstanceState: Bundle?) {
+        // Prepare the reservation screen and connect its local navigation controls.
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_bookings)
-        findViewById<android.widget.ImageButton>(R.id.pageBackButton).setOnClickListener { finish() }
-        AppNavigation.configure(this, AppNavigation.Destination.Bookings)
+
+        val savedSession = SessionDatabaseHelper(this).getSession()
+
+        if (savedSession == null) {
+            finish()
+            return
+        }
+
+        session = savedSession
+
+        content = findViewById(R.id.reservationContent)
+        feedback = findViewById(R.id.reservationFeedbackText)
+        createTab = findViewById(R.id.createReservationTab)
+        listTab = findViewById(R.id.myReservationsTab)
+
+        findViewById<ImageButton>(R.id.pageBackButton)
+            .setOnClickListener {
+                finish()
+            }
+
+        AppNavigation.configure(
+            this,
+            AppNavigation.Destination.Bookings
+        )
+
+        createTab.setOnClickListener {
+            showCreate()
+        }
+
+        listTab.setOnClickListener {
+            showReservations()
+        }
+
+        if (session.role != "Prosumer") {
+            createTab.visibility = View.GONE
+            listTab.visibility = View.GONE
+
+            clearContent()
+
+            title(
+                "Reservations",
+                "Prosumer mobile feature"
+            )
+
+            content.addView(
+                empty(
+                    "Mobile reservation booking is available only to Prosumer accounts."
+                )
+            )
+        } else {
+            loadNodes()
+        }
     }
 
     private fun loadNodes() {
@@ -1164,6 +1232,19 @@ class BookingsActivity : Activity() {
                     reservation.status == "Completed" ||
                     reservation.status == "Rejected"
 
+        if (reservation.status == "Approved") {
+            content.addView(
+                primaryButton(
+                    "View transaction QR"
+                ).apply {
+                    setOnClickListener {
+                        openTransactionQr(reservation.id)
+                    }
+                },
+                matchWrap(top = 14)
+            )
+        }
+
         content.addView(
             primaryButton(
                 "Modify reservation"
@@ -1561,7 +1642,7 @@ class BookingsActivity : Activity() {
         ReservationApi.Reservation,
         operation: String
     ) {
-        // Show the result of create, update, or cancellation without exposing QR features.
+        // Show the result of create, update, or cancellation before returning to bookings.
         clearContent()
 
         if (operation == "created") {
@@ -1684,6 +1765,21 @@ class BookingsActivity : Activity() {
         selectedNode = null
         selectedSlot = null
         energyAmount = ""
+    }
+
+    private fun openTransactionQr(
+        reservationId: String
+    ) {
+        // Open the teammate-owned QR screen only for the selected approved reservation.
+        startActivity(
+            Intent(
+                this,
+                TransactionQrActivity::class.java
+            ).putExtra(
+                "reservationId",
+                reservationId
+            )
+        )
     }
 
     private fun clearContent() {
