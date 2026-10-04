@@ -1,3 +1,10 @@
+/*
+ * Student Name: Hirimuthugodage J.
+ * Component: User and Prosumer Management with Role Based Authentication
+ * File Name: AuthService.cs
+ * Description: Authentication of users, creating access tokens, and changes passwords.
+ */
+
 using System.IdentityModel.Tokens.Jwt;
 using System.Security.Claims;
 using System.Text;
@@ -15,12 +22,14 @@ public class AuthService
 
     public AuthService(IMongoDatabase database, IConfiguration config)
     {
+        // Initializing user storage and authentication settings.
         _usersCollection = database.GetCollection<User>("Users");
         _config = config;
     }
 
     public async Task<LoginResult> LoginAsync(LoginRequest request)
     {
+        // Validating the credentials and create an access token.
         var user = await _usersCollection.Find(u => u.Id == request.Identifier).FirstOrDefaultAsync();
 
         if (user == null || !BCrypt.Net.BCrypt.Verify(request.Password, user.PasswordHash))
@@ -35,13 +44,14 @@ public class AuthService
 
         var tokenHandler = new JwtSecurityTokenHandler();
         var key = Encoding.ASCII.GetBytes(_config["Jwt:Secret"]!);
-        
+
         var tokenDescriptor = new SecurityTokenDescriptor
         {
             Subject = new ClaimsIdentity(new[]
             {
                 new Claim(ClaimTypes.NameIdentifier, user.Id),
                 new Claim(ClaimTypes.Role, user.Role),
+                new Claim("session_version", user.SessionVersion),
                 new Claim(ClaimTypes.Name, user.FullName)
             }),
             Expires = DateTime.UtcNow.AddHours(24),
@@ -60,12 +70,33 @@ public class AuthService
             AccountStatus = user.AccountStatus
         });
     }
+    public async Task<string?> ChangePasswordAsync(string userId, ChangePasswordRequest request)
+    {
+        // Validating and update the user's password.
+        var user = await _usersCollection.Find(u => u.Id == userId).FirstOrDefaultAsync();
+        if (user is null || user.AccountStatus != AccountStatuses.Active)
+            return "Account is unavailable.";
+        if (!BCrypt.Net.BCrypt.Verify(request.CurrentPassword, user.PasswordHash))
+            return "Current password is incorrect.";
+        if (BCrypt.Net.BCrypt.Verify(request.NewPassword, user.PasswordHash))
+            return "New password must differ from your current password.";
+
+        // Verify the old hash before updating the password.
+        var result = await _usersCollection.UpdateOneAsync(
+            u => u.Id == userId && u.PasswordHash == user.PasswordHash && u.AccountStatus == AccountStatuses.Active,
+            Builders<User>.Update
+                .Set(u => u.PasswordHash, BCrypt.Net.BCrypt.HashPassword(request.NewPassword))
+                .Set(u => u.SessionVersion, Guid.NewGuid().ToString("N"))
+                .Set(u => u.UpdatedAt, DateTime.UtcNow));
+        return result.ModifiedCount == 1 ? null : "Account changed. Please sign in again and retry.";
+    }
 }
 
 public sealed class LoginResult
 {
     private LoginResult(LoginResponse? response, string? error, bool isForbidden)
     {
+        // Storing the authentication result.
         Response = response;
         Error = error;
         IsForbidden = isForbidden;
@@ -76,7 +107,12 @@ public sealed class LoginResult
     public bool IsForbidden { get; }
     public bool IsUnauthorized => Error is not null && !IsForbidden;
 
+    // Create a successful login result.
     public static LoginResult Success(LoginResponse response) => new(response, null, false);
+
+    // Create an invalid credentials result.
     public static LoginResult Unauthorized() => new(null, "Invalid credentials.", false);
+
+    // Create an account access rejection result.
     public static LoginResult Forbidden(string error) => new(null, error, true);
 }

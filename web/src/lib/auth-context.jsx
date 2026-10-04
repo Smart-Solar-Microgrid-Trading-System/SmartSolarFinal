@@ -40,7 +40,7 @@ export function AuthProvider({ children }) {
     api.getMe(session.token).then(setProfile).catch(signOut);
   }, [session?.token, signOut]);
 
-  const value = useMemo(() => ({ session, profile, signIn, signOut }), [profile, session, signIn, signOut]);
+  const value = useMemo(() => ({ session, profile, signIn, signOut, updateProfile: setProfile }), [profile, session, signIn, signOut]);
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;
 }
 

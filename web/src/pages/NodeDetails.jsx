@@ -97,13 +97,14 @@ export function NodeDetailsPage() {
 
     // older records may not have isActive, treat those as active
     const isActive = node.isActive !== undefined ? node.isActive : true;
+    const isBackoffice = session.role === "Backoffice";
 
     return (
         <section className="space-y-6">
             <PageHeader
                 eyebrow="Microgrid node"
                 title={node.name}
-                description="Node details and configuration."
+                description={isBackoffice ? "Node details and configuration." : "Node details and current availability."}
                 icon={RadioTower}
                 actions={
                     <>
@@ -113,12 +114,14 @@ export function NodeDetailsPage() {
                             </Link>
                         </Button>
 
-                        <Button asChild>
-                            <Link to={`/nodes/${node.id}/edit`}>
-                                <Edit size={16} />
-                                Edit Node
-                            </Link>
-                        </Button>
+                        {isBackoffice && (
+                            <Button asChild>
+                                <Link to={`/nodes/${node.id}/edit`}>
+                                    <Edit size={16} />
+                                    Edit Node
+                                </Link>
+                            </Button>
+                        )}
                     </>
                 }
             />
@@ -168,7 +171,7 @@ export function NodeDetailsPage() {
             </Button>
 
             {/* no need to show this if the node is already inactive */}
-            {isActive && (
+            {isBackoffice && isActive && (
                 <Button variant="destructive" onClick={handleDeactivate} disabled={deactivating}>
                     {deactivating ? "Deactivating..." : "Deactivate"}
                 </Button>

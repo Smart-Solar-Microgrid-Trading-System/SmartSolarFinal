@@ -1,3 +1,10 @@
+/*
+ * Student Name: Hirimuthugodage J.
+ * Component: User and Prosumer Management with Role Based Authentication
+ * File Name: UserManagementService.cs
+ * Description: Manages web user and Prosumer accounts, profiles, and account statuses.
+ */
+
 using MongoDB.Driver;
 using SmartSolarMicrogrid.Api.Models;
 using SmartSolarMicrogrid.Api.Models.Dtos;
@@ -10,11 +17,34 @@ public sealed class UserManagementService
 
     public UserManagementService(IMongoDatabase database)
     {
+        // Access the users collection.
         _usersCollection = database.GetCollection<User>("Users");
+    }
+
+    public async Task<UserManagementResult> ChangeEmailAsync(string userId, ChangeEmailRequest request)
+    {
+        // Validate and change a web user's email address.
+        var user = await _usersCollection.Find(u => u.Id == userId).FirstOrDefaultAsync();
+        if (user is null) return UserManagementResult.NotFound("User not found.");
+        if (user.AccountStatus != AccountStatuses.Active || user.Role is not (UserRoles.Backoffice or UserRoles.GridOperator))
+            return UserManagementResult.Invalid("Account cannot update its email.");
+        if (!BCrypt.Net.BCrypt.Verify(request.CurrentPassword, user.PasswordHash))
+            return UserManagementResult.Invalid("Current password is incorrect.");
+        var email = request.NewEmail.Trim().ToLowerInvariant();
+        if (email == user.Email) return UserManagementResult.Invalid("Enter a different email address.");
+        if (await _usersCollection.Find(u => u.Email == email && u.Id != userId).AnyAsync())
+            return UserManagementResult.Conflict("This email address is already in use.");
+        var updated = await _usersCollection.FindOneAndUpdateAsync(
+            u => u.Id == userId && u.PasswordHash == user.PasswordHash && u.AccountStatus == AccountStatuses.Active,
+            Builders<User>.Update.Set(u => u.Email, email).Set(u => u.UpdatedAt, DateTime.UtcNow),
+            new FindOneAndUpdateOptions<User> { ReturnDocument = ReturnDocument.After });
+        return updated is null ? UserManagementResult.Invalid("Account changed. Please sign in again and retry.")
+            : UserManagementResult.Success(ToResponse(updated));
     }
 
     public async Task<UserManagementResult> CreateWebUserAsync(CreateWebUserRequest request)
     {
+        // Validate and create a web user account.
         var identifier = request.Identifier.Trim();
         var email = string.IsNullOrWhiteSpace(request.Email) ? null : request.Email.Trim().ToLowerInvariant();
 
@@ -59,11 +89,13 @@ public sealed class UserManagementService
 
     public async Task<IReadOnlyList<UserProfileResponse>> GetPendingProsumersAsync()
     {
+        // Return all pending Prosumers.
         return await GetProsumersAsync(AccountStatuses.Pending);
     }
 
     public async Task<IReadOnlyList<UserProfileResponse>> GetProsumersAsync(string? accountStatus = null)
     {
+        // Return Prosumers with an optional status filter.
         var filter = Builders<User>.Filter.Eq(user => user.Role, UserRoles.Prosumer);
         if (!string.IsNullOrWhiteSpace(accountStatus))
         {
@@ -78,6 +110,7 @@ public sealed class UserManagementService
 
     public async Task<IReadOnlyList<UserProfileResponse>> GetWebUsersAsync()
     {
+        // Return all Backoffice and Grid Operator accounts.
         var filter = Builders<User>.Filter.In(user => user.Role, new[] { UserRoles.Backoffice, UserRoles.GridOperator });
         var users = await _usersCollection.Find(filter).SortBy(user => user.FullName).ToListAsync();
         return users.Select(ToResponse).ToList();
@@ -85,6 +118,7 @@ public sealed class UserManagementService
 
     public async Task<UserManagementResult> UpdateProsumerStatusAsync(string nic, UpdateAccountStatusRequest request)
     {
+        // Update a Prosumer's account status.
         if (request.AccountStatus is not AccountStatuses.Active and not AccountStatuses.Deactivated)
         {
             return UserManagementResult.Invalid("AccountStatus must be Active or Deactivated.");
@@ -99,13 +133,19 @@ public sealed class UserManagementService
         }
 
         user.AccountStatus = request.AccountStatus;
+        user.SessionVersion = Guid.NewGuid().ToString("N");
         user.UpdatedAt = DateTime.UtcNow;
-        await _usersCollection.ReplaceOneAsync(candidate => candidate.Id == nic, user);
+        await _usersCollection.UpdateOneAsync(candidate => candidate.Id == nic,
+            Builders<User>.Update
+                .Set(candidate => candidate.AccountStatus, user.AccountStatus)
+                .Set(candidate => candidate.SessionVersion, user.SessionVersion)
+                .Set(candidate => candidate.UpdatedAt, user.UpdatedAt));
         return UserManagementResult.Success(ToResponse(user));
     }
 
     public async Task<UserManagementResult> UpdateWebUserStatusAsync(string id, UpdateAccountStatusRequest request)
     {
+        // Update a web user's account status.
         if (request.AccountStatus is not AccountStatuses.Active and not AccountStatuses.Deactivated)
         {
             return UserManagementResult.Invalid("AccountStatus must be Active or Deactivated.");
@@ -121,13 +161,19 @@ public sealed class UserManagementService
         }
 
         user.AccountStatus = request.AccountStatus;
+        user.SessionVersion = Guid.NewGuid().ToString("N");
         user.UpdatedAt = DateTime.UtcNow;
-        await _usersCollection.ReplaceOneAsync(candidate => candidate.Id == id, user);
+        await _usersCollection.UpdateOneAsync(candidate => candidate.Id == id,
+            Builders<User>.Update
+                .Set(candidate => candidate.AccountStatus, user.AccountStatus)
+                .Set(candidate => candidate.SessionVersion, user.SessionVersion)
+                .Set(candidate => candidate.UpdatedAt, user.UpdatedAt));
         return UserManagementResult.Success(ToResponse(user));
     }
 
     public async Task<UserManagementResult> GetUserAsync(string userId)
     {
+        // Return a user by identifier.
         var user = await _usersCollection.Find(candidate => candidate.Id == userId).FirstOrDefaultAsync();
         return user is null
             ? UserManagementResult.NotFound("User not found.")
@@ -136,6 +182,7 @@ public sealed class UserManagementService
 
     public async Task<UserManagementResult> UpdateProfileAsync(string userId, UpdateUserProfileRequest request)
     {
+        // Update the current user's profile.
         var user = await _usersCollection.Find(candidate => candidate.Id == userId).FirstOrDefaultAsync();
         if (user is null)
         {
@@ -158,12 +205,18 @@ public sealed class UserManagementService
         user.Email = email;
         user.Phone = string.IsNullOrWhiteSpace(request.Phone) ? null : request.Phone.Trim();
         user.UpdatedAt = DateTime.UtcNow;
-        await _usersCollection.ReplaceOneAsync(candidate => candidate.Id == userId, user);
+        await _usersCollection.UpdateOneAsync(candidate => candidate.Id == userId,
+            Builders<User>.Update
+                .Set(candidate => candidate.FullName, user.FullName)
+                .Set(candidate => candidate.Email, user.Email)
+                .Set(candidate => candidate.Phone, user.Phone)
+                .Set(candidate => candidate.UpdatedAt, user.UpdatedAt));
         return UserManagementResult.Success(ToResponse(user));
     }
 
     public async Task<UserManagementResult> UpdateProsumerProfileAsync(string nic, UpdateUserProfileRequest request)
     {
+        // Update a Prosumer's profile as Backoffice.
         var user = await _usersCollection.Find(candidate =>
                 candidate.Id == nic && candidate.Role == UserRoles.Prosumer)
             .FirstOrDefaultAsync();
@@ -188,12 +241,18 @@ public sealed class UserManagementService
         user.Email = email;
         user.Phone = string.IsNullOrWhiteSpace(request.Phone) ? null : request.Phone.Trim();
         user.UpdatedAt = DateTime.UtcNow;
-        await _usersCollection.ReplaceOneAsync(candidate => candidate.Id == nic, user);
+        await _usersCollection.UpdateOneAsync(candidate => candidate.Id == nic,
+            Builders<User>.Update
+                .Set(candidate => candidate.FullName, user.FullName)
+                .Set(candidate => candidate.Email, user.Email)
+                .Set(candidate => candidate.Phone, user.Phone)
+                .Set(candidate => candidate.UpdatedAt, user.UpdatedAt));
         return UserManagementResult.Success(ToResponse(user));
     }
 
     public async Task<UserManagementResult> DeactivateProsumerAsync(string userId)
     {
+        // Deactivate a Prosumer account.
         var user = await _usersCollection.Find(candidate =>
                 candidate.Id == userId && candidate.Role == UserRoles.Prosumer)
             .FirstOrDefaultAsync();
@@ -203,16 +262,27 @@ public sealed class UserManagementService
         }
 
         user.AccountStatus = AccountStatuses.Deactivated;
+        user.SessionVersion = Guid.NewGuid().ToString("N");
         user.UpdatedAt = DateTime.UtcNow;
-        await _usersCollection.ReplaceOneAsync(candidate => candidate.Id == userId, user);
+        await _usersCollection.UpdateOneAsync(candidate => candidate.Id == userId,
+            Builders<User>.Update
+                .Set(candidate => candidate.AccountStatus, user.AccountStatus)
+                .Set(candidate => candidate.SessionVersion, user.SessionVersion)
+                .Set(candidate => candidate.UpdatedAt, user.UpdatedAt));
         return UserManagementResult.Success(ToResponse(user));
     }
 
+    // Convert a user into a profile response.
     private static UserProfileResponse ToResponse(User user) => new()
     {
-        Id = user.Id, Role = user.Role, FullName = user.FullName, Email = user.Email,
-        Phone = user.Phone, AccountStatus = user.AccountStatus,
-        CreatedAt = user.CreatedAt, UpdatedAt = user.UpdatedAt
+        Id = user.Id,
+        Role = user.Role,
+        FullName = user.FullName,
+        Email = user.Email,
+        Phone = user.Phone,
+        AccountStatus = user.AccountStatus,
+        CreatedAt = user.CreatedAt,
+        UpdatedAt = user.UpdatedAt
     };
 }
 
@@ -220,6 +290,7 @@ public sealed class UserManagementResult
 {
     private UserManagementResult(UserProfileResponse? user, string? error, UserManagementFailure failure)
     {
+        // Store the user management result.
         User = user;
         Error = error;
         Failure = failure;
@@ -229,9 +300,16 @@ public sealed class UserManagementResult
     public string? Error { get; }
     public UserManagementFailure Failure { get; }
 
+    // Create a successful result.
     public static UserManagementResult Success(UserProfileResponse user) => new(user, null, UserManagementFailure.None);
+
+    // Create an invalid request result.
     public static UserManagementResult Invalid(string error) => new(null, error, UserManagementFailure.Invalid);
+
+    // Create a conflicting-data result.
     public static UserManagementResult Conflict(string error) => new(null, error, UserManagementFailure.Conflict);
+
+    // Create a missing-user result.
     public static UserManagementResult NotFound(string error) => new(null, error, UserManagementFailure.NotFound);
 }
 

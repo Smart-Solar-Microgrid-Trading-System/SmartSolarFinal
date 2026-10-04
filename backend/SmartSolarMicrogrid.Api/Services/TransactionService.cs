@@ -1,3 +1,9 @@
+/*
+ * Student Name: Thilakaratne A.A.S.M.
+ * Component: Energy Transaction Management
+ * File Name: TransactionService.cs
+ * Description: Defines the service layer for managing energy transactions.
+ */
 using System.Security.Cryptography;
 using System.Text;
 using MongoDB.Driver;

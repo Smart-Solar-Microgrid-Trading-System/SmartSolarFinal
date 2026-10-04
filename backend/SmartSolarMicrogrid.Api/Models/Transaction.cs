@@ -1,3 +1,9 @@
+/*
+ * Student Name: Thilakaratne A.A.S.M.
+ * Component: Energy Transaction Management
+ * File Name: Transaction.cs
+ * Description: Defines the structure for an energy transaction.
+ */
 using MongoDB.Bson.Serialization.Attributes;
 
 namespace SmartSolarMicrogrid.Api.Models;

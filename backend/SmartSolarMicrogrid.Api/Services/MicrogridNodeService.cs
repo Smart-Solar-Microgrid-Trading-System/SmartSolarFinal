@@ -1,3 +1,9 @@
+/*
+ * Student Name: Thilakaratne A.A.S.M.
+ * Component: Microgrid node Management
+ * File Name: MicrogridNodeService.cs
+ * Description: Defines the service layer for managing microgrid nodes, including CRUD operations and validation.
+ */
 using MongoDB.Driver;
 using SmartSolarMicrogrid.Api.Models;
 using SmartSolarMicrogrid.Api.Models.Dtos;
@@ -79,7 +85,7 @@ public sealed class MicrogridNodeService
 
     public async Task<MicrogridNodeResponse?> UpdateNodeAsync(string id, UpdateMicrogridNodeRequest request)
     {
-        ValidateRequest( request.Name, request.Address,request.Latitude,request.Longitude,request.CapacityKw,request.availableBatterySlots);
+        ValidateRequest( request.Name, request.Address,request.Latitude,request.Longitude,request.CapacityKw,request.AvailableBatterySlots);
 
         var existingNode = await _nodes .Find(x => x.Id == id ) .FirstOrDefaultAsync();
         //check if the node exists 
@@ -90,7 +96,7 @@ public sealed class MicrogridNodeService
         existingNode.Latitude = request.Latitude;
         existingNode.Longitude = request.Longitude;
         existingNode.CapacityKw = request.CapacityKw;
-        existingNode.AvailableBatterySlots = request.availableBatterySlots;
+        existingNode.AvailableBatterySlots = request.AvailableBatterySlots;
         existingNode.UpdatedAt = DateTime.UtcNow;
 
         var result=await _nodes.ReplaceOneAsync( x => x.Id == id, existingNode);

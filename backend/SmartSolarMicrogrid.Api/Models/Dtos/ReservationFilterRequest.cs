@@ -1,3 +1,10 @@
+/*
+ * Student Name: Ruwanmali K.H
+ * Component: Reservation Monitoring and Dashboard
+ * File Name: ReservationFilterRequest.cs
+ * Description: Defines the search and filtering criteria used when retrieving reservations.
+ */
+
 namespace SmartSolarMicrogrid.Api.Models.Dtos;
 
 public class ReservationFilterRequest

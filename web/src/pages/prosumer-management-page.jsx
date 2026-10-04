@@ -128,7 +128,7 @@ export function ProsumerManagementPage() {
 
       setMessage(editingNic
         ? `${user.fullName}'s profile was updated.`
-        : `${user.fullName} was created and is pending activation.`);
+        : `${user.fullName} was created and can sign in now.`);
       handleDialogChange(false);
       await loadProsumers();
     } catch (err) {

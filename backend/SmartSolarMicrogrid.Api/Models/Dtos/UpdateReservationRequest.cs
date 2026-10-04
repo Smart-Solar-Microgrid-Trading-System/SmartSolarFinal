@@ -1,10 +1,11 @@
 /*
- * Project: Smart Solar Microgrid Trading System
+ * Student Name: Rathnayake R.M.S.B
  * Component: Energy Reservation Management
- * File: UpdateReservationRequest.cs
- * Purpose: Defines the slot and energy values that staff may change on a reservation.
- * Contributor: Rathnayake R.M.S.B
+ * File Name: UpdateReservationRequest.cs
+ * Description: Defines the booking slot and energy values that may be changed
+ *              on an existing reservation.
  */
+
 using System.ComponentModel.DataAnnotations;
 
 namespace SmartSolarMicrogrid.Api.Models.Dtos;

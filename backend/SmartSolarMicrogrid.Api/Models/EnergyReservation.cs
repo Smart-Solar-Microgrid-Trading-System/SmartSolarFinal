@@ -1,3 +1,19 @@
+/*
+ * Student Name: Ruwanmali K.H
+ * Component: Reservation Monitoring and Dashboard
+ * File Name: EnergyReservation.cs
+ * Description: Supplies reservation data used by monitoring, approval,
+ *              rejection, and dashboard operations.
+ */
+
+/*
+ * Student Name: Rathnayake R.M.S.B
+ * Component: Energy Reservation Management
+ * File Name: EnergyReservation.cs
+ * Description: Represents the MongoDB energy reservation record created,
+ *              updated, viewed, and soft-cancelled by the CRUD workflow.
+ */
+
 using MongoDB.Bson.Serialization.Attributes;
 
 namespace SmartSolarMicrogrid.Api.Models;

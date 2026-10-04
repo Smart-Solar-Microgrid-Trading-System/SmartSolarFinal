@@ -5,7 +5,6 @@ import {
 } from "react-router-dom";
 
 import { AppShell } from "@/components/app-shell";
-import { PlaceholderPage } from "@/components/placeholder-page";
 import { ProtectedRoute } from "@/components/protected-route";
 
 import { BookingSlotsPage } from "@/pages/booking-slots-page";
@@ -23,6 +22,9 @@ import { NodeCreatePage } from "@/pages/NodeCreatePage";
 import { NodeEditPage } from "@/pages/NodeEditPage";
 import { NodeDetailsPage } from "@/pages/NodeDetails";
 import { NodeMapPage } from "@/pages/NodeMap";
+import { OverviewPage } from "@/pages/overview-page";
+
+import { ProfilePage } from "@/pages/profile-page";
 
 export default function App() {
   return (
@@ -36,7 +38,7 @@ export default function App() {
         <Route element={<AppShell />}>
           <Route
             index
-            element={<PlaceholderPage title="Overview" />}
+            element={<OverviewPage />}
           />
 
           <Route
@@ -69,6 +71,8 @@ export default function App() {
               />
             }
           >
+            <Route path="profile" element={<ProfilePage />} />
+            <Route path="change-password" element={<Navigate to="/profile" replace />} />
             <Route path="nodes" element={<MicrogridNodesPage />} />
             <Route path="nodes/map" element={<NodeMapPage />} />
             <Route path="nodes/:id" element={<NodeDetailsPage />} />
@@ -78,6 +82,11 @@ export default function App() {
             <Route path="reservations/:reservationId" element={<ReservationDetailsPage />} />
             <Route path="reservations/:reservationId/edit" element={<EditReservationPage />} />
             <Route path="reservations/:reservationId/summary" element={<ReservationSummaryPage />} />
+          </Route>
+
+          <Route
+            element={<ProtectedRoute roles={["GridOperator"]} />}
+          >
             <Route
               path="operations"
               element={<OperationsDashboardPage />}

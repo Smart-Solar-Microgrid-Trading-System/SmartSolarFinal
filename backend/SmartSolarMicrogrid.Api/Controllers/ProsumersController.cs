@@ -1,3 +1,10 @@
+/*
+ * Student Name: Hirimuthugodage J.
+ * Component: User and Prosumer Management with Role Based Authentication
+ * File Name: ProsumersController.cs
+ * Description: Handles Prosumer registration and Backoffice account management.
+ */
+
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using MongoDB.Driver;
@@ -16,6 +23,7 @@ public sealed class ProsumersController : ControllerBase
 
     public ProsumersController(ProsumerService prosumerService, UserManagementService userManagementService)
     {
+        // Store the Prosumer and user management services.
         _prosumerService = prosumerService;
         _userManagementService = userManagementService;
     }
@@ -23,6 +31,7 @@ public sealed class ProsumersController : ControllerBase
     [HttpPost("register")]
     public async Task<IActionResult> Register([FromBody] ProsumerRegistrationRequest request)
     {
+        // Register a new Prosumer account.
         ProsumerRegistrationResult result;
         try
         {
@@ -50,6 +59,7 @@ public sealed class ProsumersController : ControllerBase
     [HttpPost]
     public async Task<IActionResult> Create([FromBody] ProsumerRegistrationRequest request)
     {
+        // Create a Prosumer account as a Backoffice user.
         ProsumerRegistrationResult result;
         try
         {
@@ -77,6 +87,7 @@ public sealed class ProsumersController : ControllerBase
     [HttpGet]
     public async Task<IActionResult> GetByStatus([FromQuery] string? status)
     {
+        // Return Prosumers with the requested account status.
         if (status is not null && status is not AccountStatuses.Pending and not AccountStatuses.Active and not AccountStatuses.Deactivated)
         {
             return BadRequest(new { error = "Status must be Pending, Active, or Deactivated." });
@@ -89,6 +100,7 @@ public sealed class ProsumersController : ControllerBase
     [HttpPatch("{nic}/status")]
     public async Task<IActionResult> UpdateStatus(string nic, [FromBody] UpdateAccountStatusRequest request)
     {
+        // Update a Prosumer's account status.
         var result = await _userManagementService.UpdateProsumerStatusAsync(nic, request);
         return result.Failure switch
         {
@@ -102,6 +114,7 @@ public sealed class ProsumersController : ControllerBase
     [HttpPut("{nic}")]
     public async Task<IActionResult> Update(string nic, [FromBody] UpdateUserProfileRequest request)
     {
+        // Update a Prosumer's profile.
         var result = await _userManagementService.UpdateProsumerProfileAsync(nic, request);
         return result.Failure switch
         {

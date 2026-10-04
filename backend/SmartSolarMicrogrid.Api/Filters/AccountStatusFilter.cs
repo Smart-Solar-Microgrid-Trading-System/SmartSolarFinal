@@ -1,3 +1,10 @@
+/*
+ * Student Name: Hirimuthugodage J.
+ * Component: User and Prosumer Management with Role Based Authentication
+ * File Name: AccountStatusFilter.cs
+ * Description: Checking account status and session validation for authenticated requests.
+ */
+
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Filters;
 using MongoDB.Driver;
@@ -12,11 +19,13 @@ public class AccountStatusFilter : IAsyncAuthorizationFilter
 
     public AccountStatusFilter(IMongoDatabase database)
     {
+        // Store the database used for account checks.
         _database = database;
     }
 
     public async Task OnAuthorizationAsync(AuthorizationFilterContext context)
     {
+        // Check the current account before allowing the request.
         var user = context.HttpContext.User;
 
         if (user.Identity?.IsAuthenticated == true)
@@ -27,7 +36,7 @@ public class AccountStatusFilter : IAsyncAuthorizationFilter
                 var usersCollection = _database.GetCollection<User>("Users");
                 var dbUser = await usersCollection.Find(u => u.Id == userId).FirstOrDefaultAsync();
 
-                if (dbUser == null)
+                if (dbUser == null || (user.FindFirst("session_version")?.Value ?? "") != dbUser.SessionVersion)
                 {
                     context.Result = new UnauthorizedResult();
                     return;

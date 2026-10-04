@@ -1,3 +1,11 @@
+/*
+ * Student Name: Ruwanmali K.H
+ * Component: Booking Slot Management
+ * File Name: UpdateBookingSlotRequest.cs
+ * Description: Defines the request data required to update an existing booking slot.
+ */
+
+
 using System.ComponentModel.DataAnnotations;
 
 namespace SmartSolarMicrogrid.Api.Models.Dtos;

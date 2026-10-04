@@ -1,3 +1,10 @@
+/*
+ * Student Name: Hirimuthugodage J.
+ * Component: User and Prosumer Management with Role Based Authentication
+ * File Name: AccountValidationRules.cs
+ * Description: Defines validation rules for user and Prosumer account data.
+ */
+
 namespace SmartSolarMicrogrid.Api.Models;
 
 public static class AccountValidationRules

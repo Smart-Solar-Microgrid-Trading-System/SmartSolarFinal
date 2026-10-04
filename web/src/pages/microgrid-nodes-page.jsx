@@ -13,6 +13,7 @@ import { useAuth } from "@/lib/auth-context";
 
 export function MicrogridNodesPage() {
   const { session } = useAuth();
+  const isBackoffice = session.role === "Backoffice";
 
   const [nodes, setNodes] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -105,12 +106,14 @@ export function MicrogridNodesPage() {
             <Button variant="outline" onClick={loadNodes} disabled={loading}>
               <RefreshCw size={16} /> Refresh
             </Button>
-            <Button asChild>
-              <Link to="/nodes/new">
-                <Plus size={16} />
-                Add New Node
-              </Link>
-            </Button>
+            {isBackoffice && (
+              <Button asChild>
+                <Link to="/nodes/new">
+                  <Plus size={16} />
+                  Add New Node
+                </Link>
+              </Button>
+            )}
           </>
         }
       />
