@@ -48,9 +48,9 @@ class TransactionQrActivity : Activity() {
             )
 
         pageBackButton.setOnClickListener {
-            finish()
+            AppNavigation.openBookings(this)
         }
-
+        
         val reservationId =
             intent.getStringExtra(
                 "reservationId"

@@ -3,8 +3,6 @@ package com.smartsolarmicrogrid.app
 import android.app.Activity
 import android.app.AlertDialog
 import android.content.res.ColorStateList
-import android.graphics.Color
-import android.graphics.drawable.GradientDrawable
 import android.os.Bundle
 import android.view.View
 import android.widget.*
@@ -31,7 +29,8 @@ class BookingsActivity : Activity() {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_bookings)
 
-        val savedSession = SessionDatabaseHelper(this).getSession()
+        val savedSession =
+            SessionDatabaseHelper(this).getSession()
 
         if (savedSession == null) {
             finish()
@@ -40,16 +39,26 @@ class BookingsActivity : Activity() {
 
         session = savedSession
 
-        content = findViewById(R.id.reservationContent)
-        feedback = findViewById(R.id.reservationFeedbackText)
-        createTab = findViewById(R.id.createReservationTab)
-        listTab = findViewById(R.id.myReservationsTab)
+        content =
+            findViewById(R.id.reservationContent)
 
-        findViewById<ImageButton>(R.id.pageBackButton)
-            .setOnClickListener {
-                finish()
-            }
+        feedback =
+            findViewById(R.id.reservationFeedbackText)
 
+        createTab =
+            findViewById(R.id.createReservationTab)
+
+        listTab =
+            findViewById(R.id.myReservationsTab)
+
+        // Return to the mobile home screen.
+        findViewById<ImageButton>(
+            R.id.pageBackButton
+        ).setOnClickListener {
+            AppNavigation.openHome(this)
+        }
+
+        // Configure shared bottom navigation.
         AppNavigation.configure(
             this,
             AppNavigation.Destination.Bookings
@@ -64,6 +73,7 @@ class BookingsActivity : Activity() {
         }
 
         if (session.role != "Prosumer") {
+
             createTab.visibility = View.GONE
             listTab.visibility = View.GONE
 
@@ -79,44 +89,53 @@ class BookingsActivity : Activity() {
                     "Mobile reservation booking is available only to Prosumer accounts."
                 )
             )
+
         } else {
+
             loadNodes()
         }
     }
 
     private fun loadNodes() {
-        setLoading("Loading stations...")
+
+        setLoading(
+            "Loading stations..."
+        )
 
         Thread {
+
             ReservationApi.nodes(
                 this,
                 session.token
             ).fold(
-                onSuccess = { loaded ->
+
+                onSuccess = { loadedNodes ->
 
                     runOnUiThread {
-                        nodes = loaded
+
+                        nodes =
+                            loadedNodes
+
                         hideMessage()
+
                         showReservations()
                     }
                 },
 
                 onFailure = {
+
                     showMessage(
-                        it.message ?: "Stations could not be loaded.",
+                        it.message
+                            ?: "Stations could not be loaded.",
                         false
                     )
                 }
             )
+
         }.start()
     }
-
-    // ---------------------------------------------------------
-    // MEMBER 3 - CREATE RESERVATION
-    // ---------------------------------------------------------
-
     private fun showCreate() {
-        // Build the reservation form with a clear order for station, slot and energy.
+
         markTab(createTab)
         clearContent()
 
@@ -125,52 +144,64 @@ class BookingsActivity : Activity() {
             "Select a station, available slot and energy amount."
         )
 
-        step("1", "Select")
-
-        val card = card()
-
-        card.addView(
-            label("Reservation details").apply {
-                textSize = 18f
-                setPadding(0, 0, 0, dp(12))
-            }
+        step(
+            "1",
+            "Select"
         )
 
-        card.addView(
-            label("Select Station")
+        val formCard =
+            card()
+
+        formCard.addView(
+            label(
+                "Select Station"
+            )
         )
 
-        val stationSpinner = Spinner(this)
+        val stationSpinner =
+            Spinner(this)
 
-        stationSpinner.adapter = ArrayAdapter(
-            this,
-            android.R.layout.simple_spinner_dropdown_item,
-            listOf("Select a station") +
+        stationSpinner.adapter =
+            ArrayAdapter(
+                this,
+                android.R.layout.simple_spinner_dropdown_item,
+                listOf(
+                    "Select a station"
+                ) +
                     nodes.map {
+
                         "${it.name} • ${number(it.capacityKw)} kW"
                     }
-        )
+            )
 
         val selectedIndex =
             nodes.indexOfFirst {
-                it.id == selectedNode?.id
+
+                it.id ==
+                    selectedNode?.id
             }
 
         stationSpinner.setSelection(
             if (selectedIndex >= 0) {
+
                 selectedIndex + 1
+
             } else {
+
                 0
             }
         )
 
-        card.addView(
+        formCard.addView(
             stationSpinner,
             matchWrap()
         )
 
-        card.addView(
-            label("Available Slots (UTC)").apply {
+        formCard.addView(
+            label(
+                "Available Slots (UTC)"
+            ).apply {
+
                 setPadding(
                     0,
                     dp(18),
@@ -182,16 +213,21 @@ class BookingsActivity : Activity() {
 
         val slotContainer =
             LinearLayout(this).apply {
-                orientation = LinearLayout.VERTICAL
+
+                orientation =
+                    LinearLayout.VERTICAL
             }
 
-        card.addView(
+        formCard.addView(
             slotContainer,
             matchWrap()
         )
 
-        card.addView(
-            label("Energy Amount (kWh)").apply {
+        formCard.addView(
+            label(
+                "Energy Amount (kWh)"
+            ).apply {
+
                 setPadding(
                     0,
                     dp(18),
@@ -206,39 +242,47 @@ class BookingsActivity : Activity() {
 
                 inputType =
                     android.text.InputType.TYPE_CLASS_NUMBER or
-                            android.text.InputType.TYPE_NUMBER_FLAG_DECIMAL
+                        android.text.InputType.TYPE_NUMBER_FLAG_DECIMAL
 
-                hint = "Enter energy amount"
+                hint =
+                    "Enter energy amount"
 
-                setText(energyAmount)
+                setText(
+                    energyAmount
+                )
             }
 
-        card.addView(
+        formCard.addView(
             energyInput,
             matchWrap()
         )
 
-        card.addView(
+        formCard.addView(
             info(
                 "Bookings can be made up to 7 days ahead. " +
-                        "Changes and cancellations require at least 12 hours' notice."
+                    "Changes and cancellations require at least 12 hours' notice."
             )
         )
 
-        content.addView(card)
+        content.addView(
+            formCard
+        )
 
-        val review =
+        val reviewButton =
             primaryButton(
                 "Review Reservation"
             )
 
         content.addView(
-            review,
-            matchWrap(top = 16)
+            reviewButton,
+            matchWrap(
+                top = 16
+            )
         )
 
         stationSpinner.onItemSelectedListener =
-            object : AdapterView.OnItemSelectedListener {
+            object :
+                AdapterView.OnItemSelectedListener {
 
                 override fun onNothingSelected(
                     parent: AdapterView<*>?
@@ -253,8 +297,11 @@ class BookingsActivity : Activity() {
 
                     if (position == 0) {
 
-                        selectedNode = null
-                        selectedSlot = null
+                        selectedNode =
+                            null
+
+                        selectedSlot =
+                            null
 
                         slotContainer.removeAllViews()
 
@@ -268,13 +315,21 @@ class BookingsActivity : Activity() {
                     }
 
                     val node =
-                        nodes[position - 1]
+                        nodes[
+                            position - 1
+                        ]
 
-                    if (selectedNode?.id != node.id) {
-                        selectedSlot = null
+                    if (
+                        selectedNode?.id !=
+                        node.id
+                    ) {
+
+                        selectedSlot =
+                            null
                     }
 
-                    selectedNode = node
+                    selectedNode =
+                        node
 
                     loadSlots(
                         node.id,
@@ -284,7 +339,7 @@ class BookingsActivity : Activity() {
                 }
             }
 
-        review.setOnClickListener {
+        reviewButton.setOnClickListener {
 
             energyAmount =
                 energyInput.text
@@ -292,11 +347,13 @@ class BookingsActivity : Activity() {
                     .trim()
 
             val energy =
-                energyAmount.toDoubleOrNull()
+                energyAmount
+                    .toDoubleOrNull()
 
             when {
 
                 selectedNode == null -> {
+
                     showMessage(
                         "Select a microgrid station.",
                         false
@@ -304,20 +361,25 @@ class BookingsActivity : Activity() {
                 }
 
                 selectedSlot == null -> {
+
                     showMessage(
                         "Select an available booking slot.",
                         false
                     )
                 }
 
-                energy == null || energy <= 0 -> {
+                energy == null ||
+                    energy <= 0 -> {
+
                     showMessage(
                         "Enter a positive energy amount.",
                         false
                     )
                 }
 
-                energy > selectedSlot!!.capacityKw -> {
+                energy >
+                    selectedSlot!!.capacityKw -> {
+
                     showMessage(
                         "Energy amount cannot exceed the slot capacity.",
                         false
@@ -325,7 +387,9 @@ class BookingsActivity : Activity() {
                 }
 
                 else -> {
+
                     hideMessage()
+
                     showReview()
                 }
             }
@@ -342,7 +406,9 @@ class BookingsActivity : Activity() {
         target.removeAllViews()
 
         target.addView(
-            empty("Loading available slots...")
+            empty(
+                "Loading available slots..."
+            )
         )
 
         Thread {
@@ -353,34 +419,44 @@ class BookingsActivity : Activity() {
                 nodeId
             ).fold(
 
-                onSuccess = { all ->
+                onSuccess = { allSlots ->
 
                     val now =
                         System.currentTimeMillis()
 
-                    val limit =
-                        now + 7L * 24 * 60 * 60 * 1000
+                    val sevenDaysLater =
+                        now +
+                            7L *
+                            24 *
+                            60 *
+                            60 *
+                            1000
 
-                    val available =
-                        all.filter { slot ->
+                    val availableSlots =
+                        allSlots.filter { slot ->
 
                             val start =
-                                epoch(slot.startTime)
+                                epoch(
+                                    slot.startTime
+                                )
 
                             slot.isActive &&
-                                    start > now &&
-                                    start <= limit &&
-                                    (
-                                            slot.status == "Available" ||
-                                                    slot.id == includeReservedId
-                                            )
+                                start > now &&
+                                start <= sevenDaysLater &&
+                                (
+                                    slot.status == "Available" ||
+                                        slot.id ==
+                                        includeReservedId
+                                    )
                         }
 
                     runOnUiThread {
 
                         target.removeAllViews()
 
-                        if (available.isEmpty()) {
+                        if (
+                            availableSlots.isEmpty()
+                        ) {
 
                             target.addView(
                                 empty(
@@ -392,32 +468,44 @@ class BookingsActivity : Activity() {
                         }
 
                         selectedSlot =
-                            available.firstOrNull {
-                                it.id == selectedId
-                            }
+                            availableSlots
+                                .firstOrNull {
 
-                        val group =
+                                    it.id ==
+                                        selectedId
+                                }
+
+                        val radioGroup =
                             RadioGroup(this).apply {
+
                                 orientation =
                                     RadioGroup.VERTICAL
                             }
 
-                        available.forEach { slot ->
+                        availableSlots.forEach {
+                                slot ->
 
-                            group.addView(
+                            val button =
                                 RadioButton(this).apply {
 
                                     text =
                                         "${utc(slot.startTime)} – " +
-                                                "${utcTime(slot.endTime)} • " +
-                                                "${number(slot.capacityKw)} kW\n" +
-                                                if (slot.status == "Available") {
-                                                    "● Available"
-                                                } else {
-                                                    "Current slot"
-                                                }
+                                            "${utcTime(slot.endTime)} • " +
+                                            "${number(slot.capacityKw)} kW\n" +
+                                            if (
+                                                slot.status ==
+                                                "Available"
+                                            ) {
 
-                                    tag = slot
+                                                "● Available"
+
+                                            } else {
+
+                                                "Current slot"
+                                            }
+
+                                    tag =
+                                        slot
 
                                     setPadding(
                                         dp(8),
@@ -427,29 +515,38 @@ class BookingsActivity : Activity() {
                                     )
 
                                     isChecked =
-                                        slot.id == selectedId
-                                },
+                                        slot.id ==
+                                            selectedId
+                                }
+
+                            radioGroup.addView(
+                                button,
                                 matchWrap()
                             )
                         }
 
-                        group.setOnCheckedChangeListener {
-                                radioGroup,
-                                checkedId ->
+                        radioGroup
+                            .setOnCheckedChangeListener {
+                                    group,
+                                    checkedId ->
 
-                            selectedSlot =
-                                radioGroup
-                                    .findViewById<RadioButton>(
-                                        checkedId
-                                    )
-                                    ?.tag as? ReservationApi.Slot
-                        }
+                                selectedSlot =
+                                    group
+                                        .findViewById<RadioButton>(
+                                            checkedId
+                                        )
+                                        ?.tag
+                                        as? ReservationApi.Slot
+                            }
 
-                        target.addView(group)
+                        target.addView(
+                            radioGroup
+                        )
                     }
                 },
 
                 onFailure = {
+
                     showMessage(
                         it.message
                             ?: "Slots could not be loaded.",
@@ -462,6 +559,7 @@ class BookingsActivity : Activity() {
     }
 
     private fun showReview() {
+
         markTab(createTab)
         clearContent()
 
@@ -470,7 +568,10 @@ class BookingsActivity : Activity() {
             "Confirm the details before creating the reservation."
         )
 
-        step("2", "Review")
+        step(
+            "2",
+            "Review"
+        )
 
         content.addView(
             summaryCard(
@@ -484,11 +585,14 @@ class BookingsActivity : Activity() {
             info(
                 "Your reservation will be created with Pending status."
             ),
-            matchWrap(top = 14)
+            matchWrap(
+                top = 14
+            )
         )
 
         val confirmation =
             CheckBox(this).apply {
+
                 text =
                     "I confirm the reservation details"
 
@@ -500,30 +604,37 @@ class BookingsActivity : Activity() {
                 )
             }
 
-        content.addView(confirmation)
+        content.addView(
+            confirmation
+        )
 
-        val confirm =
+        val confirmButton =
             primaryButton(
                 "Confirm Reservation"
             ).apply {
-                isEnabled = false
+
+                isEnabled =
+                    false
             }
 
-        confirmation.setOnCheckedChangeListener {
-                _,
-                checked ->
+        confirmation
+            .setOnCheckedChangeListener {
+                    _,
+                    checked ->
 
-            confirm.isEnabled = checked
-        }
+                confirmButton.isEnabled =
+                    checked
+            }
 
-        confirm.setOnClickListener {
+        confirmButton.setOnClickListener {
+
             createReservation(
                 it as Button
             )
         }
 
         content.addView(
-            confirm,
+            confirmButton,
             matchWrap()
         )
 
@@ -531,9 +642,12 @@ class BookingsActivity : Activity() {
             secondaryButton(
                 "Back"
             ) {
+
                 showCreate()
             },
-            matchWrap(top = 8)
+            matchWrap(
+                top = 8
+            )
         )
     }
 
@@ -541,7 +655,8 @@ class BookingsActivity : Activity() {
         button: Button
     ) {
 
-        button.isEnabled = false
+        button.isEnabled =
+            false
 
         showMessage(
             "Creating reservation...",
@@ -559,7 +674,9 @@ class BookingsActivity : Activity() {
             ).fold(
 
                 onSuccess = {
+
                     runOnUiThread {
+
                         hideMessage()
 
                         showConfirmation(
@@ -572,7 +689,9 @@ class BookingsActivity : Activity() {
                 onFailure = {
 
                     runOnUiThread {
-                        button.isEnabled = true
+
+                        button.isEnabled =
+                            true
                     }
 
                     showMessage(
@@ -586,11 +705,9 @@ class BookingsActivity : Activity() {
         }.start()
     }
 
-    // ---------------------------------------------------------
-    // MEMBER 4 - MY RESERVATIONS
-    // ---------------------------------------------------------
 
     private fun showReservations() {
+
         markTab(listTab)
         clearContent()
 
@@ -608,6 +725,7 @@ class BookingsActivity : Activity() {
 
         val row =
             LinearLayout(this).apply {
+
                 orientation =
                     LinearLayout.HORIZONTAL
             }
@@ -616,6 +734,7 @@ class BookingsActivity : Activity() {
             filterButton(
                 "Current"
             ) {
+
                 loadCurrentReservations()
             }
 
@@ -623,6 +742,7 @@ class BookingsActivity : Activity() {
             filterButton(
                 "Pending"
             ) {
+
                 loadPendingReservations()
             }
 
@@ -630,6 +750,7 @@ class BookingsActivity : Activity() {
             filterButton(
                 "History"
             ) {
+
                 loadHistoryReservations()
             }
 
@@ -650,7 +771,9 @@ class BookingsActivity : Activity() {
 
         content.addView(
             row,
-            matchWrap(bottom = 12)
+            matchWrap(
+                bottom = 12
+            )
         )
 
         val searchInput =
@@ -659,12 +782,16 @@ class BookingsActivity : Activity() {
                 hint =
                     "Search reservation ID or station"
 
-                setSingleLine(true)
+                setSingleLine(
+                    true
+                )
             }
 
         content.addView(
             searchInput,
-            matchWrap(bottom = 8)
+            matchWrap(
+                bottom = 8
+            )
         )
 
         val statusSpinner =
@@ -683,14 +810,15 @@ class BookingsActivity : Activity() {
         statusSpinner.adapter =
             ArrayAdapter(
                 this,
-                android.R.layout
-                    .simple_spinner_dropdown_item,
+                android.R.layout.simple_spinner_dropdown_item,
                 statuses
             )
 
         content.addView(
             statusSpinner,
-            matchWrap(bottom = 8)
+            matchWrap(
+                bottom = 8
+            )
         )
 
         val searchButton =
@@ -715,13 +843,17 @@ class BookingsActivity : Activity() {
                     selectedStatus ==
                     "All Status"
                 ) {
+
                     null
+
                 } else {
+
                     selectedStatus
                 }
 
             loadFilteredReservations(
                 search.takeIf {
+
                     it.isNotBlank()
                 },
                 status
@@ -730,19 +862,21 @@ class BookingsActivity : Activity() {
 
         content.addView(
             searchButton,
-            matchWrap(bottom = 8)
+            matchWrap(
+                bottom = 8
+            )
         )
 
-        val showAllButton =
+        content.addView(
             secondaryButton(
                 "Show All Reservations"
             ) {
-                loadAllReservations()
-            }
 
-        content.addView(
-            showAllButton,
-            matchWrap(bottom = 16)
+                loadAllReservations()
+            },
+            matchWrap(
+                bottom = 16
+            )
         )
 
         content.addView(
@@ -751,142 +885,168 @@ class BookingsActivity : Activity() {
             ).apply {
 
                 setOnClickListener {
+
                     showCreate()
                 }
-
             },
-            matchWrap(bottom = 16)
+            matchWrap(
+                bottom = 16
+            )
         )
     }
 
     private fun loadCurrentReservations() {
+
         showBookingLoading(
             "Loading current bookings..."
         )
 
         Thread {
 
-            ReservationApi.currentReservations(
-                this,
-                session.token
-            ).fold(
+            ReservationApi
+                .currentReservations(
+                    this,
+                    session.token
+                )
+                .fold(
 
-                onSuccess = {
-                    runOnUiThread {
-                        renderReservationList(
-                            "Current Bookings",
-                            it
+                    onSuccess = {
+
+                        runOnUiThread {
+
+                            renderReservationList(
+                                "Current Bookings",
+                                it
+                            )
+                        }
+                    },
+
+                    onFailure = {
+
+                        showMessage(
+                            it.message
+                                ?: "Current bookings could not be loaded.",
+                            false
                         )
                     }
-                },
-
-                onFailure = {
-                    showMessage(
-                        it.message
-                            ?: "Current bookings could not be loaded.",
-                        false
-                    )
-                }
-            )
+                )
 
         }.start()
     }
 
     private fun loadPendingReservations() {
+
         showBookingLoading(
             "Loading pending reservations..."
         )
 
         Thread {
 
-            ReservationApi.pendingReservations(
-                this,
-                session.token
-            ).fold(
+            ReservationApi
+                .pendingReservations(
+                    this,
+                    session.token
+                )
+                .fold(
 
-                onSuccess = {
-                    runOnUiThread {
-                        renderReservationList(
-                            "Pending Reservations",
-                            it
+                    onSuccess = {
+
+                        runOnUiThread {
+
+                            renderReservationList(
+                                "Pending Reservations",
+                                it
+                            )
+                        }
+                    },
+
+                    onFailure = {
+
+                        showMessage(
+                            it.message
+                                ?: "Pending reservations could not be loaded.",
+                            false
                         )
                     }
-                },
-
-                onFailure = {
-                    showMessage(
-                        it.message
-                            ?: "Pending reservations could not be loaded.",
-                        false
-                    )
-                }
-            )
+                )
 
         }.start()
     }
 
     private fun loadHistoryReservations() {
+
         showBookingLoading(
             "Loading booking history..."
         )
 
         Thread {
 
-            ReservationApi.historyReservations(
-                this,
-                session.token
-            ).fold(
+            ReservationApi
+                .historyReservations(
+                    this,
+                    session.token
+                )
+                .fold(
 
-                onSuccess = {
-                    runOnUiThread {
-                        renderReservationList(
-                            "Booking History",
-                            it
+                    onSuccess = {
+
+                        runOnUiThread {
+
+                            renderReservationList(
+                                "Booking History",
+                                it
+                            )
+                        }
+                    },
+
+                    onFailure = {
+
+                        showMessage(
+                            it.message
+                                ?: "Booking history could not be loaded.",
+                            false
                         )
                     }
-                },
-
-                onFailure = {
-                    showMessage(
-                        it.message
-                            ?: "Booking history could not be loaded.",
-                        false
-                    )
-                }
-            )
+                )
 
         }.start()
     }
 
     private fun loadAllReservations() {
+
         showBookingLoading(
             "Loading reservations..."
         )
 
         Thread {
 
-            ReservationApi.reservations(
-                this,
-                session.token
-            ).fold(
+            ReservationApi
+                .reservations(
+                    this,
+                    session.token
+                )
+                .fold(
 
-                onSuccess = {
-                    runOnUiThread {
-                        renderReservationList(
-                            "All Reservations",
-                            it
+                    onSuccess = {
+
+                        runOnUiThread {
+
+                            renderReservationList(
+                                "All Reservations",
+                                it
+                            )
+                        }
+                    },
+
+                    onFailure = {
+
+                        showMessage(
+                            it.message
+                                ?: "Reservations could not be loaded.",
+                            false
                         )
                     }
-                },
-
-                onFailure = {
-                    showMessage(
-                        it.message
-                            ?: "Reservations could not be loaded.",
-                        false
-                    )
-                }
-            )
+                )
 
         }.start()
     }
@@ -902,31 +1062,35 @@ class BookingsActivity : Activity() {
 
         Thread {
 
-            ReservationApi.filteredReservations(
-                context = this,
-                token = session.token,
-                search = search,
-                status = status
-            ).fold(
+            ReservationApi
+                .filteredReservations(
+                    context = this,
+                    token = session.token,
+                    search = search,
+                    status = status
+                )
+                .fold(
 
-                onSuccess = {
+                    onSuccess = {
 
-                    runOnUiThread {
-                        renderReservationList(
-                            "Search Results",
-                            it
+                        runOnUiThread {
+
+                            renderReservationList(
+                                "Search Results",
+                                it
+                            )
+                        }
+                    },
+
+                    onFailure = {
+
+                        showMessage(
+                            it.message
+                                ?: "Reservations could not be filtered.",
+                            false
                         )
                     }
-                },
-
-                onFailure = {
-                    showMessage(
-                        it.message
-                            ?: "Reservations could not be filtered.",
-                        false
-                    )
-                }
-            )
+                )
 
         }.start()
     }
@@ -937,31 +1101,39 @@ class BookingsActivity : Activity() {
 
         runOnUiThread {
 
-            val oldResult =
+            val existing =
                 content.findViewWithTag<View>(
                     "booking_results"
                 )
 
-            if (oldResult != null) {
+            if (
+                existing != null
+            ) {
+
                 content.removeView(
-                    oldResult
+                    existing
                 )
             }
 
             val loadingContainer =
                 LinearLayout(this).apply {
 
-                    tag = "booking_results"
+                    tag =
+                        "booking_results"
 
                     orientation =
                         LinearLayout.VERTICAL
 
                     addView(
-                        ProgressBar(this@BookingsActivity)
+                        ProgressBar(
+                            this@BookingsActivity
+                        )
                     )
 
                     addView(
-                        empty(message)
+                        empty(
+                            message
+                        )
                     )
                 }
 
@@ -974,7 +1146,7 @@ class BookingsActivity : Activity() {
     private fun renderReservationList(
         heading: String,
         reservations:
-        List<ReservationApi.Reservation>
+            List<ReservationApi.Reservation>
     ) {
 
         hideMessage()
@@ -984,7 +1156,10 @@ class BookingsActivity : Activity() {
                 "booking_results"
             )
 
-        if (existing != null) {
+        if (
+            existing != null
+        ) {
+
             content.removeView(
                 existing
             )
@@ -993,7 +1168,8 @@ class BookingsActivity : Activity() {
         val results =
             LinearLayout(this).apply {
 
-                tag = "booking_results"
+                tag =
+                    "booking_results"
 
                 orientation =
                     LinearLayout.VERTICAL
@@ -1004,7 +1180,8 @@ class BookingsActivity : Activity() {
                 "$heading (${reservations.size})"
             ).apply {
 
-                textSize = 19f
+                textSize =
+                    19f
 
                 setPadding(
                     0,
@@ -1015,7 +1192,9 @@ class BookingsActivity : Activity() {
             }
         )
 
-        if (reservations.isEmpty()) {
+        if (
+            reservations.isEmpty()
+        ) {
 
             results.addView(
                 empty(
@@ -1023,7 +1202,9 @@ class BookingsActivity : Activity() {
                 )
             )
 
-            content.addView(results)
+            content.addView(
+                results
+            )
 
             return
         }
@@ -1038,6 +1219,7 @@ class BookingsActivity : Activity() {
                 label(
                     reservation.nodeName
                         .ifBlank {
+
                             reservation.nodeId
                         }
                 )
@@ -1046,9 +1228,9 @@ class BookingsActivity : Activity() {
             item.addView(
                 value(
                     "${utc(reservation.startTime)} – " +
-                            utcTime(
-                                reservation.endTime
-                            )
+                        utcTime(
+                            reservation.endTime
+                        )
                 )
             )
 
@@ -1071,6 +1253,7 @@ class BookingsActivity : Activity() {
             )
 
             item.setOnClickListener {
+
                 showDetails(
                     reservation.id
                 )
@@ -1078,16 +1261,20 @@ class BookingsActivity : Activity() {
 
             results.addView(
                 item,
-                matchWrap(bottom = 10)
+                matchWrap(
+                    bottom = 10
+                )
             )
         }
 
-        content.addView(results)
+        content.addView(
+            results
+        )
     }
 
-    // ---------------------------------------------------------
-    // MEMBER 4 - RESERVATION DETAILS
-    // ---------------------------------------------------------
+    // --------------------------------------------------
+    // DETAILS
+    // --------------------------------------------------
 
     private fun showDetails(
         id: String
@@ -1099,109 +1286,105 @@ class BookingsActivity : Activity() {
 
         Thread {
 
-            ReservationApi.reservation(
-                this,
-                session.token,
-                id
-            ).fold(
+            ReservationApi
+                .reservation(
+                    this,
+                    session.token,
+                    id
+                )
+                .fold(
 
-                onSuccess = {
-                    runOnUiThread {
-                        renderDetails(it)
+                    onSuccess = {
+
+                        runOnUiThread {
+
+                            renderDetails(
+                                it
+                            )
+                        }
+                    },
+
+                    onFailure = {
+
+                        showMessage(
+                            it.message
+                                ?: "Reservation could not be loaded.",
+                            false
+                        )
                     }
-                },
-
-                onFailure = {
-                    showMessage(
-                        it.message
-                            ?: "Reservation could not be loaded.",
-                        false
-                    )
-                }
-            )
+                )
 
         }.start()
     }
 
     private fun renderDetails(
         reservation:
-        ReservationApi.Reservation
+            ReservationApi.Reservation
     ) {
-        // Present the selected reservation in a compact, readable details card.
+
         clearContent()
 
         title(
             "Reservation Details",
-            "View your energy reservation information."
+            reservation.status
         )
 
-        content.addView(
-            statusBanner(reservation.status),
-            matchWrap(bottom = 14)
-        )
-
-        val card =
+        val detailsCard =
             card()
 
-        card.addView(
-            label("Reservation information").apply {
-                textSize = 17f
-                setPadding(0, 0, 0, dp(8))
-            }
-        )
-
-        detailRow(
-            card,
+        detail(
+            detailsCard,
             "Reservation ID",
             reservation.id
         )
 
-        detailRow(
-            card,
+        detail(
+            detailsCard,
             "Station",
             reservation.nodeName
                 .ifBlank {
+
                     reservation.nodeId
                 }
         )
 
-        detailRow(
-            card,
+        detail(
+            detailsCard,
             "Booking Slot",
-            slotDisplayName(reservation.startTime)
+            reservation.slotId
         )
 
-        detailRow(
-            card,
+        detail(
+            detailsCard,
             "Scheduled Time (UTC)",
             "${utc(reservation.startTime)} – " +
-                    utcTime(
-                        reservation.endTime
-                    )
+                utcTime(
+                    reservation.endTime
+                )
         )
 
-        detailRow(
-            card,
+        detail(
+            detailsCard,
             "Energy Amount",
             "${number(reservation.energyAmountKw)} kWh"
         )
 
-        detailRow(
-            card,
+        detail(
+            detailsCard,
             "Status",
             reservation.status
         )
 
-        detailRow(
-            card,
+        detail(
+            detailsCard,
             "Created",
             utc(
                 reservation.createdAt
             )
         )
 
-        detailRow(
-            card,
+        detail(
+            detailsCard,
             "Last Updated",
             utc(
                 reservation.updatedAt
@@ -1211,46 +1394,58 @@ class BookingsActivity : Activity() {
         reservation.cancelledAt
             ?.let {
 
-                detailRow(
-                    card,
+                detail(
+                    detailsCard,
                     "Cancelled",
                     utc(it)
                 )
             }
 
-        content.addView(card)
+        content.addView(
+            detailsCard
+        )
 
         val locked =
-            reservation.status == "Cancelled" ||
-                    reservation.status == "Completed" ||
-                    reservation.status == "Rejected"
+            reservation.status ==
+                "Cancelled" ||
+                reservation.status ==
+                "Completed" ||
+                reservation.status ==
+                "Rejected"
 
         content.addView(
             primaryButton(
-                "Modify Reservation"
+                "Modify"
             ).apply {
 
-                isEnabled = !locked
+                isEnabled =
+                    !locked
 
                 setOnClickListener {
+
                     showEdit(
                         reservation
                     )
                 }
             },
-            matchWrap(top = 14)
+            matchWrap(
+                top = 14
+            )
         )
 
         content.addView(
-            dangerButton(
+            secondaryButton(
                 "Cancel Reservation"
             ) {
+
                 confirmCancellation(
                     reservation
                 )
+
             }.apply {
 
-                isEnabled = !locked
+                isEnabled =
+                    !locked
 
                 setTextColor(
                     getColor(
@@ -1258,35 +1453,33 @@ class BookingsActivity : Activity() {
                     )
                 )
             },
-            matchWrap(top = 8)
-        )
-
-        content.addView(
-            info(
-                "Modifications and cancellations require at least 12 hours' notice."
-            ),
-            matchWrap(top = 10)
+            matchWrap(
+                top = 8
+            )
         )
 
         content.addView(
             secondaryButton(
                 "Back to My Reservations"
             ) {
+
                 showReservations()
             },
-            matchWrap(top = 8)
+            matchWrap(
+                top = 8
+            )
         )
     }
 
-    // ---------------------------------------------------------
-    // MEMBER 3 - EDIT / CANCEL
-    // ---------------------------------------------------------
+    // --------------------------------------------------
+    // EDIT / CANCEL
+    // --------------------------------------------------
 
     private fun showEdit(
         reservation:
-        ReservationApi.Reservation
+            ReservationApi.Reservation
     ) {
-        // Display the current booking separately from the fields that can be changed.
+
         clearContent()
 
         title(
@@ -1300,51 +1493,26 @@ class BookingsActivity : Activity() {
             )
         )
 
-        val card =
+        val editCard =
             card()
 
-        card.addView(
-            label("Current reservation").apply {
-                textSize = 17f
-                setPadding(0, 0, 0, dp(8))
-            }
-        )
-
-        detailRow(
-            card,
+        detail(
+            editCard,
             "Reservation ID",
             reservation.id
         )
 
-        detailRow(
-            card,
+        detail(
+            editCard,
             "Station",
             reservation.nodeName
                 .ifBlank {
+
                     reservation.nodeId
                 }
         )
 
-        detailRow(
-            card,
-            "Current slot",
-            "${utc(reservation.startTime)} – ${utcTime(reservation.endTime)}"
-        )
-
-        detailRow(
-            card,
-            "Current energy",
-            "${number(reservation.energyAmountKw)} kWh"
-        )
-
-        card.addView(
-            label("Update details").apply {
-                textSize = 17f
-                setPadding(0, dp(18), 0, dp(8))
-            }
-        )
-
-        card.addView(
+        editCard.addView(
             label(
                 "Available booking slot"
             ).apply {
@@ -1360,13 +1528,17 @@ class BookingsActivity : Activity() {
 
         val slots =
             LinearLayout(this).apply {
+
                 orientation =
                     LinearLayout.VERTICAL
             }
 
-        card.addView(slots)
+        editCard.addView(
+            slots
+        )
 
-        selectedSlot = null
+        selectedSlot =
+            null
 
         loadSlots(
             reservation.nodeId,
@@ -1375,7 +1547,7 @@ class BookingsActivity : Activity() {
             reservation.slotId
         )
 
-        card.addView(
+        editCard.addView(
             label(
                 "Energy Amount (kWh)"
             ).apply {
@@ -1389,27 +1561,29 @@ class BookingsActivity : Activity() {
             }
         )
 
-        val energy =
+        val energyInput =
             EditText(this).apply {
 
                 inputType =
                     android.text.InputType.TYPE_CLASS_NUMBER or
-                            android.text.InputType.TYPE_NUMBER_FLAG_DECIMAL
+                        android.text.InputType.TYPE_NUMBER_FLAG_DECIMAL
 
                 setText(
                     number(
                         reservation.energyAmountKw
                     )
                 )
-
-                hint = "Enter the updated energy amount"
             }
 
-        card.addView(energy)
+        editCard.addView(
+            energyInput
+        )
 
         content.addView(
-            card,
-            matchWrap(top = 12)
+            editCard,
+            matchWrap(
+                top = 12
+            )
         )
 
         content.addView(
@@ -1420,7 +1594,7 @@ class BookingsActivity : Activity() {
                 setOnClickListener {
 
                     val amount =
-                        energy.text
+                        energyInput.text
                             .toString()
                             .toDoubleOrNull()
 
@@ -1459,18 +1633,23 @@ class BookingsActivity : Activity() {
                     }
                 }
             },
-            matchWrap(top = 14)
+            matchWrap(
+                top = 14
+            )
         )
 
         content.addView(
             secondaryButton(
-                "Discard Changes"
+                "Discard"
             ) {
+
                 renderDetails(
                     reservation
                 )
             },
-            matchWrap(top = 8)
+            matchWrap(
+                top = 8
+            )
         )
     }
 
@@ -1481,7 +1660,8 @@ class BookingsActivity : Activity() {
         button: Button
     ) {
 
-        button.isEnabled = false
+        button.isEnabled =
+            false
 
         showMessage(
             "Saving changes...",
@@ -1499,6 +1679,7 @@ class BookingsActivity : Activity() {
             ).fold(
 
                 onSuccess = {
+
                     runOnUiThread {
 
                         hideMessage()
@@ -1513,7 +1694,9 @@ class BookingsActivity : Activity() {
                 onFailure = {
 
                     runOnUiThread {
-                        button.isEnabled = true
+
+                        button.isEnabled =
+                            true
                     }
 
                     showMessage(
@@ -1529,19 +1712,21 @@ class BookingsActivity : Activity() {
 
     private fun confirmCancellation(
         reservation:
-        ReservationApi.Reservation
+            ReservationApi.Reservation
     ) {
-        // Confirm the soft cancellation and clearly explain that no record is deleted.
-        val dialog = AlertDialog.Builder(this)
+
+        AlertDialog
+            .Builder(this)
             .setTitle(
                 "Cancel reservation?"
             )
             .setMessage(
-                "Station\n${reservation.nodeName.ifBlank { reservation.nodeId }}\n\n" +
-                        "Scheduled time (UTC)\n${utc(reservation.startTime)} – " +
-                        "${utcTime(reservation.endTime)}\n\n" +
-                        "The reservation will be marked as Cancelled. " +
-                        "It will not be permanently deleted."
+                "This reservation will be marked as Cancelled. " +
+                    "It will not be permanently deleted.\n\n" +
+                    "${reservation.nodeName}\n" +
+                    utc(
+                        reservation.startTime
+                    )
             )
             .setNegativeButton(
                 "Keep reservation",
@@ -1557,14 +1742,7 @@ class BookingsActivity : Activity() {
                     reservation.id
                 )
             }
-            .create()
-
-        dialog.setOnShowListener {
-            dialog.getButton(AlertDialog.BUTTON_POSITIVE)
-                .setTextColor(getColor(R.color.status_error))
-        }
-
-        dialog.show()
+            .show()
     }
 
     private fun cancelReservation(
@@ -1585,6 +1763,7 @@ class BookingsActivity : Activity() {
             ).fold(
 
                 onSuccess = {
+
                     runOnUiThread {
 
                         hideMessage()
@@ -1597,6 +1776,7 @@ class BookingsActivity : Activity() {
                 },
 
                 onFailure = {
+
                     showMessage(
                         it.message
                             ?: "Reservation could not be cancelled.",
@@ -1610,7 +1790,7 @@ class BookingsActivity : Activity() {
 
     private fun showConfirmation(
         reservation:
-        ReservationApi.Reservation,
+            ReservationApi.Reservation,
         operation: String
     ) {
 
@@ -1619,8 +1799,11 @@ class BookingsActivity : Activity() {
         content.addView(
             TextView(this).apply {
 
-                text = "✓"
-                textSize = 64f
+                text =
+                    "✓"
+
+                textSize =
+                    64f
 
                 gravity =
                     android.view.Gravity.CENTER
@@ -1635,57 +1818,68 @@ class BookingsActivity : Activity() {
 
         title(
             "Reservation ${
-                if (operation == "created") {
+                if (
+                    operation ==
+                    "created"
+                ) {
+
                     "Confirmed"
+
                 } else {
-                    operation.replaceFirstChar {
-                        it.uppercase()
-                    }
+
+                    operation
+                        .replaceFirstChar {
+
+                            it.uppercase()
+                        }
                 }
             }",
             "Operation successful"
         )
 
-        val card =
+        val confirmationCard =
             card()
 
         detail(
-            card,
+            confirmationCard,
             "Station",
             reservation.nodeName
                 .ifBlank {
+
                     reservation.nodeId
                 }
         )
 
         detail(
-            card,
+            confirmationCard,
             "Date & Time",
             "${utc(reservation.startTime)} – " +
-                    utcTime(
-                        reservation.endTime
-                    )
+                utcTime(
+                    reservation.endTime
+                )
         )
 
         detail(
-            card,
+            confirmationCard,
             "Energy Amount",
             "${number(reservation.energyAmountKw)} kWh"
         )
 
         detail(
-            card,
+            confirmationCard,
             "Reservation ID",
             reservation.id
         )
 
         detail(
-            card,
+            confirmationCard,
             "Current Status",
             reservation.status
         )
 
-        content.addView(card)
+        content.addView(
+            confirmationCard
+        )
 
         content.addView(
             primaryButton(
@@ -1693,12 +1887,15 @@ class BookingsActivity : Activity() {
             ).apply {
 
                 setOnClickListener {
+
                     showDetails(
                         reservation.id
                     )
                 }
             },
-            matchWrap(top = 14)
+            matchWrap(
+                top = 14
+            )
         )
 
         content.addView(
@@ -1707,25 +1904,35 @@ class BookingsActivity : Activity() {
             ) {
 
                 resetForm()
-                showReservations()
 
+                showReservations()
             },
-            matchWrap(top = 8)
+            matchWrap(
+                top = 8
+            )
         )
     }
 
-    // ---------------------------------------------------------
+    // --------------------------------------------------
     // UI HELPERS
-    // ---------------------------------------------------------
+    // --------------------------------------------------
 
     private fun resetForm() {
-        selectedNode = null
-        selectedSlot = null
-        energyAmount = ""
+
+        selectedNode =
+            null
+
+        selectedSlot =
+            null
+
+        energyAmount =
+            ""
     }
 
     private fun clearContent() {
+
         content.removeAllViews()
+
         hideMessage()
     }
 
@@ -1740,7 +1947,9 @@ class BookingsActivity : Activity() {
         )
 
         content.addView(
-            empty(message)
+            empty(
+                message
+            )
         )
     }
 
@@ -1769,12 +1978,15 @@ class BookingsActivity : Activity() {
                     )
 
                 null ->
-                    Color.DKGRAY
+                    getColor(
+                        R.color.text_secondary
+                    )
             }
         )
     }
 
     private fun hideMessage() {
+
         feedback.visibility =
             View.GONE
     }
@@ -1782,44 +1994,12 @@ class BookingsActivity : Activity() {
     private fun markTab(
         active: Button
     ) {
-        // Show which reservation tab is active without changing shared navigation.
-        createTab.isEnabled = true
-        listTab.isEnabled = true
-        createTab.isSelected = active === createTab
-        listTab.isSelected = active === listTab
 
-        styleTab(
-            createTab,
-            active === createTab
-        )
+        createTab.isEnabled =
+            active !== createTab
 
-        styleTab(
-            listTab,
-            active === listTab
-        )
-    }
-
-    private fun styleTab(
-        button: Button,
-        active: Boolean
-    ) {
-        // Apply a simple local tab style that matches the reservation screen.
-        button.backgroundTintList = null
-        button.elevation = 0f
-        button.setTextColor(
-            if (active) {
-                Color.WHITE
-            } else {
-                getColor(R.color.text_secondary)
-            }
-        )
-        button.background = roundedBackground(
-            if (active) {
-                getColor(R.color.brand_blue)
-            } else {
-                Color.rgb(235, 241, 247)
-            }
-        )
+        listTab.isEnabled =
+            active !== listTab
     }
 
     private fun title(
@@ -1830,14 +2010,15 @@ class BookingsActivity : Activity() {
         content.addView(
             TextView(this).apply {
 
-                this.text = text
-                textSize = 27f
+                this.text =
+                    text
+
+                textSize =
+                    27f
 
                 setTextColor(
-                    Color.rgb(
-                        18,
-                        39,
-                        66
+                    getColor(
+                        R.color.text_primary
                     )
                 )
 
@@ -1933,10 +2114,8 @@ class BookingsActivity : Activity() {
                 15f
 
             setTextColor(
-                Color.rgb(
-                    18,
-                    39,
-                    66
+                getColor(
+                    R.color.text_primary
                 )
             )
 
@@ -1982,7 +2161,7 @@ class BookingsActivity : Activity() {
         status: String
     ) =
         TextView(this).apply {
-            // Display the reservation status as a small badge.
+
             text =
                 "● $status"
 
@@ -1995,13 +2174,13 @@ class BookingsActivity : Activity() {
             )
 
             setPadding(
-                dp(12),
-                dp(7),
-                dp(12),
-                dp(7)
+                0,
+                dp(6),
+                0,
+                dp(6)
             )
 
-            val statusColor =
+            setTextColor(
                 when (status) {
 
                     "Approved",
@@ -2016,67 +2195,18 @@ class BookingsActivity : Activity() {
                             R.color.status_error
                         )
 
+                    "Pending" ->
+                        getColor(
+                            R.color.status_warning
+                        )
+
                     else ->
                         getColor(
                             R.color.brand_blue
                         )
                 }
-
-            setTextColor(statusColor)
-            background = roundedBackground(
-                colorWithAlpha(statusColor, 24),
-                statusColor
             )
         }
-
-    private fun statusBanner(
-        status: String
-    ): LinearLayout {
-        // Build a clear status summary for the reservation details screen.
-        val statusColor =
-            when (status) {
-                "Approved",
-                "Completed" -> getColor(R.color.status_success)
-                "Rejected",
-                "Cancelled" -> getColor(R.color.status_error)
-                "Pending" -> Color.rgb(161, 92, 0)
-                else -> getColor(R.color.brand_blue)
-            }
-
-        val message =
-            when (status) {
-                "Pending" -> "Your reservation is awaiting confirmation."
-                "Approved" -> "Your reservation has been approved."
-                "Completed" -> "This reservation has been completed."
-                "Cancelled" -> "This reservation has been cancelled."
-                "Rejected" -> "This reservation was not approved."
-                else -> "Current reservation status."
-            }
-
-        return LinearLayout(this).apply {
-            orientation = LinearLayout.VERTICAL
-            setPadding(dp(16), dp(14), dp(16), dp(14))
-            background = roundedBackground(
-                colorWithAlpha(statusColor, 24),
-                colorWithAlpha(statusColor, 80)
-            )
-
-            addView(
-                label(status).apply {
-                    textSize = 19f
-                    setTextColor(statusColor)
-                    setPadding(0, 0, 0, dp(3))
-                }
-            )
-
-            addView(
-                value(message).apply {
-                    setTextColor(Color.rgb(73, 89, 108))
-                    setPadding(0, 0, 0, 0)
-                }
-            )
-        }
-    }
 
     private fun empty(
         text: String
@@ -2091,10 +2221,8 @@ class BookingsActivity : Activity() {
             )
 
             setBackgroundColor(
-                Color.rgb(
-                    244,
-                    247,
-                    250
+                getColor(
+                    R.color.surface_soft
                 )
             )
         }
@@ -2120,10 +2248,8 @@ class BookingsActivity : Activity() {
             )
 
             setBackgroundColor(
-                Color.rgb(
-                    229,
-                    244,
-                    255
+                getColor(
+                    R.color.status_info_background
                 )
             )
         }
@@ -2133,59 +2259,16 @@ class BookingsActivity : Activity() {
         name: String,
         detail: String
     ) {
-        // Add a stacked label and value to summary-style cards.
-        parent.addView(
-            value(name)
-        )
 
         parent.addView(
-            label(detail)
-        )
-    }
-
-    private fun detailRow(
-        parent: LinearLayout,
-        name: String,
-        detail: String
-    ) {
-        // Add one aligned label and value row to the reservation details card.
-        val row = LinearLayout(this).apply {
-            orientation = LinearLayout.HORIZONTAL
-            gravity = android.view.Gravity.TOP
-            setPadding(0, dp(10), 0, dp(10))
-        }
-
-        row.addView(
-            value(name).apply {
-                setPadding(0, 0, dp(12), 0)
-            },
-            LinearLayout.LayoutParams(
-                0,
-                LinearLayout.LayoutParams.WRAP_CONTENT,
-                0.42f
+            value(
+                name
             )
         )
 
-        row.addView(
-            label(detail).apply {
-                textSize = 14f
-                setPadding(0, 0, 0, 0)
-            },
-            LinearLayout.LayoutParams(
-                0,
-                LinearLayout.LayoutParams.WRAP_CONTENT,
-                0.58f
-            )
-        )
-
-        parent.addView(row)
         parent.addView(
-            View(this).apply {
-                setBackgroundColor(Color.rgb(220, 229, 238))
-            },
-            LinearLayout.LayoutParams(
-                LinearLayout.LayoutParams.MATCH_PARENT,
-                dp(1)
+            label(
+                detail
             )
         )
     }
@@ -2213,9 +2296,9 @@ class BookingsActivity : Activity() {
                 this,
                 "Date & Time (UTC)",
                 "${utc(slot.startTime)} – " +
-                        utcTime(
-                            slot.endTime
-                        )
+                    utcTime(
+                        slot.endTime
+                    )
             )
 
             detail(
@@ -2244,15 +2327,15 @@ class BookingsActivity : Activity() {
 
             backgroundTintList =
                 ColorStateList.valueOf(
-                    Color.rgb(
-                        7,
-                        151,
-                        82
+                    getColor(
+                        R.color.brand_green
                     )
                 )
 
             setTextColor(
-                Color.WHITE
+                getColor(
+                    R.color.text_on_primary
+                )
             )
         }
 
@@ -2271,7 +2354,21 @@ class BookingsActivity : Activity() {
             isAllCaps =
                 false
 
+            backgroundTintList =
+                ColorStateList.valueOf(
+                    getColor(
+                        R.color.brand_blue_light
+                    )
+                )
+
+            setTextColor(
+                getColor(
+                    R.color.brand_blue
+                )
+            )
+
             setOnClickListener {
+
                 action()
             }
         }
@@ -2288,58 +2385,24 @@ class BookingsActivity : Activity() {
             isAllCaps =
                 false
 
-            setOnClickListener {
-                action()
-            }
-        }
+            backgroundTintList =
+                ColorStateList.valueOf(
+                    getColor(
+                        R.color.brand_blue_light
+                    )
+                )
 
-    private fun dangerButton(
-        text: String,
-        action: () -> Unit
-    ) =
-        Button(this).apply {
-            // Use a restrained outline for the destructive reservation action.
-            this.text = text
-            isAllCaps = false
-            elevation = 0f
-            setTextColor(getColor(R.color.status_error))
-            backgroundTintList = null
-            background = roundedBackground(
-                Color.TRANSPARENT,
-                getColor(R.color.status_error)
+            setTextColor(
+                getColor(
+                    R.color.brand_blue
+                )
             )
+
             setOnClickListener {
+
                 action()
             }
         }
-
-    private fun roundedBackground(
-        color: Int,
-        strokeColor: Int? = null
-    ) =
-        GradientDrawable().apply {
-            // Build a component-local background for tabs and badges.
-            shape = GradientDrawable.RECTANGLE
-            cornerRadius = dp(9).toFloat()
-            setColor(color)
-
-            if (strokeColor != null) {
-                setStroke(dp(1), strokeColor)
-            }
-        }
-
-    private fun colorWithAlpha(
-        color: Int,
-        alpha: Int
-    ): Int {
-        // Retain the source colour while creating a light badge background.
-        return Color.argb(
-            alpha,
-            Color.red(color),
-            Color.green(color),
-            Color.blue(color)
-        )
-    }
 
     private fun weightedButton() =
         LinearLayout.LayoutParams(
@@ -2368,36 +2431,28 @@ class BookingsActivity : Activity() {
                 dp(bottom)
         }
 
-    private fun wrapContent(
-        top: Int = 0,
-        bottom: Int = 0
-    ) =
-        LinearLayout.LayoutParams(
-            LinearLayout.LayoutParams.WRAP_CONTENT,
-            LinearLayout.LayoutParams.WRAP_CONTENT
-        ).apply {
-            // Keep compact elements such as status badges from filling the row.
-            topMargin = dp(top)
-            bottomMargin = dp(bottom)
-        }
-
     private fun dp(
         value: Int
     ) =
         (
-                value *
-                        resources.displayMetrics.density
-                ).toInt()
+            value *
+                resources.displayMetrics.density
+            ).toInt()
 
     private fun number(
         value: Double
     ) =
         if (
-            value % 1.0 == 0.0
+            value % 1.0 ==
+            0.0
         ) {
-            value.toInt()
+
+            value
+                .toInt()
                 .toString()
+
         } else {
+
             "%.2f".format(
                 value
             )
@@ -2416,12 +2471,16 @@ class BookingsActivity : Activity() {
 
             runCatching {
 
-                OffsetDateTime.parse(
-                    value
-                ).toInstant()
+                OffsetDateTime
+                    .parse(
+                        value
+                    )
+                    .toInstant()
                     .toEpochMilli()
 
-            }.getOrDefault(0)
+            }.getOrDefault(
+                0
+            )
         }
 
     private fun utc(
@@ -2440,7 +2499,8 @@ class BookingsActivity : Activity() {
                     Instant.ofEpochMilli(
                         epoch(value)
                     )
-                ) + " UTC"
+                ) +
+                " UTC"
 
         }.getOrDefault(
             value
@@ -2462,41 +2522,10 @@ class BookingsActivity : Activity() {
                     Instant.ofEpochMilli(
                         epoch(value)
                     )
-                ) + " UTC"
+                ) +
+                " UTC"
 
         }.getOrDefault(
             value
         )
-
-    private fun slotDisplayName(
-        startTime: String
-    ): String {
-        // Build a readable slot label while keeping the slot ID for API operations.
-        val startEpoch = epoch(startTime)
-
-        if (startEpoch <= 0) {
-            return "Scheduled slot"
-        }
-
-        val instant =
-            Instant.ofEpochMilli(
-                startEpoch
-            )
-
-        val period =
-            when (instant.atZone(ZoneOffset.UTC).hour) {
-                in 5..11 -> "Morning"
-                in 12..16 -> "Afternoon"
-                in 17..20 -> "Evening"
-                else -> "Night"
-            }
-
-        val date =
-            DateTimeFormatter
-                .ofPattern("MMM dd, yyyy")
-                .withZone(ZoneOffset.UTC)
-                .format(instant)
-
-        return "$period slot - $date"
-    }
 }

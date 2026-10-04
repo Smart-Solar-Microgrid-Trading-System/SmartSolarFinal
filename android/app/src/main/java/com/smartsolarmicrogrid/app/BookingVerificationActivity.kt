@@ -1,5 +1,6 @@
 package com.smartsolarmicrogrid.app
 
+import android.widget.ImageButton
 import android.content.Intent
 import android.os.Bundle
 import android.widget.Button
@@ -30,6 +31,12 @@ class BookingVerificationActivity :
         setContentView(
             R.layout.activity_booking_verification
         )
+
+        findViewById<ImageButton>(
+            R.id.pageBackButton
+        ).setOnClickListener {
+            AppNavigation.openOperations(this)
+        }
 
         initializeViews()
 

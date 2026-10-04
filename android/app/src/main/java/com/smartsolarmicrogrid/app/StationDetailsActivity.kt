@@ -38,10 +38,11 @@ class StationDetailsActivity : Activity() {
         stationIdText = findViewById(R.id.stationIdText)
 
         // Back button
-        findViewById<ImageButton>(R.id.pageBackButton).setOnClickListener {
-            finish()
-        }
-
+    findViewById<ImageButton>(
+        R.id.pageBackButton
+    ).setOnClickListener {
+        AppNavigation.openMap(this)
+    }
         // Get station ID sent from NearbyStationsActivity
         val stationId = intent.getStringExtra("station_id")
 

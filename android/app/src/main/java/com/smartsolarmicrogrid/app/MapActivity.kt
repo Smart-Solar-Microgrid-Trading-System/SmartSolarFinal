@@ -21,7 +21,7 @@ class MapActivity : FragmentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
 
-        // Initialize osmdroid configuration
+        // Initializes the osmdroid configuration used by the map.
         Configuration.getInstance().load(
             applicationContext,
             getSharedPreferences("osmdroid", MODE_PRIVATE)
@@ -32,23 +32,35 @@ class MapActivity : FragmentActivity() {
 
         setContentView(R.layout.activity_map)
 
-        findViewById<ImageButton>(R.id.pageBackButton).setOnClickListener {
-            finish()
+        // Returns the user to the mobile home screen.
+        findViewById<ImageButton>(
+            R.id.pageBackButton
+        ).setOnClickListener {
+            AppNavigation.openHome(this)
         }
 
-        mapView = findViewById(R.id.map)
-        progressBar = findViewById(R.id.progressBar)
-        feedbackText = findViewById(R.id.feedbackText)
+        mapView =
+            findViewById(R.id.map)
 
-        // Basic map controls
+        progressBar =
+            findViewById(R.id.progressBar)
+
+        feedbackText =
+            findViewById(R.id.feedbackText)
+
+        // Enables touch controls and configures the initial map zoom level.
         mapView.setMultiTouchControls(true)
         mapView.controller.setZoom(12.0)
 
-        // Temporary starting position: Colombo
+        // Sets Colombo as the temporary starting position until grid nodes are loaded.
         mapView.controller.setCenter(
-            GeoPoint(6.9271, 79.8612)
+            GeoPoint(
+                6.9271,
+                79.8612
+            )
         )
 
+        // Configures the shared bottom navigation for the Map screen.
         AppNavigation.configure(
             this,
             AppNavigation.Destination.Map
@@ -59,40 +71,61 @@ class MapActivity : FragmentActivity() {
 
     override fun onResume() {
         super.onResume()
+
+        // Resumes the map when the Activity becomes active.
         mapView.onResume()
     }
 
     override fun onPause() {
         super.onPause()
+
+        // Pauses the map when the Activity is no longer active.
         mapView.onPause()
     }
 
     private fun loadNodes() {
 
-        progressBar.visibility = View.VISIBLE
-        feedbackText.visibility = View.GONE
-        val session = SessionDatabaseHelper(this).getSession()
+        // Retrieves active microgrid nodes from the Web API.
+        progressBar.visibility =
+            View.VISIBLE
+
+        feedbackText.visibility =
+            View.GONE
+
+        val session =
+            SessionDatabaseHelper(this)
+                .getSession()
 
         if (session == null) {
-            progressBar.visibility = View.GONE
-            showError("You are not logged in.")
+
+            progressBar.visibility =
+                View.GONE
+
+            showError(
+                "You are not logged in."
+            )
+
             return
         }
 
         Thread {
 
-            val result = ApiClient.request(
-                context = this,
-                method = "GET",
-                path = "/api/nodes",
-                token = session.token
-            )
+            val result =
+                ApiClient.request(
+                    context = this,
+                    method = "GET",
+                    path = "/api/nodes",
+                    token = session.token
+                )
 
             runOnUiThread {
 
-                progressBar.visibility = View.GONE
+                progressBar.visibility =
+                    View.GONE
 
-                if (result.connectionError != null) {
+                if (
+                    result.connectionError != null
+                ) {
 
                     showError(
                         ApiClient.errorMessage(
@@ -104,7 +137,9 @@ class MapActivity : FragmentActivity() {
                     return@runOnUiThread
                 }
 
-                if (result.statusCode !in 200..299) {
+                if (
+                    result.statusCode !in 200..299
+                ) {
 
                     showError(
                         "Unable to load grid nodes. HTTP ${result.statusCode}"
@@ -115,25 +150,38 @@ class MapActivity : FragmentActivity() {
 
                 try {
 
-                    val nodes = JSONArray(result.body)
+                    val nodes =
+                        JSONArray(
+                            result.body
+                        )
 
-                    displayNodes(nodes)
+                    displayNodes(
+                        nodes
+                    )
 
-                } catch (exception: Exception) {
+                } catch (
+                    exception: Exception
+                ) {
 
                     showError(
                         "Unable to read grid node information."
                     )
                 }
             }
+
         }.start()
     }
 
-    private fun displayNodes(nodes: JSONArray) {
+    private fun displayNodes(
+        nodes: JSONArray
+    ) {
 
+        // Displays all valid grid-node locations as markers on the map.
         mapView.overlays.clear()
 
-        if (nodes.length() == 0) {
+        if (
+            nodes.length() == 0
+        ) {
 
             showError(
                 "No active grid nodes are currently available."
@@ -144,88 +192,122 @@ class MapActivity : FragmentActivity() {
             return
         }
 
-        var firstLocation: GeoPoint? = null
+        var firstLocation:
+            GeoPoint? = null
 
-        for (i in 0 until nodes.length()) {
+        for (
+            i in 0 until nodes.length()
+        ) {
 
-            val node = nodes.getJSONObject(i)
+            val node =
+                nodes.getJSONObject(i)
 
-            val name = node.optString(
-                "name",
-                "Grid Node"
-            )
+            val name =
+                node.optString(
+                    "name",
+                    "Grid Node"
+                )
 
-            val address = node.optString(
-                "address",
-                "Address unavailable"
-            )
+            val address =
+                node.optString(
+                    "address",
+                    "Address unavailable"
+                )
 
-            val latitude = node.optDouble(
-                "latitude",
-                Double.NaN
-            )
+            val latitude =
+                node.optDouble(
+                    "latitude",
+                    Double.NaN
+                )
 
-            val longitude = node.optDouble(
-                "longitude",
-                Double.NaN
-            )
+            val longitude =
+                node.optDouble(
+                    "longitude",
+                    Double.NaN
+                )
 
-            val capacity = node.optDouble(
-                "capacityKw",
-                0.0
-            )
+            val capacity =
+                node.optDouble(
+                    "capacityKw",
+                    0.0
+                )
 
-            val availableSlots = node.optInt(
-                "availableBatterySlots",
-                0
-            )
+            val availableSlots =
+                node.optInt(
+                    "availableBatterySlots",
+                    0
+                )
 
-            if (latitude.isNaN() || longitude.isNaN()) {
+            if (
+                latitude.isNaN() ||
+                longitude.isNaN()
+            ) {
                 continue
             }
 
-            val location = GeoPoint(
-                latitude,
-                longitude
-            )
+            val location =
+                GeoPoint(
+                    latitude,
+                    longitude
+                )
 
-            if (firstLocation == null) {
-                firstLocation = location
+            if (
+                firstLocation == null
+            ) {
+                firstLocation =
+                    location
             }
 
-            val marker = Marker(mapView)
+            val marker =
+                Marker(mapView)
 
-            marker.position = location
+            marker.position =
+                location
 
-            marker.title = name
+            marker.title =
+                name
 
             marker.snippet =
                 "$address\n" +
-                        "Capacity: $capacity kW\n" +
-                        "Available slots: $availableSlots"
+                    "Capacity: $capacity kW\n" +
+                    "Available slots: $availableSlots"
 
             marker.setAnchor(
                 Marker.ANCHOR_CENTER,
                 Marker.ANCHOR_BOTTOM
             )
 
-            mapView.overlays.add(marker)
+            mapView.overlays.add(
+                marker
+            )
         }
 
-        firstLocation?.let { location ->
+        firstLocation?.let {
+                location ->
 
-            mapView.controller.setCenter(location)
+            mapView.controller
+                .setCenter(
+                    location
+                )
 
-            mapView.controller.setZoom(14.0)
+            mapView.controller
+                .setZoom(
+                    14.0
+                )
         }
 
         mapView.invalidate()
     }
 
-    private fun showError(message: String) {
+    private fun showError(
+        message: String
+    ) {
 
-        feedbackText.visibility = View.VISIBLE
+        // Displays map loading or API errors to the user.
+        feedbackText.visibility =
+            View.VISIBLE
 
-        feedbackText.text = message
+        feedbackText.text =
+            message
     }
 }
