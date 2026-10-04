@@ -115,13 +115,24 @@ public sealed class ProsumersController : ControllerBase
     public async Task<IActionResult> Update(string nic, [FromBody] UpdateUserProfileRequest request)
     {
         // Update a Prosumer's profile.
-        var result = await _userManagementService.UpdateProsumerProfileAsync(nic, request);
-        return result.Failure switch
+        try
         {
-            UserManagementFailure.Invalid => BadRequest(new { error = result.Error }),
-            UserManagementFailure.Conflict => Conflict(new { error = result.Error }),
-            UserManagementFailure.NotFound => NotFound(new { error = result.Error }),
-            _ => Ok(result.User)
-        };
+            var result = await _userManagementService.UpdateProsumerProfileAsync(nic, request);
+            return result.Failure switch
+            {
+                UserManagementFailure.Invalid => BadRequest(new { error = result.Error }),
+                UserManagementFailure.Conflict => Conflict(new { error = result.Error }),
+                UserManagementFailure.NotFound => NotFound(new { error = result.Error }),
+                _ => Ok(result.User)
+            };
+        }
+        catch (MongoCommandException exception) when (exception.Code == 11000)
+        {
+            return Conflict(new { error = "This email address is already in use." });
+        }
+        catch (MongoWriteException exception) when (exception.WriteError?.Category == ServerErrorCategory.DuplicateKey)
+        {
+            return Conflict(new { error = "This email address is already in use." });
+        }
     }
 }

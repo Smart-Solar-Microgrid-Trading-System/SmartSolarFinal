@@ -99,8 +99,19 @@ public sealed class UsersController : ControllerBase
     public async Task<IActionResult> UpdateMe([FromBody] UpdateUserProfileRequest request)
     {
         // Update the authenticated Prosumer's profile.
-        var result = await _userManagementService.UpdateProfileAsync(GetCurrentUserId(), request);
-        return ToUserResult(result);
+        try
+        {
+            var result = await _userManagementService.UpdateProfileAsync(GetCurrentUserId(), request);
+            return ToUserResult(result);
+        }
+        catch (MongoCommandException exception) when (exception.Code == 11000)
+        {
+            return Conflict(new { error = "This email address is already in use." });
+        }
+        catch (MongoWriteException exception) when (exception.WriteError?.Category == ServerErrorCategory.DuplicateKey)
+        {
+            return Conflict(new { error = "This email address is already in use." });
+        }
     }
 
     [Authorize(Policy = UserRoles.Prosumer)]
