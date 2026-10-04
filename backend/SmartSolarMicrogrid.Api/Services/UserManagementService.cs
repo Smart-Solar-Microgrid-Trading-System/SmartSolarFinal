@@ -165,9 +165,9 @@ public sealed class UserManagementService
         return UserManagementResult.Success(ToResponse(user));
     }
 
-    // Convert a user into a profile response.
     private static UserProfileResponse ToResponse(User user)
     {
+        // Convert a user into a profile response.
         return new UserProfileResponse
         {
             Id = user.Id,
@@ -196,27 +196,27 @@ public sealed class UserManagementResult
     public string? Error { get; }
     public UserManagementFailure Failure { get; }
 
-    // Create a successful result.
     public static UserManagementResult Success(UserProfileResponse user)
     {
+        // Create a successful result.
         return new UserManagementResult(user, null, UserManagementFailure.None);
     }
 
-    // Create an invalid request result.
     public static UserManagementResult Invalid(string error)
     {
+        // Create an invalid request result.
         return new UserManagementResult(null, error, UserManagementFailure.Invalid);
     }
 
-    // Create a conflicting-data result.
     public static UserManagementResult Conflict(string error)
     {
+        // Create a conflicting-data result.
         return new UserManagementResult(null, error, UserManagementFailure.Conflict);
     }
 
-    // Create a missing-user result.
     public static UserManagementResult NotFound(string error)
     {
+        // Create a missing-user result.
         return new UserManagementResult(null, error, UserManagementFailure.NotFound);
     }
 }

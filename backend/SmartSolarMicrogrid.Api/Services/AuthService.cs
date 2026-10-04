@@ -143,21 +143,21 @@ public sealed class LoginResult
         }
     }
 
-    // Create a successful login result.
     public static LoginResult Success(LoginResponse response)
     {
+        // Create a successful login result.
         return new LoginResult(response, null, false);
     }
 
-    // Create an invalid credentials result.
     public static LoginResult Unauthorized()
     {
+        // Create an invalid credentials result.
         return new LoginResult(null, "Invalid credentials.", false);
     }
 
-    // Create an account access rejection result.
     public static LoginResult Forbidden(string error)
     {
+        // Create an account access rejection result.
         return new LoginResult(null, error, true);
     }
 }

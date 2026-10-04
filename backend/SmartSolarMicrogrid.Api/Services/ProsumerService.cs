@@ -229,9 +229,9 @@ public sealed class ProsumerService
         return UserManagementResult.Success(ToResponse(user));
     }
 
-    // Convert a user into a profile response.
     private static UserProfileResponse ToResponse(User user)
     {
+        // Convert a user into a profile response.
         return new UserProfileResponse
         {
             Id = user.Id,
@@ -267,21 +267,21 @@ public sealed class ProsumerRegistrationResult
         }
     }
 
-    // Create a successful registration result.
     public static ProsumerRegistrationResult Created(UserProfileResponse user)
     {
+        // Create a successful registration result.
         return new ProsumerRegistrationResult(user, null, false);
     }
 
-    // Create a duplicate account result.
     public static ProsumerRegistrationResult Conflict(string error)
     {
+        // Create a duplicate account result.
         return new ProsumerRegistrationResult(null, error, true);
     }
 
-    // Create an invalid registration result.
     public static ProsumerRegistrationResult Invalid(string error)
     {
+        // Create an invalid registration result.
         return new ProsumerRegistrationResult(null, error, false);
     }
 }

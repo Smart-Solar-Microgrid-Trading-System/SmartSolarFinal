@@ -22,9 +22,9 @@ public sealed class UsersController : ControllerBase
     private readonly UserManagementService _userManagementService;
     private readonly ProsumerService _prosumerService;
 
-    // Store the services used for web accounts and Prosumer self-service operations.
     public UsersController(UserManagementService userManagementService, ProsumerService prosumerService)
     {
+        // Store the services used for web accounts and Prosumer self-service operations.
         _userManagementService = userManagementService;
         _prosumerService = prosumerService;
     }
@@ -57,11 +57,11 @@ public sealed class UsersController : ControllerBase
         }
     }
 
-    // Return all web users.
     [Authorize(Policy = UserRoles.Backoffice)]
     [HttpGet]
     public async Task<IActionResult> GetWebUsers()
     {
+        // Return all web users.
         var users = await _userManagementService.GetWebUsersAsync();
         return Ok(users);
     }
@@ -137,15 +137,15 @@ public sealed class UsersController : ControllerBase
         return ToUserResult(result);
     }
 
-    // Read the authenticated user's identifier.
     private string GetCurrentUserId()
     {
+        // Read the authenticated user's identifier.
         return User.FindFirstValue(ClaimTypes.NameIdentifier)!;
     }
 
-    // Convert a service result into an HTTP response.
     private IActionResult ToUserResult(UserManagementResult result)
     {
+        // Convert a service result into an HTTP response.
         switch (result.Failure)
         {
             case UserManagementFailure.Invalid:
