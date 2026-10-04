@@ -2,7 +2,7 @@
  * Student Name: Hirimuthugodage J.
  * Component: User and Prosumer Management with Role-Based Authentication
  * File Name: Program.cs
- * Description: Configuratio of database access, authentication, authorization, and account services.
+ * Description: Configuration of database access, authentication, authorization, and account services.
  */
 
 using System.Text;
