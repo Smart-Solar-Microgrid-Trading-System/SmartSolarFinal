@@ -38,11 +38,17 @@ public class AccountStatusFilter : IAsyncAuthorizationFilter
 
                 if (dbUser == null || (user.FindFirst("session_version")?.Value ?? "") != dbUser.SessionVersion)
                 {
-                    context.Result = new UnauthorizedResult();
+                    context.Result = new ObjectResult(new
+                    {
+                        error = "Session is no longer valid. Please sign in again."
+                    })
+                    {
+                        StatusCode = StatusCodes.Status401Unauthorized
+                    };
                     return;
                 }
 
-                if (dbUser.AccountStatus != "Active")
+                if (dbUser.AccountStatus != AccountStatuses.Active)
                 {
                     context.Result = new ObjectResult(new { error = $"Account is {dbUser.AccountStatus}" })
                     {
