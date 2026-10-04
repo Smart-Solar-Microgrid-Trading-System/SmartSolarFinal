@@ -115,11 +115,17 @@ public sealed class UserManagementService
         user.AccountStatus = request.AccountStatus;
         user.SessionVersion = Guid.NewGuid().ToString("N");
         user.UpdatedAt = DateTime.UtcNow;
-        await _usersCollection.UpdateOneAsync(candidate => candidate.Id == id,
+        var result = await _usersCollection.UpdateOneAsync(candidate =>
+                candidate.Id == id &&
+                (candidate.Role == UserRoles.Backoffice || candidate.Role == UserRoles.GridOperator),
             Builders<User>.Update
                 .Set(candidate => candidate.AccountStatus, user.AccountStatus)
                 .Set(candidate => candidate.SessionVersion, user.SessionVersion)
                 .Set(candidate => candidate.UpdatedAt, user.UpdatedAt));
+        if (result.MatchedCount == 0)
+        {
+            return UserManagementResult.NotFound("Web user not found.");
+        }
         return UserManagementResult.Success(ToResponse(user));
     }
 

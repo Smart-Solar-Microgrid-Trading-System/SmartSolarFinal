@@ -106,12 +106,16 @@ public sealed class ProsumerService
         user.AccountStatus = request.AccountStatus;
         user.SessionVersion = Guid.NewGuid().ToString("N");
         user.UpdatedAt = DateTime.UtcNow;
-        await _usersCollection.UpdateOneAsync(candidate =>
+        var result = await _usersCollection.UpdateOneAsync(candidate =>
                 candidate.Id == nic && candidate.Role == UserRoles.Prosumer,
             Builders<User>.Update
                 .Set(candidate => candidate.AccountStatus, user.AccountStatus)
                 .Set(candidate => candidate.SessionVersion, user.SessionVersion)
                 .Set(candidate => candidate.UpdatedAt, user.UpdatedAt));
+        if (result.MatchedCount == 0)
+        {
+            return UserManagementResult.NotFound("Prosumer not found.");
+        }
         return UserManagementResult.Success(ToResponse(user));
     }
 
@@ -142,13 +146,17 @@ public sealed class ProsumerService
         user.Email = email;
         user.Phone = string.IsNullOrWhiteSpace(request.Phone) ? null : request.Phone.Trim();
         user.UpdatedAt = DateTime.UtcNow;
-        await _usersCollection.UpdateOneAsync(candidate =>
+        var result = await _usersCollection.UpdateOneAsync(candidate =>
                 candidate.Id == userId && candidate.Role == UserRoles.Prosumer,
             Builders<User>.Update
                 .Set(candidate => candidate.FullName, user.FullName)
                 .Set(candidate => candidate.Email, user.Email)
                 .Set(candidate => candidate.Phone, user.Phone)
                 .Set(candidate => candidate.UpdatedAt, user.UpdatedAt));
+        if (result.MatchedCount == 0)
+        {
+            return UserManagementResult.NotFound("User not found.");
+        }
         return UserManagementResult.Success(ToResponse(user));
     }
 
@@ -179,13 +187,17 @@ public sealed class ProsumerService
         user.Email = email;
         user.Phone = string.IsNullOrWhiteSpace(request.Phone) ? null : request.Phone.Trim();
         user.UpdatedAt = DateTime.UtcNow;
-        await _usersCollection.UpdateOneAsync(candidate =>
+        var result = await _usersCollection.UpdateOneAsync(candidate =>
                 candidate.Id == nic && candidate.Role == UserRoles.Prosumer,
             Builders<User>.Update
                 .Set(candidate => candidate.FullName, user.FullName)
                 .Set(candidate => candidate.Email, user.Email)
                 .Set(candidate => candidate.Phone, user.Phone)
                 .Set(candidate => candidate.UpdatedAt, user.UpdatedAt));
+        if (result.MatchedCount == 0)
+        {
+            return UserManagementResult.NotFound("Prosumer not found.");
+        }
         return UserManagementResult.Success(ToResponse(user));
     }
 
@@ -203,12 +215,16 @@ public sealed class ProsumerService
         user.AccountStatus = AccountStatuses.Deactivated;
         user.SessionVersion = Guid.NewGuid().ToString("N");
         user.UpdatedAt = DateTime.UtcNow;
-        await _usersCollection.UpdateOneAsync(candidate =>
+        var result = await _usersCollection.UpdateOneAsync(candidate =>
                 candidate.Id == userId && candidate.Role == UserRoles.Prosumer,
             Builders<User>.Update
                 .Set(candidate => candidate.AccountStatus, user.AccountStatus)
                 .Set(candidate => candidate.SessionVersion, user.SessionVersion)
                 .Set(candidate => candidate.UpdatedAt, user.UpdatedAt));
+        if (result.MatchedCount == 0)
+        {
+            return UserManagementResult.NotFound("Prosumer not found.");
+        }
         return UserManagementResult.Success(ToResponse(user));
     }
 
