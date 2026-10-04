@@ -30,7 +30,7 @@ class ApprovedReservationsActivity : Activity() {
             findViewById(R.id.reservationsContainer)
 
         pageBackButton.setOnClickListener {
-            finish()
+            AppNavigation.openOperations(this)
         }
 
         loadSession()

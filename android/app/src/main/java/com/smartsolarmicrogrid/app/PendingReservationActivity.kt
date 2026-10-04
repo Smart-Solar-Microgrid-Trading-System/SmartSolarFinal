@@ -7,6 +7,7 @@ import android.graphics.Typeface
 import android.widget.Button
 import android.widget.LinearLayout
 import android.widget.TextView
+import android.widget.ImageButton
 
 class PendingReservationsActivity : Activity() {
 
@@ -21,6 +22,12 @@ class PendingReservationsActivity : Activity() {
         setContentView(
             R.layout.activity_pending_reservations
         )
+
+        findViewById<ImageButton>(
+            R.id.pageBackButton
+        ).setOnClickListener {
+            AppNavigation.openOperations(this)
+        }
 
         statusText =
             findViewById(R.id.statusText)
