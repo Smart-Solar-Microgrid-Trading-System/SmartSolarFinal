@@ -20,9 +20,14 @@ namespace SmartSolarMicrogrid.Api.Controllers;
 public sealed class UsersController : ControllerBase
 {
     private readonly UserManagementService _userManagementService;
+    private readonly ProsumerService _prosumerService;
 
-    // Store the user management service.
-    public UsersController(UserManagementService userManagementService) => _userManagementService = userManagementService;
+    // Store the services used for web accounts and Prosumer self-service operations.
+    public UsersController(UserManagementService userManagementService, ProsumerService prosumerService)
+    {
+        _userManagementService = userManagementService;
+        _prosumerService = prosumerService;
+    }
 
     [Authorize(Policy = UserRoles.Backoffice)]
     [HttpPost]
@@ -101,7 +106,7 @@ public sealed class UsersController : ControllerBase
         // Update the authenticated Prosumer's profile.
         try
         {
-            var result = await _userManagementService.UpdateProfileAsync(GetCurrentUserId(), request);
+            var result = await _prosumerService.UpdateOwnProfileAsync(GetCurrentUserId(), request);
             return ToUserResult(result);
         }
         catch (MongoCommandException exception) when (exception.Code == 11000)
@@ -119,7 +124,7 @@ public sealed class UsersController : ControllerBase
     public async Task<IActionResult> RequestDeactivation()
     {
         // Deactivate the authenticated Prosumer's account.
-        var result = await _userManagementService.DeactivateProsumerAsync(GetCurrentUserId());
+        var result = await _prosumerService.DeactivateProsumerAsync(GetCurrentUserId());
         return ToUserResult(result);
     }
 

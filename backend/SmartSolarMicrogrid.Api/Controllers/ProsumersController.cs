@@ -19,13 +19,11 @@ namespace SmartSolarMicrogrid.Api.Controllers;
 public sealed class ProsumersController : ControllerBase
 {
     private readonly ProsumerService _prosumerService;
-    private readonly UserManagementService _userManagementService;
 
-    public ProsumersController(ProsumerService prosumerService, UserManagementService userManagementService)
+    public ProsumersController(ProsumerService prosumerService)
     {
-        // Store the Prosumer and user management services.
+        // Store the service responsible for Prosumer accounts.
         _prosumerService = prosumerService;
-        _userManagementService = userManagementService;
     }
 
     [HttpPost("register")]
@@ -93,7 +91,7 @@ public sealed class ProsumersController : ControllerBase
             return BadRequest(new { error = "Status must be Pending, Active, or Deactivated." });
         }
 
-        return Ok(await _userManagementService.GetProsumersAsync(status));
+        return Ok(await _prosumerService.GetProsumersAsync(status));
     }
 
     [Authorize(Policy = UserRoles.Backoffice)]
@@ -101,7 +99,7 @@ public sealed class ProsumersController : ControllerBase
     public async Task<IActionResult> UpdateStatus(string nic, [FromBody] UpdateAccountStatusRequest request)
     {
         // Update a Prosumer's account status.
-        var result = await _userManagementService.UpdateProsumerStatusAsync(nic, request);
+        var result = await _prosumerService.UpdateProsumerStatusAsync(nic, request);
         return result.Failure switch
         {
             UserManagementFailure.Invalid => BadRequest(new { error = result.Error }),
@@ -117,7 +115,7 @@ public sealed class ProsumersController : ControllerBase
         // Update a Prosumer's profile.
         try
         {
-            var result = await _userManagementService.UpdateProsumerProfileAsync(nic, request);
+            var result = await _prosumerService.UpdateProsumerProfileAsync(nic, request);
             return result.Failure switch
             {
                 UserManagementFailure.Invalid => BadRequest(new { error = result.Error }),

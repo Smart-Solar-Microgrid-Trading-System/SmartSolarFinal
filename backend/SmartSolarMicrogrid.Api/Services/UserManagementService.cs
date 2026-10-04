@@ -2,7 +2,7 @@
  * Student Name: Hirimuthugodage J.
  * Component: User and Prosumer Management with Role Based Authentication
  * File Name: UserManagementService.cs
- * Description: Manages web user and Prosumer accounts, profiles, and account statuses.
+ * Description: Manages web accounts and provides shared account profile lookups.
  */
 
 using MongoDB.Driver;
@@ -87,60 +87,12 @@ public sealed class UserManagementService
         return UserManagementResult.Success(ToResponse(user));
     }
 
-    public async Task<IReadOnlyList<UserProfileResponse>> GetPendingProsumersAsync()
-    {
-        // Return all pending Prosumers.
-        return await GetProsumersAsync(AccountStatuses.Pending);
-    }
-
-    public async Task<IReadOnlyList<UserProfileResponse>> GetProsumersAsync(string? accountStatus = null)
-    {
-        // Return Prosumers with an optional status filter.
-        var filter = Builders<User>.Filter.Eq(user => user.Role, UserRoles.Prosumer);
-        if (!string.IsNullOrWhiteSpace(accountStatus))
-        {
-            filter &= Builders<User>.Filter.Eq(user => user.AccountStatus, accountStatus);
-        }
-
-        var users = await _usersCollection.Find(filter).SortBy(user => user.FullName)
-            .ToListAsync();
-
-        return users.Select(ToResponse).ToList();
-    }
-
     public async Task<IReadOnlyList<UserProfileResponse>> GetWebUsersAsync()
     {
         // Return all Backoffice and Grid Operator accounts.
         var filter = Builders<User>.Filter.In(user => user.Role, new[] { UserRoles.Backoffice, UserRoles.GridOperator });
         var users = await _usersCollection.Find(filter).SortBy(user => user.FullName).ToListAsync();
         return users.Select(ToResponse).ToList();
-    }
-
-    public async Task<UserManagementResult> UpdateProsumerStatusAsync(string nic, UpdateAccountStatusRequest request)
-    {
-        // Update a Prosumer's account status.
-        if (request.AccountStatus is not AccountStatuses.Active and not AccountStatuses.Deactivated)
-        {
-            return UserManagementResult.Invalid("AccountStatus must be Active or Deactivated.");
-        }
-
-        var user = await _usersCollection.Find(candidate =>
-                candidate.Id == nic && candidate.Role == UserRoles.Prosumer)
-            .FirstOrDefaultAsync();
-        if (user is null)
-        {
-            return UserManagementResult.NotFound("Prosumer not found.");
-        }
-
-        user.AccountStatus = request.AccountStatus;
-        user.SessionVersion = Guid.NewGuid().ToString("N");
-        user.UpdatedAt = DateTime.UtcNow;
-        await _usersCollection.UpdateOneAsync(candidate => candidate.Id == nic,
-            Builders<User>.Update
-                .Set(candidate => candidate.AccountStatus, user.AccountStatus)
-                .Set(candidate => candidate.SessionVersion, user.SessionVersion)
-                .Set(candidate => candidate.UpdatedAt, user.UpdatedAt));
-        return UserManagementResult.Success(ToResponse(user));
     }
 
     public async Task<UserManagementResult> UpdateWebUserStatusAsync(string id, UpdateAccountStatusRequest request)
@@ -178,98 +130,6 @@ public sealed class UserManagementService
         return user is null
             ? UserManagementResult.NotFound("User not found.")
             : UserManagementResult.Success(ToResponse(user));
-    }
-
-    public async Task<UserManagementResult> UpdateProfileAsync(string userId, UpdateUserProfileRequest request)
-    {
-        // Update the current user's profile.
-        var user = await _usersCollection.Find(candidate => candidate.Id == userId).FirstOrDefaultAsync();
-        if (user is null)
-        {
-            return UserManagementResult.NotFound("User not found.");
-        }
-
-        if (string.IsNullOrWhiteSpace(request.FullName))
-        {
-            return UserManagementResult.Invalid("Full name is required.");
-        }
-
-        var email = string.IsNullOrWhiteSpace(request.Email) ? null : request.Email.Trim().ToLowerInvariant();
-        if (email is not null && await _usersCollection.Find(candidate =>
-                candidate.Email == email && candidate.Id != userId).AnyAsync())
-        {
-            return UserManagementResult.Conflict("A user with this email address already exists.");
-        }
-
-        user.FullName = request.FullName.Trim();
-        user.Email = email;
-        user.Phone = string.IsNullOrWhiteSpace(request.Phone) ? null : request.Phone.Trim();
-        user.UpdatedAt = DateTime.UtcNow;
-        await _usersCollection.UpdateOneAsync(candidate => candidate.Id == userId,
-            Builders<User>.Update
-                .Set(candidate => candidate.FullName, user.FullName)
-                .Set(candidate => candidate.Email, user.Email)
-                .Set(candidate => candidate.Phone, user.Phone)
-                .Set(candidate => candidate.UpdatedAt, user.UpdatedAt));
-        return UserManagementResult.Success(ToResponse(user));
-    }
-
-    public async Task<UserManagementResult> UpdateProsumerProfileAsync(string nic, UpdateUserProfileRequest request)
-    {
-        // Update a Prosumer's profile as Backoffice.
-        var user = await _usersCollection.Find(candidate =>
-                candidate.Id == nic && candidate.Role == UserRoles.Prosumer)
-            .FirstOrDefaultAsync();
-        if (user is null)
-        {
-            return UserManagementResult.NotFound("Prosumer not found.");
-        }
-
-        if (string.IsNullOrWhiteSpace(request.FullName))
-        {
-            return UserManagementResult.Invalid("Full name is required.");
-        }
-
-        var email = string.IsNullOrWhiteSpace(request.Email) ? null : request.Email.Trim().ToLowerInvariant();
-        if (email is not null && await _usersCollection.Find(candidate =>
-                candidate.Email == email && candidate.Id != nic).AnyAsync())
-        {
-            return UserManagementResult.Conflict("A user with this email address already exists.");
-        }
-
-        user.FullName = request.FullName.Trim();
-        user.Email = email;
-        user.Phone = string.IsNullOrWhiteSpace(request.Phone) ? null : request.Phone.Trim();
-        user.UpdatedAt = DateTime.UtcNow;
-        await _usersCollection.UpdateOneAsync(candidate => candidate.Id == nic,
-            Builders<User>.Update
-                .Set(candidate => candidate.FullName, user.FullName)
-                .Set(candidate => candidate.Email, user.Email)
-                .Set(candidate => candidate.Phone, user.Phone)
-                .Set(candidate => candidate.UpdatedAt, user.UpdatedAt));
-        return UserManagementResult.Success(ToResponse(user));
-    }
-
-    public async Task<UserManagementResult> DeactivateProsumerAsync(string userId)
-    {
-        // Deactivate a Prosumer account.
-        var user = await _usersCollection.Find(candidate =>
-                candidate.Id == userId && candidate.Role == UserRoles.Prosumer)
-            .FirstOrDefaultAsync();
-        if (user is null)
-        {
-            return UserManagementResult.NotFound("Prosumer not found.");
-        }
-
-        user.AccountStatus = AccountStatuses.Deactivated;
-        user.SessionVersion = Guid.NewGuid().ToString("N");
-        user.UpdatedAt = DateTime.UtcNow;
-        await _usersCollection.UpdateOneAsync(candidate => candidate.Id == userId,
-            Builders<User>.Update
-                .Set(candidate => candidate.AccountStatus, user.AccountStatus)
-                .Set(candidate => candidate.SessionVersion, user.SessionVersion)
-                .Set(candidate => candidate.UpdatedAt, user.UpdatedAt));
-        return UserManagementResult.Success(ToResponse(user));
     }
 
     // Convert a user into a profile response.
