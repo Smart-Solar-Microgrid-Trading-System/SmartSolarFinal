@@ -38,7 +38,7 @@ class LoginActivity : Activity() {
         val identifier = identifierInput.text.toString().trim()
         val password = passwordInput.text.toString()
         if (identifier.isBlank() || password.isBlank()) {
-            showFeedback("Enter your NIC/username and password.", false)
+            showFeedback("Prosumers must enter their NIC. Grid Operators must enter their username and password.", false)
             return
         }
         loginButton.isEnabled = false
