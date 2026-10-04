@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { Power, RefreshCw, RotateCcw, UserPlus, UsersRound } from "lucide-react";
+import { Power, RefreshCw, RotateCcw, Search, UserPlus, UsersRound } from "lucide-react";
 
 import { FeedbackAlert } from "@/components/feedback-alert";
 import { PageHeader } from "@/components/page-header";
@@ -35,6 +35,7 @@ export function UserManagementPage() {
   const { session, profile } = useAuth();
 
   const [users, setUsers] = useState([]);
+  const [usernameSearch, setUsernameSearch] = useState("");
   const [form, setForm] = useState(initialForm);
   const [loading, setLoading] = useState(true);
   const [submitting, setSubmitting] = useState(false);
@@ -130,6 +131,11 @@ export function UserManagementPage() {
     );
   }
 
+  const normalizedUsernameSearch = usernameSearch.trim().toLowerCase();
+  const displayedUsers = normalizedUsernameSearch
+    ? users.filter((user) => user.id.toLowerCase().includes(normalizedUsernameSearch))
+    : users;
+
   return (
     <section className="space-y-6">
       <PageHeader
@@ -158,11 +164,32 @@ export function UserManagementPage() {
           </Button>
         </CardHeader>
 
-        <CardContent>
+        <CardContent className="space-y-4">
+          <div className="max-w-md space-y-2">
+            <Label htmlFor="usernameSearch">Search by username</Label>
+            <div className="relative">
+              <Search
+                aria-hidden="true"
+                className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400"
+                size={17}
+              />
+              <Input
+                id="usernameSearch"
+                type="search"
+                placeholder="Enter username"
+                value={usernameSearch}
+                onChange={(event) => setUsernameSearch(event.target.value)}
+                className="pl-10"
+              />
+            </div>
+          </div>
+
           {loading ? (
             <p className="text-sm text-slate-500">Loading web users...</p>
-          ) : users.length === 0 ? (
-            <p className="text-sm text-slate-500">No web users found.</p>
+          ) : displayedUsers.length === 0 ? (
+            <p className="text-sm text-slate-500">
+              {users.length === 0 ? "No web users found." : "No web users match this username search."}
+            </p>
           ) : (
             <div className="overflow-x-auto">
               <Table className="min-w-[820px]">
@@ -178,7 +205,7 @@ export function UserManagementPage() {
                 </TableHeader>
 
                 <TableBody>
-                  {users.map((user) => (
+                  {displayedUsers.map((user) => (
                     <TableRow key={user.id}>
                       <TableCell className="font-medium">{user.id}</TableCell>
                       <TableCell>{user.fullName}</TableCell>

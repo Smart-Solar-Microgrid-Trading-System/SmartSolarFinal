@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { Check, Pencil, Power, RefreshCw, RotateCcw, UserPlus, UsersRound } from "lucide-react";
+import { Check, Pencil, Power, RefreshCw, RotateCcw, Search, UserPlus, UsersRound } from "lucide-react";
 
 import { FeedbackAlert } from "@/components/feedback-alert";
 import { PageHeader } from "@/components/page-header";
@@ -35,6 +35,7 @@ export function ProsumerManagementPage() {
 
   const [prosumers, setProsumers] = useState([]);
   const [filterStatus, setFilterStatus] = useState("All");
+  const [nicSearch, setNicSearch] = useState("");
   const [loading, setLoading] = useState(true);
   const [dialogOpen, setDialogOpen] = useState(false);
   const [editingNic, setEditingNic] = useState(null);
@@ -163,6 +164,11 @@ export function ProsumerManagementPage() {
     );
   }
 
+  const normalizedNicSearch = nicSearch.trim().toUpperCase();
+  const displayedProsumers = normalizedNicSearch
+    ? prosumers.filter((prosumer) => prosumer.id.toUpperCase().includes(normalizedNicSearch))
+    : prosumers;
+
   return (
     <section className="space-y-6">
       <PageHeader
@@ -203,11 +209,34 @@ export function ProsumerManagementPage() {
           </CardTitle>
         </CardHeader>
 
-        <CardContent>
+        <CardContent className="space-y-4">
+          <div className="max-w-md space-y-2">
+            <Label htmlFor="nicSearch">Search by NIC</Label>
+            <div className="relative">
+              <Search
+                aria-hidden="true"
+                className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400"
+                size={17}
+              />
+              <Input
+                id="nicSearch"
+                type="search"
+                placeholder="Enter Prosumer NIC"
+                value={nicSearch}
+                onChange={(event) => setNicSearch(event.target.value)}
+                className="pl-10"
+              />
+            </div>
+          </div>
+
           {loading ? (
             <p className="text-sm text-slate-500">Loading Prosumers...</p>
-          ) : prosumers.length === 0 ? (
-            <p className="text-sm text-slate-500">No Prosumers match this status.</p>
+          ) : displayedProsumers.length === 0 ? (
+            <p className="text-sm text-slate-500">
+              {prosumers.length === 0
+                ? "No Prosumers match this status."
+                : "No Prosumers match this NIC search."}
+            </p>
           ) : (
             <div className="overflow-x-auto">
               <Table className="min-w-[950px]">
@@ -223,7 +252,7 @@ export function ProsumerManagementPage() {
                 </TableHeader>
 
                 <TableBody>
-                  {prosumers.map((prosumer) => (
+                  {displayedProsumers.map((prosumer) => (
                     <TableRow key={prosumer.id}>
                       <TableCell className="font-medium">{prosumer.id}</TableCell>
                       <TableCell>{prosumer.fullName}</TableCell>
