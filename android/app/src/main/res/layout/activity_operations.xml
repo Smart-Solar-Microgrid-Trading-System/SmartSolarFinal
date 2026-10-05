@@ -6,65 +6,66 @@
     android:layout_height="match_parent"
     android:orientation="vertical">
 
+    <!-- Header -->
+    <LinearLayout style="@style/HeaderBar">
+
+        <ImageButton
+            android:id="@+id/pageBackButton"
+            style="@style/HeaderBackButton"
+            android:contentDescription="Back"
+            android:src="@drawable/ic_back" />
+
+        <TextView
+            style="@style/PageTitle"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginStart="6dp"
+            android:text="Grid Operator Operations" />
+
+    </LinearLayout>
+
     <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="0dp"
         android:layout_weight="1"
         android:orientation="vertical"
-        android:padding="24dp">
+        android:padding="20dp">
 
-        <!-- Header -->
         <LinearLayout
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:gravity="center_vertical"
-            android:orientation="horizontal">
-
-            <ImageButton
-                android:id="@+id/pageBackButton"
-                android:layout_width="48dp"
-                android:layout_height="48dp"
-                android:background="?android:attr/selectableItemBackgroundBorderless"
-                android:contentDescription="Back"
-                android:padding="12dp"
-                android:src="@drawable/ic_back" />
+            android:background="@drawable/dashboard_card"
+            android:orientation="vertical"
+            android:padding="18dp">
 
             <TextView
+                style="@style/SectionTitle"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:layout_marginStart="8dp"
-                android:text="Grid Operator Operations"
-                android:textColor="@color/brand_blue"
-                android:textSize="28sp"
-                android:textStyle="bold" />
+                android:text="Reservations" />
+
+            <TextView
+                style="@style/BodyText"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="6dp"
+                android:text="Manage reservations and finalize approved energy transfers." />
+
+            <!-- Pending reservations -->
+            <Button
+                android:id="@+id/pendingReservationsButton"
+                style="@style/PrimaryButton"
+                android:layout_marginTop="20dp"
+                android:text="Pending Reservations" />
+
+            <!-- Approved reservations -->
+            <Button
+                android:id="@+id/approvedReservationsButton"
+                style="@style/SecondaryButton"
+                android:layout_marginTop="10dp"
+                android:text="Approved Reservations" />
 
         </LinearLayout>
-
-        <TextView
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:layout_marginTop="20dp"
-            android:text="Manage reservations and finalize approved energy transfers."
-            android:textColor="@color/text_secondary"
-            android:textSize="16sp" />
-
-        <!-- Pending reservations -->
-        <Button
-            android:id="@+id/pendingReservationsButton"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:layout_marginTop="32dp"
-            android:text="Pending Reservations"
-            android:textAllCaps="false" />
-
-        <!-- Approved reservations -->
-        <Button
-            android:id="@+id/approvedReservationsButton"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:layout_marginTop="16dp"
-            android:text="Approved Reservations"
-            android:textAllCaps="false" />
 
     </LinearLayout>
 

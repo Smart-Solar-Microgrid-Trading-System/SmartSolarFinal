@@ -7,30 +7,20 @@
     android:orientation="vertical">
 
     <!-- Header -->
-    <LinearLayout
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:gravity="center_vertical"
-        android:orientation="horizontal"
-        android:padding="16dp">
+    <LinearLayout style="@style/HeaderBar">
 
         <ImageButton
             android:id="@+id/pageBackButton"
-            android:layout_width="48dp"
-            android:layout_height="48dp"
-            android:background="?android:attr/selectableItemBackgroundBorderless"
+            style="@style/HeaderBackButton"
             android:contentDescription="Back"
-            android:padding="12dp"
             android:src="@drawable/ic_back" />
 
         <TextView
+            style="@style/PageTitle"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:layout_marginStart="12dp"
-            android:text="Station Details"
-            android:textColor="@color/brand_blue"
-            android:textSize="24sp"
-            android:textStyle="bold" />
+            android:layout_marginStart="6dp"
+            android:text="Station Details" />
 
     </LinearLayout>
 
@@ -40,6 +30,7 @@
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_gravity="center_horizontal"
+        android:layout_marginTop="8dp"
         android:visibility="gone" />
 
     <!-- Error -->
@@ -47,8 +38,11 @@
         android:id="@+id/feedbackText"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:padding="16dp"
-        android:textSize="15sp"
+        android:layout_margin="16dp"
+        android:background="@drawable/status_panel"
+        android:padding="14dp"
+        android:textColor="@color/status_error"
+        android:textSize="14sp"
         android:visibility="gone" />
 
     <!-- Details -->
@@ -70,111 +64,150 @@
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:text="Station Name"
-                android:textColor="@color/brand_blue"
+                android:textColor="@color/brand_blue_dark"
                 android:textSize="26sp"
                 android:textStyle="bold" />
 
-            <!-- Station ID -->
-            <TextView
+            <!-- Capacity and slots -->
+            <LinearLayout
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:layout_marginTop="24dp"
-                android:text="Station ID"
-                android:textSize="14sp"
-                android:textStyle="bold" />
+                android:layout_marginTop="16dp"
+                android:orientation="horizontal">
 
-            <TextView
-                android:id="@+id/stationIdText"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:layout_marginTop="4dp"
-                android:text="Unavailable"
-                android:textSize="16sp" />
+                <LinearLayout
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_marginEnd="6dp"
+                    android:layout_weight="1"
+                    android:background="@drawable/stat_card_green"
+                    android:orientation="vertical"
+                    android:padding="16dp">
 
-            <!-- Address -->
-            <TextView
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:layout_marginTop="20dp"
-                android:text="Address"
-                android:textSize="14sp"
-                android:textStyle="bold" />
+                    <TextView
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="Capacity"
+                        android:textColor="@color/brand_green_dark"
+                        android:textSize="13sp"
+                        android:textStyle="bold" />
 
-            <TextView
-                android:id="@+id/addressText"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:layout_marginTop="4dp"
-                android:text="Address unavailable"
-                android:textSize="16sp" />
+                    <TextView
+                        android:id="@+id/capacityText"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_marginTop="6dp"
+                        android:text="0.0 kW"
+                        android:textColor="@color/brand_green_dark"
+                        android:textSize="22sp"
+                        android:textStyle="bold" />
 
-            <!-- Capacity -->
-            <TextView
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:layout_marginTop="20dp"
-                android:text="Capacity"
-                android:textSize="14sp"
-                android:textStyle="bold" />
+                </LinearLayout>
 
-            <TextView
-                android:id="@+id/capacityText"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:layout_marginTop="4dp"
-                android:text="0.0 kW"
-                android:textSize="16sp" />
+                <LinearLayout
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_marginStart="6dp"
+                    android:layout_weight="1"
+                    android:background="@drawable/stat_card_amber"
+                    android:orientation="vertical"
+                    android:padding="16dp">
 
-            <!-- Available Battery Slots -->
-            <TextView
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:layout_marginTop="20dp"
-                android:text="Available Battery Slots"
-                android:textSize="14sp"
-                android:textStyle="bold" />
+                    <TextView
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="Available slots"
+                        android:textColor="@color/status_warning"
+                        android:textSize="13sp"
+                        android:textStyle="bold" />
 
-            <TextView
-                android:id="@+id/slotsText"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:layout_marginTop="4dp"
-                android:text="0"
-                android:textSize="16sp" />
+                    <TextView
+                        android:id="@+id/slotsText"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_marginTop="6dp"
+                        android:text="0"
+                        android:textColor="@color/status_warning"
+                        android:textSize="22sp"
+                        android:textStyle="bold" />
 
-            <!-- Latitude -->
-            <TextView
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:layout_marginTop="20dp"
-                android:text="Latitude"
-                android:textSize="14sp"
-                android:textStyle="bold" />
+                </LinearLayout>
 
-            <TextView
-                android:id="@+id/latitudeText"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:layout_marginTop="4dp"
-                android:text="0.0"
-                android:textSize="16sp" />
+            </LinearLayout>
 
-            <!-- Longitude -->
-            <TextView
+            <!-- Other details -->
+            <LinearLayout
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:layout_marginTop="20dp"
-                android:text="Longitude"
-                android:textSize="14sp"
-                android:textStyle="bold" />
+                android:layout_marginTop="16dp"
+                android:background="@drawable/dashboard_card"
+                android:orientation="vertical"
+                android:padding="18dp">
 
-            <TextView
-                android:id="@+id/longitudeText"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:layout_marginTop="4dp"
-                android:text="0.0"
-                android:textSize="16sp" />
+                <!-- Station ID -->
+                <TextView
+                    style="@style/DetailLabel"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:text="Station ID" />
+
+                <TextView
+                    android:id="@+id/stationIdText"
+                    style="@style/DetailValue"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="2dp"
+                    android:text="Unavailable" />
+
+                <!-- Address -->
+                <TextView
+                    style="@style/DetailLabel"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="16dp"
+                    android:text="Address" />
+
+                <TextView
+                    android:id="@+id/addressText"
+                    style="@style/DetailValue"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="2dp"
+                    android:text="Address unavailable" />
+
+                <!-- Latitude -->
+                <TextView
+                    style="@style/DetailLabel"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="16dp"
+                    android:text="Latitude" />
+
+                <TextView
+                    android:id="@+id/latitudeText"
+                    style="@style/DetailValue"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="2dp"
+                    android:text="0.0" />
+
+                <!-- Longitude -->
+                <TextView
+                    style="@style/DetailLabel"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="16dp"
+                    android:text="Longitude" />
+
+                <TextView
+                    android:id="@+id/longitudeText"
+                    style="@style/DetailValue"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="2dp"
+                    android:text="0.0" />
+
+            </LinearLayout>
 
         </LinearLayout>
 

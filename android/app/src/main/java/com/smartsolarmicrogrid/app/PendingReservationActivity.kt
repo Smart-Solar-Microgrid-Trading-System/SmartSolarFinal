@@ -138,15 +138,22 @@ class PendingReservationsActivity : Activity() {
         card.orientation = LinearLayout.VERTICAL
 
         card.setPadding(
-            24,
-            20,
-            24,
-            20
+            dp(18),
+            dp(16),
+            dp(18),
+            dp(16)
         )
 
         card.setBackgroundResource(
-            android.R.drawable.dialog_holo_light_frame
+            R.drawable.dashboard_card
         )
+
+        // small gap between the lines inside the card
+        card.dividerDrawable =
+            getDrawable(R.drawable.card_spacing)
+
+        card.showDividers =
+            LinearLayout.SHOW_DIVIDER_MIDDLE
 
         val params = LinearLayout.LayoutParams(
             LinearLayout.LayoutParams.MATCH_PARENT,
@@ -157,7 +164,7 @@ class PendingReservationsActivity : Activity() {
             0,
             0,
             0,
-            20
+            dp(14)
         )
 
         card.layoutParams = params
@@ -184,6 +191,10 @@ class PendingReservationsActivity : Activity() {
             "Reservation ID: ${reservation.id}"
 
         reservationId.textSize = 14f
+
+        reservationId.setTextColor(
+            getColor(R.color.text_secondary)
+        )
 
         card.addView(reservationId)
 
@@ -227,7 +238,7 @@ class PendingReservationsActivity : Activity() {
 
         card.addView(status)
 
-        val approveButton = Button(this)
+        val approveButton = Button(this, null, 0, R.style.PrimaryButton)
 
         approveButton.text = "Approve"
 
@@ -240,7 +251,7 @@ class PendingReservationsActivity : Activity() {
 
         card.addView(approveButton)
 
-        val rejectButton = Button(this)
+        val rejectButton = Button(this, null, 0, R.style.DangerButton)
 
         rejectButton.text = "Reject"
 
@@ -327,4 +338,7 @@ class PendingReservationsActivity : Activity() {
 
         }.start()
     }
+
+    private fun dp(value: Int) =
+        (value * resources.displayMetrics.density).toInt()
 }

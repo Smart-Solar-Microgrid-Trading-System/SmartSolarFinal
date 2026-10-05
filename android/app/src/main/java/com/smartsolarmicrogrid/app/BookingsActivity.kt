@@ -3,7 +3,6 @@ package com.smartsolarmicrogrid.app
 import android.content.Intent
 import android.app.Activity
 import android.app.AlertDialog
-import android.content.res.ColorStateList
 import android.os.Bundle
 import android.view.View
 import android.widget.*
@@ -239,7 +238,7 @@ class BookingsActivity : Activity() {
         )
 
         val energyInput =
-            EditText(this).apply {
+            input().apply {
 
                 inputType =
                     android.text.InputType.TYPE_CLASS_NUMBER or
@@ -778,7 +777,7 @@ class BookingsActivity : Activity() {
         )
 
         val searchInput =
-            EditText(this).apply {
+            input().apply {
 
                 hint =
                     "Search reservation ID or station"
@@ -1596,7 +1595,7 @@ class BookingsActivity : Activity() {
         )
 
         val energyInput =
-            EditText(this).apply {
+            input().apply {
 
                 inputType =
                     android.text.InputType.TYPE_CLASS_NUMBER or
@@ -2254,10 +2253,8 @@ class BookingsActivity : Activity() {
                 dp(12)
             )
 
-            setBackgroundColor(
-                getColor(
-                    R.color.surface_soft
-                )
+            setBackgroundResource(
+                R.drawable.status_panel
             )
         }
 
@@ -2281,10 +2278,8 @@ class BookingsActivity : Activity() {
                 )
             )
 
-            setBackgroundColor(
-                getColor(
-                    R.color.status_info_background
-                )
+            setBackgroundResource(
+                R.drawable.status_panel
             )
         }
 
@@ -2351,55 +2346,20 @@ class BookingsActivity : Activity() {
     private fun primaryButton(
         text: String
     ) =
-        Button(this).apply {
+        Button(this, null, 0, R.style.PrimaryButton).apply {
 
             this.text =
                 text
-
-            isAllCaps =
-                false
-
-            backgroundTintList =
-                ColorStateList.valueOf(
-                    getColor(
-                        R.color.brand_green
-                    )
-                )
-
-            setTextColor(
-                getColor(
-                    R.color.text_on_primary
-                )
-            )
         }
 
     private fun filterButton(
         text: String,
         action: () -> Unit
     ) =
-        Button(this).apply {
+        Button(this, null, 0, R.style.FilterButton).apply {
 
             this.text =
                 text
-
-            textSize =
-                12f
-
-            isAllCaps =
-                false
-
-            backgroundTintList =
-                ColorStateList.valueOf(
-                    getColor(
-                        R.color.brand_blue_light
-                    )
-                )
-
-            setTextColor(
-                getColor(
-                    R.color.brand_blue
-                )
-            )
 
             setOnClickListener {
 
@@ -2411,31 +2371,33 @@ class BookingsActivity : Activity() {
         text: String,
         action: () -> Unit
     ) =
-        Button(this).apply {
+        Button(this, null, 0, R.style.SecondaryButton).apply {
 
             this.text =
                 text
-
-            isAllCaps =
-                false
-
-            backgroundTintList =
-                ColorStateList.valueOf(
-                    getColor(
-                        R.color.brand_blue_light
-                    )
-                )
-
-            setTextColor(
-                getColor(
-                    R.color.brand_blue
-                )
-            )
 
             setOnClickListener {
 
                 action()
             }
+        }
+
+    private fun input() =
+        EditText(this).apply {
+
+            setBackgroundResource(
+                R.drawable.input_background
+            )
+
+            setPadding(
+                dp(14),
+                dp(12),
+                dp(14),
+                dp(12)
+            )
+
+            textSize =
+                15f
         }
 
     private fun weightedButton() =

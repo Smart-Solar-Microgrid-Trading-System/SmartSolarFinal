@@ -132,15 +132,22 @@ class ApprovedReservationsActivity : Activity() {
             LinearLayout.VERTICAL
 
         card.setPadding(
-            24,
-            20,
-            24,
-            20
+            dp(18),
+            dp(16),
+            dp(18),
+            dp(16)
         )
 
         card.setBackgroundResource(
-            android.R.drawable.dialog_holo_light_frame
+            R.drawable.dashboard_card
         )
+
+        // small gap between the lines inside the card
+        card.dividerDrawable =
+            getDrawable(R.drawable.card_spacing)
+
+        card.showDividers =
+            LinearLayout.SHOW_DIVIDER_MIDDLE
 
         val params =
             LinearLayout.LayoutParams(
@@ -152,7 +159,7 @@ class ApprovedReservationsActivity : Activity() {
             0,
             0,
             0,
-            20
+            dp(14)
         )
 
         card.layoutParams = params
@@ -179,6 +186,10 @@ class ApprovedReservationsActivity : Activity() {
             "Reservation ID: ${reservation.id}"
 
         idText.textSize = 14f
+
+        idText.setTextColor(
+            getColor(R.color.text_secondary)
+        )
 
         card.addView(idText)
 
@@ -210,7 +221,7 @@ class ApprovedReservationsActivity : Activity() {
 
         card.addView(status)
 
-        val qrButton = Button(this)
+        val qrButton = Button(this, null, 0, R.style.PrimaryButton)
 
         qrButton.text =
             "View Transaction QR"
@@ -235,4 +246,7 @@ class ApprovedReservationsActivity : Activity() {
 
         reservationsContainer.addView(card)
     }
+
+    private fun dp(value: Int) =
+        (value * resources.displayMetrics.density).toInt()
 }

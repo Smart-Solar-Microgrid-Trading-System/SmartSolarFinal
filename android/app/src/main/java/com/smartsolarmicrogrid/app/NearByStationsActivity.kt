@@ -144,19 +144,19 @@ class NearbyStationsActivity : Activity() {
             // Station container
             val stationLayout = LinearLayout(this).apply {
                 orientation = LinearLayout.VERTICAL
-                setPadding(24, 24, 24, 24)
+                setPadding(dp(18), dp(16), dp(18), dp(16))
 
                 val params = LinearLayout.LayoutParams(
                     LinearLayout.LayoutParams.MATCH_PARENT,
                     LinearLayout.LayoutParams.WRAP_CONTENT
                 )
 
-                params.setMargins(0, 0, 0, 24)
+                params.setMargins(0, 0, 0, dp(14))
 
                 layoutParams = params
 
                 setBackgroundResource(
-                    android.R.drawable.dialog_holo_light_frame
+                    R.drawable.dashboard_card
                 )
             }
 
@@ -168,31 +168,33 @@ class NearbyStationsActivity : Activity() {
                     null,
                     android.graphics.Typeface.BOLD
                 )
+                setTextColor(getColor(R.color.brand_blue_dark))
             }
 
             // Capacity
             val capacityText = TextView(this).apply {
                 text = "Capacity: $capacity kW"
                 textSize = 15f
-                setPadding(0, 8, 0, 0)
+                setPadding(0, dp(8), 0, 0)
             }
 
             // Available slots
             val slotsText = TextView(this).apply {
                 text = "Available battery slots: $slots"
                 textSize = 15f
-                setPadding(0, 4, 0, 0)
+                setPadding(0, dp(4), 0, 0)
             }
 
             // Coordinates
             val locationText = TextView(this).apply {
                 text = "Location: $latitude, $longitude"
                 textSize = 14f
-                setPadding(0, 4, 0, 0)
+                setTextColor(getColor(R.color.text_secondary))
+                setPadding(0, dp(4), 0, 0)
             }
 
             // Details button
-            val detailsButton = Button(this).apply {
+            val detailsButton = Button(this, null, 0, R.style.PrimaryButton).apply {
 
                 text = "View Details"
 
@@ -201,7 +203,7 @@ class NearbyStationsActivity : Activity() {
                     LinearLayout.LayoutParams.WRAP_CONTENT
                 )
 
-                params.topMargin = 12
+                params.topMargin = dp(14)
                 layoutParams = params
 
                 setOnClickListener {
@@ -240,4 +242,7 @@ class NearbyStationsActivity : Activity() {
         feedbackText.visibility = View.VISIBLE
         feedbackText.text = message
     }
+
+    private fun dp(value: Int) =
+        (value * resources.displayMetrics.density).toInt()
 }
