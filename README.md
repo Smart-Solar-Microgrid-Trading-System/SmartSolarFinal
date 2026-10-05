@@ -21,7 +21,7 @@ The project was completed collaboratively by four members. Each member's primary
 
 A video of no more than five minutes demonstrating the application will be available through YouTube or OneDrive.
 
-**Video link:** Pending
+**Video link:** https://mysliit-my.sharepoint.com/personal/it23151642_my_sliit_lk/_layouts/15/stream.aspx?id=%2Fpersonal%2Fit23151642%5Fmy%5Fsliit%5Flk%2FDocuments%2FEAD%20Assignement%2Fead%5Fvideo%2Emp4&referrer=StreamWebApp%2EWeb&referrerScenario=AddressBarCopied%2Eview%2E8b9caf42%2D720b%2D45c3%2D822e%2D4ebd61127cde
 
 ## System architecture
 
