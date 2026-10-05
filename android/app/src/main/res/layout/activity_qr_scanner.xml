@@ -1,0 +1,47 @@
+<?xml version="1.0" encoding="utf-8"?>
+
+<LinearLayout
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:orientation="vertical"
+    android:background="@android:color/black">
+
+    <!-- Header -->
+    <LinearLayout style="@style/HeaderBar">
+
+        <ImageButton
+            android:id="@+id/pageBackButton"
+            style="@style/HeaderBackButton"
+            android:contentDescription="Back"
+            android:src="@drawable/ic_back" />
+
+        <TextView
+            style="@style/PageTitle"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginStart="6dp"
+            android:text="Scan Transaction QR" />
+
+    </LinearLayout>
+
+    <!-- Camera -->
+    <androidx.camera.view.PreviewView
+        android:id="@+id/cameraPreview"
+        android:layout_width="match_parent"
+        android:layout_height="0dp"
+        android:layout_weight="1" />
+
+    <!-- Status -->
+    <TextView
+        android:id="@+id/scannerStatus"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:background="@color/surface"
+        android:gravity="center"
+        android:padding="20dp"
+        android:text="Point the camera at the prosumer's transaction QR code."
+        android:textColor="@color/text_secondary"
+        android:textSize="16sp" />
+
+</LinearLayout>

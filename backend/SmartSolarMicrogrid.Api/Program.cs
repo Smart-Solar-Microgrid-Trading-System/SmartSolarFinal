@@ -1,3 +1,10 @@
+/*
+ * Student Name: Hirimuthugodage J.
+ * Component: User and Prosumer Management with Role-Based Authentication
+ * File Name: Program.cs
+ * Description: Configuration of database access, authentication, authorization, and account services.
+ */
+
 using System.Text;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.IdentityModel.Tokens;
@@ -9,11 +16,13 @@ using SmartSolarMicrogrid.Api.Services;
 
 var builder = WebApplication.CreateBuilder(args);
 
-builder.Services.AddControllers(options => 
+// Validatatio of each authenticated account and session.
+builder.Services.AddControllers(options =>
 {
     options.Filters.Add<AccountStatusFilter>();
 });
 
+// Validation of MongoDB configuration.
 var connectionString = builder.Configuration["MongoDB:ConnectionString"];
 var databaseName = builder.Configuration["MongoDB:DatabaseName"];
 if (string.IsNullOrWhiteSpace(connectionString) || string.IsNullOrWhiteSpace(databaseName))
@@ -23,6 +32,7 @@ if (string.IsNullOrWhiteSpace(connectionString) || string.IsNullOrWhiteSpace(dat
 
 builder.Services.AddSingleton<IMongoClient>(_ =>
 {
+    // Creation the shared MongoDB client.
     var settings = MongoClientSettings.FromConnectionString(connectionString);
     settings.ServerSelectionTimeout = TimeSpan.FromSeconds(5);
     settings.ConnectTimeout = TimeSpan.FromSeconds(5);
@@ -31,12 +41,31 @@ builder.Services.AddSingleton<IMongoClient>(_ =>
 builder.Services.AddSingleton<IMongoDatabase>(services =>
     services.GetRequiredService<IMongoClient>().GetDatabase(databaseName));
 
+// Register application services.
+var jwtSecret = builder.Configuration["Jwt:Secret"];
+var jwtIssuer = builder.Configuration["Jwt:Issuer"];
+var jwtAudience = builder.Configuration["Jwt:Audience"];
+if (string.IsNullOrWhiteSpace(jwtSecret) || jwtSecret.Length < 32)
+{
+    throw new InvalidOperationException("JWT secret must contain at least 32 characters.");
+}
+if (string.IsNullOrWhiteSpace(jwtIssuer) || string.IsNullOrWhiteSpace(jwtAudience))
+{
+    throw new InvalidOperationException("JWT issuer and audience are required.");
+}
+
+builder.Services.AddSingleton(new JwtSettings(jwtSecret, jwtIssuer, jwtAudience));
 builder.Services.AddSingleton<AuthService>();
 builder.Services.AddSingleton<ProsumerService>();
 builder.Services.AddSingleton<UserManagementService>();
 builder.Services.AddSingleton<MicrogridNodeService>();
+builder.Services.AddSingleton<BookingSlotService>();    //booking slots
+builder.Services.AddSingleton<ReservationQueryService>();
+builder.Services.AddSingleton<ReservationCommandService>();
+builder.Services.AddSingleton<TransactionService>();
 
-var key = Encoding.ASCII.GetBytes(builder.Configuration["Jwt:Secret"]!);
+// Configure JWT authentication.
+var key = Encoding.UTF8.GetBytes(jwtSecret);
 builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
     .AddJwtBearer(options =>
     {
@@ -45,9 +74,9 @@ builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
             ValidateIssuerSigningKey = true,
             IssuerSigningKey = new SymmetricSecurityKey(key),
             ValidateIssuer = true,
-            ValidIssuer = builder.Configuration["Jwt:Issuer"],
+            ValidIssuer = jwtIssuer,
             ValidateAudience = true,
-            ValidAudience = builder.Configuration["Jwt:Audience"],
+            ValidAudience = jwtAudience,
             ValidateLifetime = true,
             ClockSkew = TimeSpan.Zero
         };
@@ -55,18 +84,21 @@ builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
         {
             OnChallenge = context =>
             {
+                // Return 401 when authentication fails.
                 context.HandleResponse();
                 context.Response.StatusCode = StatusCodes.Status401Unauthorized;
                 return context.Response.WriteAsJsonAsync(new { error = "Authentication is required." });
             },
             OnForbidden = context =>
             {
+                // Return 403 when the role lacks permission.
                 context.Response.StatusCode = StatusCodes.Status403Forbidden;
                 return context.Response.WriteAsJsonAsync(new { error = "You do not have permission to access this resource." });
             }
         };
     });
 
+// Configure role based policies.
 builder.Services.AddAuthorization(options =>
 {
     options.AddPolicy(UserRoles.Backoffice, policy =>
@@ -77,7 +109,7 @@ builder.Services.AddAuthorization(options =>
         policy.RequireRole(UserRoles.Prosumer));
 });
 
-// Allow any LAN origin so the web app and phone browser can call the API.
+// Allow web and mobile clients to call the API.
 builder.Services.AddCors(options =>
     options.AddDefaultPolicy(policy =>
         policy.AllowAnyOrigin()
@@ -86,13 +118,14 @@ builder.Services.AddCors(options =>
 
 var app = builder.Build();
 
-// Automatic database seeding — hashes are generated at runtime using BCrypt
+// Initializing user storage and the Backoffice account.
 using (var scope = app.Services.CreateScope())
 {
+    // Access the users collection.
     var database = scope.ServiceProvider.GetRequiredService<IMongoDatabase>();
     var usersCollection = database.GetCollection<SmartSolarMicrogrid.Api.Models.User>("Users");
 
-    // Enforce unique non-empty email addresses while allowing users without an email.
+    // Enforcing unique non empty email addresses.
     var emailIndex = new CreateIndexModel<SmartSolarMicrogrid.Api.Models.User>(
         Builders<SmartSolarMicrogrid.Api.Models.User>.IndexKeys.Ascending(user => user.Email),
         new CreateIndexOptions<SmartSolarMicrogrid.Api.Models.User>
@@ -134,24 +167,9 @@ using (var scope = app.Services.CreateScope())
         }
     }
 
-    // Seed map-demo nodes once. Later node-management changes are never overwritten at startup.
-    var nodesCollection = database.GetCollection<MicrogridNode>("MicrogridNodes");
-    var seedNodes = new List<MicrogridNode>
-    {
-        new() { Id = "node-colombo-central", Name = "Colombo Central Hub", Latitude = 6.9271, Longitude = 79.8612, CapacityKw = 250, AvailableBatterySlots = 12, IsActive = true },
-        new() { Id = "node-battaramulla", Name = "Battaramulla Solar Hub", Latitude = 6.9022, Longitude = 79.9181, CapacityKw = 180, AvailableBatterySlots = 8, IsActive = true },
-        new() { Id = "node-maharagama", Name = "Maharagama Energy Hub", Latitude = 6.8480, Longitude = 79.9280, CapacityKw = 150, AvailableBatterySlots = 6, IsActive = true }
-    };
-    foreach (var node in seedNodes)
-    {
-        var exists = await nodesCollection.Find(existingNode => existingNode.Id == node.Id).AnyAsync();
-        if (!exists)
-        {
-            await nodesCollection.InsertOneAsync(node);
-        }
-    }
 }
 
+// Configuration of the HTTP request pipeline.
 app.UseCors();
 app.UseAuthentication();
 app.UseAuthorization();

@@ -38,7 +38,7 @@ class LoginActivity : Activity() {
         val identifier = identifierInput.text.toString().trim()
         val password = passwordInput.text.toString()
         if (identifier.isBlank() || password.isBlank()) {
-            showFeedback("Enter your NIC/username and password.", false)
+            showFeedback("Prosumers must enter their NIC. Grid Operators must enter their username and password.", false)
             return
         }
         loginButton.isEnabled = false
@@ -50,10 +50,16 @@ class LoginActivity : Activity() {
             })
             if (result.statusCode == 200) {
                 val response = JSONObject(result.body)
+                val role = response.getString("role")
+                if (role !in mobileRoles) {
+                    showFeedback("Backoffice accounts must use the web application.", false)
+                    runOnUiThread { loginButton.isEnabled = true }
+                    return@Thread
+                }
                 SessionDatabaseHelper(this).apply {
                     clearProfile()
                     saveSession(
-                    response.getString("token"), response.getString("role"), response.getString("name")
+                    response.getString("token"), role, response.getString("name")
                     )
                 }
                 runOnUiThread {
@@ -76,5 +82,9 @@ class LoginActivity : Activity() {
             false -> getColor(R.color.status_error)
             null -> Color.DKGRAY
         })
+    }
+
+    private companion object {
+        val mobileRoles = setOf("Prosumer", "GridOperator")
     }
 }

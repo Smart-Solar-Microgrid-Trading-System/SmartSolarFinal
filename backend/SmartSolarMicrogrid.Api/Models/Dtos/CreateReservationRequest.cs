@@ -1,0 +1,25 @@
+/*
+ * Student Name: Rathnayake R.M.S.B
+ * Component: Energy Reservation Management
+ * File Name: CreateReservationRequest.cs
+ * Description: Defines validated staff input for creating an energy reservation
+ *              for an active Prosumer.
+ */
+
+using System.ComponentModel.DataAnnotations;
+
+namespace SmartSolarMicrogrid.Api.Models.Dtos;
+
+public sealed class CreateReservationRequest
+{
+    public string? ProsumerNic { get; set; }
+
+    [Required]
+    public string NodeId { get; set; } = null!;
+
+    [Required]
+    public string SlotId { get; set; } = null!;
+
+    [Range(typeof(decimal), "0.01", "79228162514264337593543950335")]
+    public decimal EnergyAmountKw { get; set; }
+}

@@ -6,49 +6,181 @@ import android.view.View
 import android.widget.Button
 
 object AppNavigation {
-    fun openHome(activity: Activity) = activity.startActivity(
-        Intent(activity, MainActivity::class.java).addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP)
-    )
 
-    fun openBookings(activity: Activity) = activity.startActivity(Intent(activity, BookingsActivity::class.java))
+    fun openHome(activity: Activity) {
+        open(
+            activity,
+            MainActivity::class.java
+        )
+    }
 
-    fun openProfile(activity: Activity) = activity.startActivity(Intent(activity, ProfileActivity::class.java))
+    fun openBookings(activity: Activity) {
+        open(
+            activity,
+            BookingsActivity::class.java
+        )
+    }
 
-    fun openMap(activity: Activity) = activity.startActivity(Intent(activity, MapActivity::class.java))
+    fun openProfile(activity: Activity) {
+        open(
+            activity,
+            ProfileActivity::class.java
+        )
+    }
 
-    fun openOperations(activity: Activity) = activity.startActivity(Intent(activity, OperationsActivity::class.java))
+    fun openMap(activity: Activity) {
+        open(
+            activity,
+            MapActivity::class.java
+        )
+    }
 
-    fun configure(activity: Activity, current: Destination) {
-        val isGridOperator = SessionDatabaseHelper(activity).getSession()?.role == "GridOperator"
-        val bookings = activity.findViewById<Button>(R.id.bookingsNavigationButton)
-        val map = activity.findViewById<Button>(R.id.mapNavigationButton)
-        val operations = activity.findViewById<Button>(R.id.operationsNavigationButton)
+    fun openOperations(activity: Activity) {
+        open(
+            activity,
+            OperationsActivity::class.java
+        )
+    }
 
-        bookings.visibility = if (isGridOperator) View.GONE else View.VISIBLE
-        map.visibility = if (isGridOperator) View.GONE else View.VISIBLE
-        operations.visibility = if (isGridOperator) View.VISIBLE else View.GONE
+    private fun open(
+        activity: Activity,
+        destination: Class<*>
+    ) {
 
-        activity.findViewById<Button>(R.id.homeNavigationButton).apply {
-            isEnabled = current != Destination.Home
-            setOnClickListener { if (current != Destination.Home) openHome(activity) }
+        val intent =
+            Intent(
+                activity,
+                destination
+            ).apply {
+
+                addFlags(
+                    Intent.FLAG_ACTIVITY_CLEAR_TOP or
+                        Intent.FLAG_ACTIVITY_SINGLE_TOP
+                )
+            }
+
+        activity.startActivity(intent)
+    }
+
+    fun configure(
+        activity: Activity,
+        current: Destination
+    ) {
+
+        val session =
+            SessionDatabaseHelper(activity)
+                .getSession()
+
+        val isGridOperator =
+            session?.role == "GridOperator"
+
+        val home =
+            activity.findViewById<Button>(
+                R.id.homeNavigationButton
+            )
+
+        val bookings =
+            activity.findViewById<Button>(
+                R.id.bookingsNavigationButton
+            )
+
+        val map =
+            activity.findViewById<Button>(
+                R.id.mapNavigationButton
+            )
+
+        val operations =
+            activity.findViewById<Button>(
+                R.id.operationsNavigationButton
+            )
+
+        val profile =
+            activity.findViewById<Button>(
+                R.id.profileNavigationButton
+            )
+
+        /*
+         * Prosumer:
+         * Home / Bookings / Map / Profile
+         *
+         * Grid Operator:
+         * Home / Map / Operations / Profile
+         */
+        bookings.visibility =
+            if (isGridOperator) {
+                View.GONE
+            } else {
+                View.VISIBLE
+            }
+
+        operations.visibility =
+            if (isGridOperator) {
+                View.VISIBLE
+            } else {
+                View.GONE
+            }
+
+        map.visibility =
+            View.VISIBLE
+
+        configureButton(
+            home,
+            current == Destination.Home
+        ) {
+            openHome(activity)
         }
-        bookings.apply {
-            isEnabled = current != Destination.Bookings
-            setOnClickListener { if (current != Destination.Bookings) openBookings(activity) }
+
+        configureButton(
+            bookings,
+            current == Destination.Bookings
+        ) {
+            openBookings(activity)
         }
-        map.apply {
-            isEnabled = current != Destination.Map
-            setOnClickListener { if (current != Destination.Map) openMap(activity) }
+
+        configureButton(
+            map,
+            current == Destination.Map
+        ) {
+            openMap(activity)
         }
-        operations.apply {
-            isEnabled = current != Destination.Operations
-            setOnClickListener { if (current != Destination.Operations) openOperations(activity) }
+
+        configureButton(
+            operations,
+            current == Destination.Operations
+        ) {
+            openOperations(activity)
         }
-        activity.findViewById<Button>(R.id.profileNavigationButton).apply {
-            isEnabled = current != Destination.Profile
-            setOnClickListener { if (current != Destination.Profile) openProfile(activity) }
+
+        configureButton(
+            profile,
+            current == Destination.Profile
+        ) {
+            openProfile(activity)
         }
     }
 
-    enum class Destination { Home, Bookings, Map, Operations, Profile }
+    private fun configureButton(
+        button: Button,
+        selected: Boolean,
+        action: () -> Unit
+    ) {
+
+        button.isEnabled =
+            !selected
+
+        button.setOnClickListener {
+
+            if (!selected) {
+                action()
+            }
+        }
+    }
+
+    enum class Destination {
+        Home,
+        Bookings,
+        Map,
+        Operations,
+        Profile
+    }
 }

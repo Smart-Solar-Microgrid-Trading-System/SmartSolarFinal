@@ -1,0 +1,92 @@
+<?xml version="1.0" encoding="utf-8"?>
+
+<LinearLayout
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:orientation="vertical">
+
+    <!-- Header -->
+    <LinearLayout style="@style/HeaderBar">
+
+        <ImageButton
+            android:id="@+id/pageBackButton"
+            style="@style/HeaderBackButton"
+            android:contentDescription="Back"
+            android:src="@drawable/ic_back" />
+
+        <TextView
+            style="@style/PageTitle"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginStart="6dp"
+            android:text="Transaction QR" />
+
+    </LinearLayout>
+
+    <ScrollView
+        android:layout_width="match_parent"
+        android:layout_height="0dp"
+        android:layout_weight="1"
+        android:fillViewport="true">
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="vertical"
+            android:padding="20dp">
+
+            <TextView
+                android:id="@+id/qrInstructionText"
+                style="@style/BodyText"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:gravity="center"
+                android:text="Show this QR code to the Grid Operator to verify your energy transfer."
+                android:textSize="16sp" />
+
+            <!-- QR Code -->
+            <LinearLayout
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_gravity="center_horizontal"
+                android:layout_marginTop="24dp"
+                android:background="@drawable/dashboard_card"
+                android:padding="14dp">
+
+                <ImageView
+                    android:id="@+id/transactionQrImage"
+                    android:layout_width="280dp"
+                    android:layout_height="280dp"
+                    android:contentDescription="Transaction QR code"
+                    android:scaleType="fitCenter" />
+
+            </LinearLayout>
+
+            <!-- Status -->
+            <TextView
+                android:id="@+id/transactionStatusText"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="24dp"
+                android:gravity="center"
+                android:text="Preparing secure transaction QR..."
+                android:textColor="@color/text_primary"
+                android:textSize="16sp"
+                android:textStyle="bold" />
+
+            <!-- Reservation -->
+            <TextView
+                android:id="@+id/reservationIdText"
+                style="@style/BodyText"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="8dp"
+                android:gravity="center"
+                android:text="" />
+
+        </LinearLayout>
+
+    </ScrollView>
+
+</LinearLayout>

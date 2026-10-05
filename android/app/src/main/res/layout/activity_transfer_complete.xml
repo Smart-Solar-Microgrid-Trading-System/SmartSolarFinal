@@ -1,0 +1,60 @@
+<?xml version="1.0" encoding="utf-8"?>
+
+<LinearLayout
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:gravity="center"
+    android:orientation="vertical"
+    android:padding="32dp">
+
+    <TextView
+        android:layout_width="88dp"
+        android:layout_height="88dp"
+        android:background="@drawable/success_badge"
+        android:gravity="center"
+        android:text="✓"
+        android:textColor="@color/brand_green"
+        android:textSize="42sp"
+        android:textStyle="bold" />
+
+    <TextView
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="24dp"
+        android:text="Transfer Completed"
+        android:textColor="@color/text_primary"
+        android:textSize="28sp"
+        android:textStyle="bold" />
+
+    <TextView
+        android:id="@+id/messageText"
+        style="@style/BodyText"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="16dp"
+        android:gravity="center"
+        android:text="Energy transfer completed successfully."
+        android:textSize="17sp" />
+
+    <TextView
+        android:id="@+id/reservationIdText"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="16dp"
+        android:background="@drawable/status_panel"
+        android:gravity="center"
+        android:paddingStart="16dp"
+        android:paddingTop="8dp"
+        android:paddingEnd="16dp"
+        android:paddingBottom="8dp"
+        android:textColor="@color/brand_blue"
+        android:textSize="14sp" />
+
+    <Button
+        android:id="@+id/scanAnotherButton"
+        style="@style/PrimaryButton"
+        android:layout_marginTop="32dp"
+        android:text="Scan Another Booking" />
+
+</LinearLayout>

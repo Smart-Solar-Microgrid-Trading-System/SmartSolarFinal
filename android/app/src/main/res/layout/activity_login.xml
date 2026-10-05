@@ -1,16 +1,137 @@
 <?xml version="1.0" encoding="utf-8"?>
-<ScrollView xmlns:android="http://schemas.android.com/apk/res/android" android:layout_width="match_parent" android:layout_height="match_parent" android:fillViewport="true">
-    <LinearLayout android:layout_width="match_parent" android:layout_height="match_parent" android:orientation="vertical" android:padding="24dp">
-        <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="Welcome" android:textColor="@color/brand_blue" android:textSize="28sp" android:textStyle="bold" />
-        <TextView android:layout_width="match_parent" android:layout_height="wrap_content" android:layout_marginTop="8dp" android:text="Sign in as a Prosumer or Grid Operator." android:textColor="@color/text_secondary" />
-        <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:layout_marginTop="32dp" android:text="NIC or username" android:textStyle="bold" />
-        <EditText android:id="@+id/identifierInput" android:layout_width="match_parent" android:layout_height="wrap_content" android:layout_marginTop="8dp" android:inputType="text" android:singleLine="true" />
-        <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:layout_marginTop="18dp" android:text="Password" android:textStyle="bold" />
-        <EditText android:id="@+id/passwordInput" android:layout_width="match_parent" android:layout_height="wrap_content" android:layout_marginTop="8dp" android:inputType="textPassword" android:singleLine="true" />
-        <Button android:id="@+id/loginButton" android:layout_width="match_parent" android:layout_height="wrap_content" android:layout_marginTop="24dp" android:text="Sign in" />
-        <TextView android:id="@+id/feedbackText" android:layout_width="match_parent" android:layout_height="wrap_content" android:layout_marginTop="18dp" android:background="@drawable/status_panel" android:padding="16dp" android:textSize="15sp" android:visibility="gone" />
-        <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:layout_marginTop="32dp" android:text="New solar Prosumer?" android:textStyle="bold" />
-        <Button android:id="@+id/registerButton" android:layout_width="match_parent" android:layout_height="wrap_content" android:layout_marginTop="8dp" android:text="Register as Prosumer" />
-        <TextView android:id="@+id/settingsButton" android:layout_width="wrap_content" android:layout_height="wrap_content" android:layout_marginTop="32dp" android:layout_gravity="center_horizontal" android:text="Server Settings" android:textColor="@color/brand_blue" android:textStyle="bold" android:padding="8dp" />
+<ScrollView xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:fillViewport="true">
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:orientation="vertical">
+
+        <!-- Banner -->
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:background="@drawable/home_header_background"
+            android:orientation="vertical"
+            android:paddingStart="24dp"
+            android:paddingTop="40dp"
+            android:paddingEnd="24dp"
+            android:paddingBottom="36dp">
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="Smart Solar Microgrid"
+                android:textColor="@color/header_text_soft"
+                android:textSize="14sp" />
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="6dp"
+                android:text="Welcome"
+                android:textColor="@color/text_on_primary"
+                android:textSize="30sp"
+                android:textStyle="bold" />
+
+            <TextView
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="8dp"
+                android:text="Sign in as a Prosumer or Grid Operator."
+                android:textColor="@color/header_text_soft" />
+
+        </LinearLayout>
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="vertical"
+            android:padding="24dp">
+
+            <!-- Sign in form -->
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:background="@drawable/dashboard_card"
+                android:orientation="vertical"
+                android:padding="20dp">
+
+                <TextView
+                    style="@style/InputLabel"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="Prosumer NIC or Grid Operator username" />
+
+                <EditText
+                    android:id="@+id/identifierInput"
+                    style="@style/InputField"
+                    android:layout_marginTop="8dp"
+                    android:hint="Enter NIC or username"
+                    android:inputType="text"
+                    android:singleLine="true" />
+
+                <TextView
+                    style="@style/InputLabel"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="18dp"
+                    android:text="Password" />
+
+                <EditText
+                    android:id="@+id/passwordInput"
+                    style="@style/InputField"
+                    android:layout_marginTop="8dp"
+                    android:inputType="textPassword"
+                    android:singleLine="true" />
+
+                <Button
+                    android:id="@+id/loginButton"
+                    style="@style/PrimaryButton"
+                    android:layout_marginTop="24dp"
+                    android:text="Sign in" />
+
+                <TextView
+                    android:id="@+id/feedbackText"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="18dp"
+                    android:background="@drawable/status_panel"
+                    android:padding="16dp"
+                    android:textSize="15sp"
+                    android:visibility="gone" />
+
+            </LinearLayout>
+
+            <!-- Registration -->
+            <TextView
+                style="@style/SectionTitle"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="28dp"
+                android:text="New solar Prosumer?" />
+
+            <Button
+                android:id="@+id/registerButton"
+                style="@style/SecondaryButton"
+                android:layout_marginTop="10dp"
+                android:text="Register as Prosumer" />
+
+            <TextView
+                android:id="@+id/settingsButton"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_gravity="center_horizontal"
+                android:layout_marginTop="24dp"
+                android:padding="8dp"
+                android:text="Server Settings"
+                android:textColor="@color/brand_blue"
+                android:textStyle="bold" />
+
+        </LinearLayout>
+
     </LinearLayout>
+
 </ScrollView>

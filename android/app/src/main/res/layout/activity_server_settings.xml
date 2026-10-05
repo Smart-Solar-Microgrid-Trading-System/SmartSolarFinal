@@ -1,14 +1,88 @@
 <?xml version="1.0" encoding="utf-8"?>
-<ScrollView xmlns:android="http://schemas.android.com/apk/res/android" android:layout_width="match_parent" android:layout_height="match_parent" android:fillViewport="true">
-    <LinearLayout android:layout_width="match_parent" android:layout_height="match_parent" android:orientation="vertical" android:padding="24dp">
-        <LinearLayout android:layout_width="match_parent" android:layout_height="wrap_content" android:gravity="center_vertical" android:orientation="horizontal">
-            <ImageButton android:id="@+id/settingsBackButton" android:layout_width="48dp" android:layout_height="48dp" android:background="?android:attr/selectableItemBackgroundBorderless" android:contentDescription="Back to Home" android:padding="12dp" android:src="@drawable/ic_back" android:visibility="gone" />
-            <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="Server Settings" android:textColor="@color/brand_blue" android:textSize="26sp" android:textStyle="bold" />
+<ScrollView xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:fillViewport="true">
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:orientation="vertical">
+
+        <!-- Header -->
+        <LinearLayout style="@style/HeaderBar">
+
+            <ImageButton
+                android:id="@+id/settingsBackButton"
+                style="@style/HeaderBackButton"
+                android:contentDescription="Back to Home"
+                android:src="@drawable/ic_back"
+                android:visibility="gone" />
+
+            <TextView
+                style="@style/PageTitle"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginStart="6dp"
+                android:text="Server Settings" />
+
         </LinearLayout>
-        <TextView android:layout_width="match_parent" android:layout_height="wrap_content" android:layout_marginTop="12dp" android:text="Change this only when the IIS/API laptop or LAN network changes. The app saves a verified address on this device." android:textColor="@color/text_secondary" />
-        <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:layout_marginTop="32dp" android:text="IIS API address" android:textStyle="bold" />
-        <EditText android:id="@+id/apiUrlInput" android:layout_width="match_parent" android:layout_height="wrap_content" android:layout_marginTop="8dp" android:autofillHints="url" android:hint="http://192.168.1.10:5000" android:inputType="textUri" android:singleLine="true" />
-        <Button android:id="@+id/saveButton" android:layout_width="match_parent" android:layout_height="wrap_content" android:layout_marginTop="24dp" android:text="Test and save address" />
-        <TextView android:id="@+id/resultText" android:layout_width="match_parent" android:layout_height="wrap_content" android:layout_marginTop="24dp" android:background="@drawable/status_panel" android:padding="16dp" android:textSize="15sp" android:visibility="gone" />
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="vertical"
+            android:padding="20dp">
+
+            <TextView
+                style="@style/BodyText"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:text="Change this only when the IIS/API laptop or LAN network changes. The app saves a verified address on this device." />
+
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="16dp"
+                android:background="@drawable/dashboard_card"
+                android:orientation="vertical"
+                android:padding="20dp">
+
+                <TextView
+                    style="@style/InputLabel"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="IIS API address" />
+
+                <EditText
+                    android:id="@+id/apiUrlInput"
+                    style="@style/InputField"
+                    android:layout_marginTop="8dp"
+                    android:autofillHints="url"
+                    android:hint="http://192.168.1.10:5000"
+                    android:inputType="textUri"
+                    android:singleLine="true" />
+
+                <Button
+                    android:id="@+id/saveButton"
+                    style="@style/PrimaryButton"
+                    android:layout_marginTop="24dp"
+                    android:text="Test and save address" />
+
+                <TextView
+                    android:id="@+id/resultText"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="18dp"
+                    android:background="@drawable/status_panel"
+                    android:padding="16dp"
+                    android:textSize="15sp"
+                    android:visibility="gone" />
+
+            </LinearLayout>
+
+        </LinearLayout>
+
     </LinearLayout>
+
 </ScrollView>

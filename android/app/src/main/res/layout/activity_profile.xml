@@ -1,21 +1,219 @@
 <?xml version="1.0" encoding="utf-8"?>
-<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android" android:layout_width="match_parent" android:layout_height="match_parent" android:orientation="vertical">
-    <ScrollView android:layout_width="match_parent" android:layout_height="0dp" android:layout_weight="1">
-        <LinearLayout android:layout_width="match_parent" android:layout_height="wrap_content" android:orientation="vertical" android:padding="24dp">
-            <LinearLayout android:layout_width="match_parent" android:layout_height="wrap_content" android:gravity="center_vertical" android:orientation="horizontal">
-                <ImageButton android:id="@+id/pageBackButton" android:layout_width="48dp" android:layout_height="48dp" android:background="?android:attr/selectableItemBackgroundBorderless" android:contentDescription="Back" android:padding="12dp" android:src="@drawable/ic_back" />
-                <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="My Profile" android:textColor="@color/brand_blue" android:textSize="28sp" android:textStyle="bold" />
+
+<LinearLayout
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:orientation="vertical"
+    android:background="@color/app_background">
+
+    <ScrollView
+        android:layout_width="match_parent"
+        android:layout_height="0dp"
+        android:layout_weight="1"
+        android:clipToPadding="false"
+        android:fillViewport="true">
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="vertical">
+
+            <!-- Header -->
+            <LinearLayout style="@style/HeaderBar">
+
+                <ImageButton
+                    android:id="@+id/pageBackButton"
+                    style="@style/HeaderBackButton"
+                    android:contentDescription="Back to home"
+                    android:src="@drawable/ic_back" />
+
+                <TextView
+                    style="@style/PageTitle"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_marginStart="6dp"
+                    android:text="My Profile" />
+
             </LinearLayout>
-            <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:layout_marginTop="24dp" android:text="Full name" android:textStyle="bold" />
-            <EditText android:id="@+id/nameInput" android:layout_width="match_parent" android:layout_height="wrap_content" android:layout_marginTop="8dp" android:inputType="textPersonName" />
-            <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:layout_marginTop="16dp" android:text="Email" android:textStyle="bold" />
-            <EditText android:id="@+id/emailInput" android:layout_width="match_parent" android:layout_height="wrap_content" android:layout_marginTop="8dp" android:inputType="textEmailAddress" />
-            <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:layout_marginTop="16dp" android:text="Phone" android:textStyle="bold" />
-            <EditText android:id="@+id/phoneInput" android:layout_width="match_parent" android:layout_height="wrap_content" android:layout_marginTop="8dp" android:inputType="phone" />
-            <Button android:id="@+id/saveButton" android:layout_width="match_parent" android:layout_height="wrap_content" android:layout_marginTop="24dp" android:text="Save profile" />
-            <Button android:id="@+id/deactivateButton" android:layout_width="match_parent" android:layout_height="wrap_content" android:layout_marginTop="8dp" android:text="Request account deactivation" />
-            <TextView android:id="@+id/feedbackText" android:layout_width="match_parent" android:layout_height="wrap_content" android:layout_marginTop="18dp" android:background="@drawable/status_panel" android:padding="16dp" android:textSize="15sp" android:visibility="gone" />
+
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="vertical"
+                android:paddingStart="20dp"
+                android:paddingTop="20dp"
+                android:paddingEnd="20dp"
+                android:paddingBottom="36dp">
+
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:orientation="vertical"
+                    android:background="@drawable/dashboard_card"
+                    android:padding="18dp">
+
+                    <TextView
+                        style="@style/InputLabel"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="Full name" />
+
+                    <EditText
+                        android:id="@+id/nameInput"
+                        style="@style/InputField"
+                        android:layout_marginTop="6dp"
+                        android:inputType="textPersonName" />
+
+                    <TextView
+                        style="@style/InputLabel"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_marginTop="16dp"
+                        android:text="Email" />
+
+                    <EditText
+                        android:id="@+id/emailInput"
+                        style="@style/InputField"
+                        android:layout_marginTop="6dp"
+                        android:inputType="textEmailAddress" />
+
+                    <TextView
+                        style="@style/InputLabel"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_marginTop="16dp"
+                        android:text="Phone" />
+
+                    <EditText
+                        android:id="@+id/phoneInput"
+                        style="@style/InputField"
+                        android:layout_marginTop="6dp"
+                        android:inputType="phone" />
+
+                    <Button
+                        android:id="@+id/saveButton"
+                        style="@style/PrimaryButton"
+                        android:layout_marginTop="24dp"
+                        android:text="Save profile" />
+
+                    <TextView
+                        android:id="@+id/feedbackText"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:layout_marginTop="8dp"
+                        android:background="@drawable/status_panel"
+                        android:gravity="center"
+                        android:padding="16dp"
+                        android:textSize="14sp"
+                        android:visibility="gone" />
+
+                    <Button
+                        android:id="@+id/deactivateButton"
+                        style="@style/DangerButton"
+                        android:layout_marginTop="10dp"
+                        android:text="Request account deactivation" />
+
+                </LinearLayout>
+
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="18dp"
+                    android:orientation="vertical"
+                    android:background="@drawable/dashboard_card"
+                    android:padding="18dp">
+
+                    <TextView
+                        style="@style/SectionTitle"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="Change password" />
+
+                    <TextView
+                        style="@style/BodyText"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:layout_marginTop="6dp"
+                        android:text="Update your account password securely." />
+
+                    <TextView
+                        style="@style/InputLabel"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_marginTop="18dp"
+                        android:text="Current password" />
+
+                    <EditText
+                        android:id="@+id/currentPasswordInput"
+                        style="@style/InputField"
+                        android:layout_marginTop="6dp"
+                        android:inputType="textPassword"
+                        android:saveEnabled="false"
+                        android:singleLine="true" />
+
+                    <TextView
+                        style="@style/InputLabel"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_marginTop="14dp"
+                        android:text="New password" />
+
+                    <EditText
+                        android:id="@+id/newPasswordInput"
+                        style="@style/InputField"
+                        android:layout_marginTop="6dp"
+                        android:inputType="textPassword"
+                        android:saveEnabled="false"
+                        android:singleLine="true" />
+
+                    <TextView
+                        style="@style/InputLabel"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_marginTop="14dp"
+                        android:text="Confirm new password" />
+
+                    <EditText
+                        android:id="@+id/confirmNewPasswordInput"
+                        style="@style/InputField"
+                        android:layout_marginTop="6dp"
+                        android:inputType="textPassword"
+                        android:saveEnabled="false"
+                        android:singleLine="true" />
+
+                    <TextView
+                        style="@style/BodyText"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:layout_marginTop="8dp"
+                        android:text="Use 8–72 characters. You will need to sign in again after changing it." />
+
+                    <Button
+                        android:id="@+id/changePasswordButton"
+                        style="@style/SecondaryButton"
+                        android:layout_marginTop="18dp"
+                        android:text="Change password" />
+
+                    <TextView
+                        android:id="@+id/passwordFeedbackText"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:layout_marginTop="8dp"
+                        android:background="@drawable/status_panel"
+                        android:gravity="center"
+                        android:padding="16dp"
+                        android:textSize="14sp"
+                        android:visibility="gone" />
+
+                </LinearLayout>
+
+            </LinearLayout>
         </LinearLayout>
+
     </ScrollView>
-    <include layout="@layout/view_bottom_navigation" />
+
+    <include
+        layout="@layout/view_bottom_navigation" />
+
 </LinearLayout>
