@@ -1,3 +1,11 @@
+/*
+ * Student Name: Thilakaratne A.A.S.M.
+ * Component: Microgrid Node Management
+ * File Name: MicrogridNode.cs
+ * Description: Defines the data model used to store microgrid node details such as location, capacity, status, and availability.
+ */
+
+
 using MongoDB.Bson.Serialization.Attributes;
 
 namespace SmartSolarMicrogrid.Api.Models;

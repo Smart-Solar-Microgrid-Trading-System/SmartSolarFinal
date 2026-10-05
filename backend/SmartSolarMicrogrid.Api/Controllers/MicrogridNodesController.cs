@@ -1,3 +1,10 @@
+/*
+ * Student Name: Thilakaratne A.A.S.M.
+ * Component: Microgrid Node Management
+ * File Name: MicrogridNodesController.cs
+ * Description: Defines API endpoints for creating, retrieving, updating, and deactivating microgrid nodes.
+ */
+
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using SmartSolarMicrogrid.Api.Models;
