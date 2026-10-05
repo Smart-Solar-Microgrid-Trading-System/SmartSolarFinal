@@ -2,7 +2,8 @@
 
 The Smart Solar Microgrid Trading System is a client-server application for managing solar microgrid nodes, Prosumers, energy reservations, booking slots, and energy-transfer operations. It includes a React web application, a native Android application, and a central C# Web API connected to MongoDB.
 
-##Group ID: 40
+##Group ID: 
+40
 
 ## Git repository
 
