@@ -1,3 +1,10 @@
+/*
+ * Student Name: Thilakaratne A.A.S.M.
+ * Component: Energy Transaction Management
+ * File Name: TransactionQrResponse.cs
+ * Description: Defines the response model used to return transaction QR information to the Prosumer mobile application.
+ */
+
 namespace SmartSolarMicrogrid.Api.Models.Dtos;
 
 public sealed class TransactionQrResponse

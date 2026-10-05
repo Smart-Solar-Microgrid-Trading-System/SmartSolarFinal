@@ -1,3 +1,11 @@
+/*
+ * Student Name: Thilakaratne A.A.S.M.
+ * Component: Energy Transaction Management
+ * File Name: TransactionsController.cs
+ * Description: Defines API endpoints for generating transaction QR codes, verifying transaction details, and finalizing energy transfers.
+ */
+
+
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using SmartSolarMicrogrid.Api.Models.Dtos;

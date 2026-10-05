@@ -1,3 +1,11 @@
+/*
+ * Student Name: Thilakaratne A.A.S.M.
+ * Component: Energy Transaction Management
+ * File Name: Transaction.cs
+ * Description: Defines the data model used to store energy transaction information, QR token details, transaction status, and completion information.
+ */
+
+
 using MongoDB.Bson.Serialization.Attributes;
 
 namespace SmartSolarMicrogrid.Api.Models;
