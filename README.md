@@ -123,13 +123,3 @@ Set `VITE_API_BASE_URL=http://localhost:5080` in `web/.env.local`. The developme
 4. Open **Server Settings** on the login screen and configure the API address.
 
 Use `http://10.0.2.2:5080` from the Android emulator. For a physical device, use the API computer's LAN address and ensure both devices are connected to the same network.
-
-## IIS deployment summary
-
-1. Publish the C# API and host it as an IIS application using **No Managed Code**.
-2. Configure the API's MongoDB, JWT, and seed-account values locally on the server.
-3. Build the React application with `npm run build` and host the generated `web/dist` directory in IIS.
-4. Allow the required API and web ports through Windows Firewall for private networks.
-5. Configure the Android app with the IIS server's LAN address.
-
-Never commit MongoDB credentials, JWT secrets, seed passwords, local IP addresses, `.env.local`, local application-settings files, or machine-specific publish profiles.
