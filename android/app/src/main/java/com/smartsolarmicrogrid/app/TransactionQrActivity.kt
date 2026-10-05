@@ -91,8 +91,22 @@ class TransactionQrActivity : Activity() {
             return
         }
 
+        val accountId =
+            TransactionQrCache.accountId(token)
+
         transactionStatusText.text =
             "Preparing secure transaction QR..."
+
+        if (accountId != null) {
+            TransactionQrCache.get(
+                this,
+                reservationId,
+                accountId
+            )?.let { cached ->
+                displayQr(cached.qrPayload)
+                return
+            }
+        }
 
         thread {
 
@@ -126,6 +140,16 @@ class TransactionQrActivity : Activity() {
                                 "The server did not return a QR payload."
 
                             return@fold
+                        }
+
+                        if (accountId != null) {
+                            TransactionQrCache.save(
+                                this,
+                                reservationId,
+                                accountId,
+                                qrPayload,
+                                response.expiresAt
+                            )
                         }
 
                         displayQr(

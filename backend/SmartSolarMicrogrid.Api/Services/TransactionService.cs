@@ -27,6 +27,9 @@ public sealed class TransactionService
     string userId,
     string role)
     {
+        var now =
+            DateTime.UtcNow;
+
         // ---------------------------------------------------------
         // 1. Get the reservation
         // ---------------------------------------------------------
@@ -65,14 +68,25 @@ public sealed class TransactionService
             await _transactions
                 .Find(x =>
                     x.ReservationId == reservationId &&
-                    x.Status != "COMPLETED" &&
-                    x.ExpiresAt > DateTime.UtcNow)
+                    (x.Status == "ISSUED" ||
+                     x.Status == "VERIFIED") &&
+                    x.ExpiresAt > now)
                 .FirstOrDefaultAsync();
 
         if (existing != null)
         {
-            throw new InvalidOperationException(
-                "An active transaction QR already exists for this reservation.");
+            if (existing.Status == "VERIFIED")
+            {
+                throw new InvalidOperationException(
+                    "This transaction QR has already been verified and must be finalized.");
+            }
+
+            existing.Status = "SUPERSEDED";
+            existing.UpdatedAt = now;
+
+            await _transactions.ReplaceOneAsync(
+                x => x.Id == existing.Id,
+                existing);
         }
 
 
@@ -100,7 +114,7 @@ public sealed class TransactionService
         // ---------------------------------------------------------
 
         var expiresAt =
-            DateTime.UtcNow.AddMinutes(15);
+            now.AddMinutes(15);
 
 
         // ---------------------------------------------------------
@@ -109,6 +123,8 @@ public sealed class TransactionService
 
         var transaction = new EnergyTransaction
         {
+            Id = Guid.NewGuid().ToString(),
+
             ReservationId = reservation.Id,
 
             ProsumerId = userId,
@@ -121,7 +137,9 @@ public sealed class TransactionService
 
             Status = "ISSUED",
 
-            CreatedAt = DateTime.UtcNow,
+            CreatedAt = now,
+
+            UpdatedAt = now,
 
             ExpiresAt = expiresAt
         };
