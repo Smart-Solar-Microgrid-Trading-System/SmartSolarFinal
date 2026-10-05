@@ -11,6 +11,10 @@
     <color name="brand_green_dark">#007A4D</color>
     <color name="brand_green_light">#E7F8F1</color>
 
+    <!-- Sun accent -->
+    <color name="brand_yellow">#F5A524</color>
+    <color name="brand_yellow_light">#FFF4DB</color>
+
     <!-- Backgrounds -->
     <color name="app_background">#F4F7FB</color>
     <color name="surface">#FFFFFF</color>
@@ -39,6 +43,10 @@
 
     <color name="status_info">#1769AA</color>
     <color name="status_info_background">#EAF4FF</color>
+
+    <!-- Header -->
+    <color name="header_text_soft">#CFE3F5</color>
+    <color name="white_overlay">#29FFFFFF</color>
 
     <!-- Navigation -->
     <color name="navigation_inactive">#72839A</color>
