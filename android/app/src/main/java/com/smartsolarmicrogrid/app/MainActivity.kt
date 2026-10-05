@@ -112,7 +112,65 @@ class MainActivity : Activity() {
 
             // Loads live dashboard counts for the signed-in Prosumer.
             loadProsumerDashboard()
+        } else if (session?.role == "GridOperator") {
+
+            // Loads system-wide operational counts for the Grid Operator.
+            loadOperationalDashboard()
         }
+    }
+
+    private fun loadOperationalDashboard() {
+        val currentSession = session ?: return
+
+        activeBookingCountText.text = "—"
+        pendingBookingCountText.text = "—"
+
+        findViewById<TextView>(
+            R.id.activeDescriptionText
+        ).text = "Loading current bookings..."
+
+        findViewById<TextView>(
+            R.id.pendingDescriptionText
+        ).text = "Loading pending reservations..."
+
+        Thread {
+            OperationalDashboardApi.load(
+                this,
+                currentSession.token
+            ).fold(
+                onSuccess = { dashboard ->
+                    runOnUiThread {
+                        activeBookingCountText.text =
+                            dashboard.currentBookings.toString()
+
+                        pendingBookingCountText.text =
+                            dashboard.pendingReservations.toString()
+
+                        findViewById<TextView>(
+                            R.id.activeDescriptionText
+                        ).text = "Pending or approved bookings that have not ended"
+
+                        findViewById<TextView>(
+                            R.id.pendingDescriptionText
+                        ).text = "Waiting for Grid Operator review"
+                    }
+                },
+                onFailure = {
+                    runOnUiThread {
+                        activeBookingCountText.text = "—"
+                        pendingBookingCountText.text = "—"
+
+                        findViewById<TextView>(
+                            R.id.activeDescriptionText
+                        ).text = "Operational data unavailable"
+
+                        findViewById<TextView>(
+                            R.id.pendingDescriptionText
+                        ).text = "Operational data unavailable"
+                    }
+                }
+            )
+        }.start()
     }
 
     private fun loadProsumerDashboard() {
@@ -394,22 +452,22 @@ class MainActivity : Activity() {
             findViewById<TextView>(
                 R.id.activeLabelText
             ).text =
-                "Active transfers"
+                "Current bookings"
 
             findViewById<TextView>(
                 R.id.pendingLabelText
             ).text =
-                "Pending verifications"
+                "Pending reservations"
 
             findViewById<TextView>(
                 R.id.activeDescriptionText
             ).text =
-                "Available after transfer API"
+                "Loading current bookings..."
 
             findViewById<TextView>(
                 R.id.pendingDescriptionText
             ).text =
-                "Available after transfer API"
+                "Loading pending reservations..."
 
             primaryAction.text =
                 "Open operations"
@@ -429,27 +487,15 @@ class MainActivity : Activity() {
                         .openOperations(this)
                 }
 
-            secondaryAction.text =
-                "View bookings"
-
-            secondaryAction
-                .setCompoundDrawablesWithIntrinsicBounds(
-                    R.drawable.ic_bookings,
-                    0,
-                    0,
-                    0
-                )
-
-            secondaryAction
-                .setOnClickListener {
-
-                    AppNavigation
-                        .openBookings(this)
-                }
+            secondaryAction.visibility =
+                View.GONE
 
         } else {
 
             prosumerBenefitsPanel.visibility =
+                View.VISIBLE
+
+            secondaryAction.visibility =
                 View.VISIBLE
 
             findViewById<TextView>(
